@@ -33,11 +33,12 @@ now="$(date +%Y-%m-%dT%H:%M:%S)"
 day="$(date +%Y-%m-%d)"
 # slug từ tiêu đề hoặc dòng đầu của body
 raw="${title:-$(printf '%s' "$body" | head -1)}"
-# transliterate dấu tiếng Việt → ascii (nếu có iconv), rồi slugify
-ascii="$(printf '%s' "$raw" | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null || printf '%s' "$raw")"
-slug="$(printf '%s' "$ascii" | tr '[:upper:]' '[:lower:]' \
-        | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g' | cut -c1-50)"
-[[ -z "$slug" ]] && slug="note-$(date +%H%M%S)"
+# slugify: chỉ giữ ascii a-z0-9 (ký tự tiếng Việt có dấu bị bỏ — slug không cần đẹp,
+# nội dung đầy đủ nằm trong file). Rỗng/quá ngắn → fallback timestamp.
+slug="$(printf '%s' "$raw" | LC_ALL=C tr '[:upper:]' '[:lower:]' \
+        | LC_ALL=C sed -E 's/[^a-z0-9]+/-/g; s/-+/-/g; s/^-+|-+$//g' | cut -c1-50 \
+        | LC_ALL=C sed -E 's/-+$//')"
+[[ "${#slug}" -lt 2 ]] && slug="note-$(date +%H%M%S)"
 file="$INBOX/${day}-${slug}.md"
 # tránh ghi đè
 n=1; while [[ -e "$file" ]]; do file="$INBOX/${day}-${slug}-${n}.md"; ((n++)); done
