@@ -15,11 +15,13 @@ Mô hình: "compile once, keep current" (Karpathy LLM-wiki) — KHÔNG re-derive
 | Thư mục | Ý nghĩa (PARA) | Khi nào dùng |
 |---------|----------------|--------------|
 | `00-inbox/` | Capture | Note thô chưa phân loại. Bạn xử lý → chuyển đi. |
+| `10-daily/` | — | Nhật ký ngày `YYYY-MM-DD.md` (ephemeral). Nguyên liệu cho review. Skill `/today`. |
 | `10-projects/` | **P**rojects | Có mục tiêu + deadline. Xong → `40-archive/`. |
 | `20-areas/` | **A**reas | Trách nhiệm duy trì lâu dài (health, career, finance). Không có "xong". |
 | `30-resources/` | **R**esources | Chủ đề quan tâm, tài liệu học. `learns/` sống ở đây. |
 | `40-archive/` | **A**rchive | Đã xong / không active. |
 | `notes/` | Zettelkasten | Note atomic (1 ý / 1 file), liên kết bằng `[[...]]`. Tầng insight. |
+| `70-decisions/` | — | Nhật ký quyết định. Mỗi file BẮT BUỘC có **Why** + **Tradeoff**. Skill `/decision`. |
 | `feedback/` | — | Feedback nhận được. Kèm **Why** + **How to apply**. |
 | `sources/` | Layer 1 | Nguồn thô immutable. |
 
@@ -37,7 +39,7 @@ Mô hình: "compile once, keep current" (Karpathy LLM-wiki) — KHÔNG re-derive
 
 ```yaml
 ---
-type: project | area | resource | note | feedback | source
+type: project | area | resource | note | feedback | source | daily | decision
 title: <ngắn gọn>
 tags: [tag1, tag2]
 created: YYYY-MM-DD

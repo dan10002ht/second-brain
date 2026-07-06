@@ -57,6 +57,14 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 - [[python-asyncio-blocking]] — đừng chặn event loop asyncio.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
+## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
+
+_Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây — dùng skill `/today`._
+
+## 🧭 Decisions (70-decisions/) — quyết định + Why + Tradeoff
+
+_(chưa có) — dùng skill `/decision` để thêm. Mỗi file bắt buộc có Why + Tradeoff._
+
 ## 💬 Feedback (feedback/)
 
 - [[write-shorter-notes]] — viết note ngắn, atomic hơn.
