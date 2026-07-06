@@ -22,7 +22,7 @@ need this yet.** Below roughly **~100 sources / a few hundred pages**,
 better recall than embeddings. The knowledge graph is already free via
 `[[wiki-links]]`.
 
-This layer exists so it is *ready* the day the corpus crosses that threshold or
+This layer exists so it is _ready_ the day the corpus crosses that threshold or
 lexical search (ripgrep) starts missing conceptually-related notes phrased with
 different words. Turn it on then; ignore it until then.
 
@@ -100,23 +100,23 @@ brain-search --full-text "spaced repetition"   # print full chunk, not a snippet
    metadata go into a plain `chunks` table; per-file sha256 goes into `files`.
 5. **Incremental** — on re-run, files whose sha256 is unchanged are skipped;
    changed files are re-chunked and re-embedded; deleted files are pruned.
-6. **Search** — `bin/brain-search` embeds the query with the *same* backend and
+6. **Search** — `bin/brain-search` embeds the query with the _same_ backend and
    runs a KNN `MATCH` query, ordering by distance. Distance is reported as a
    `1/(1+d)` similarity-ish score in `[0,1]` (higher = closer).
 
 ## Files
 
-| File | Role |
-|------|------|
-| `bin/brain-index` | build/update the vector index |
-| `bin/brain-search` | query the index |
+| File                      | Role                                                 |
+| ------------------------- | ---------------------------------------------------- |
+| `bin/brain-index`         | build/update the vector index                        |
+| `bin/brain-search`        | query the index                                      |
 | `requirements-search.txt` | pinned Python deps (`sqlite-vec`, optional fallback) |
-| `.index/brain.db` | the vector DB (git-ignored, disposable) |
+| `.index/brain.db`         | the vector DB (git-ignored, disposable)              |
 
 ## Troubleshooting
 
-- *"no local embedding backend available"* — start Ollama (`ollama serve` +
+- _"no local embedding backend available"_ — start Ollama (`ollama serve` +
   `ollama pull nomic-embed-text`) or `pip install sentence-transformers`.
-- *"sqlite-vec not installed"* — `pip install -r requirements-search.txt`.
-- *"no index at .index/brain.db"* — run `brain-index` first.
+- _"sqlite-vec not installed"_ — `pip install -r requirements-search.txt`.
+- _"no index at .index/brain.db"_ — run `brain-index` first.
 - Switched machines/backends and results look off — `brain-index --full`.

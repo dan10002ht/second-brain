@@ -70,7 +70,7 @@ App Shopify (do AVADA phát triển, tên nội bộ `@avada/app`, brand "Joy Su
 ## Liên quan
 
 - [[typescript-notes]] (đối chiếu — repo này cố tình KHÔNG dùng TS)
-- [[shopify-app-development]]
-- [[firebase-functions-notes]]
-- [[sub-test]]
+- [[app-development]] (Shopify)
+- [[firestore-multitenant]]
+- [[controller-service-repository]]
 - [[joy]]

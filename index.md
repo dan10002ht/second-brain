@@ -27,10 +27,18 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 
 ## 🔁 Areas (20-areas/) — trách nhiệm duy trì lâu dài
 
-- [[dev-skills]] — kỹ năng lập trình Rust / TypeScript / Python.
+- [[shopify-app-dev]] — phát triển & bảo trì app Shopify tại AVADA (mảng chính).
+- [[dev-skills]] — kỹ năng lập trình (JS/TS/Node chính; Rust/Python học thêm).
+- [[aws-certification]] — học AWS & lấy chứng chỉ.
 
 ## 📚 Resources (30-resources/) — chủ đề & học tập
 
+**Tech stack dùng hằng ngày (tham chiếu xuyên project):**
+- `shopify/` — [[app-development]]: extensions, billing, Polaris, embedded app.
+- `firebase/` — [[firestore-multitenant]]: cô lập dữ liệu theo `shopId`.
+- `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]].
+
+**Học tập:**
 - `learns/rust/`
   - [[borrow-checker]] — mượn tham chiếu an toàn tại compile time.
 - `learns/typescript/`
