@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# capture — nhét note thô vào 00-inbox/ từ terminal, 0 friction.
+# Dùng:
+#   capture "một ý tưởng nhanh"           # tạo note với nội dung
+#   capture                                # mở editor để viết
+#   echo "..." | capture                   # nhận từ stdin (pipe)
+#   capture -t "tiêu đề" "nội dung"        # đặt tiêu đề rõ
+set -euo pipefail
+
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+INBOX="$BRAIN_DIR/00-inbox"
+mkdir -p "$INBOX"
+
+title=""
+if [[ "${1:-}" == "-t" ]]; then
+  title="$2"; shift 2
+fi
+
+# Gom nội dung: args > stdin > editor
+if [[ -n "${1:-}" ]]; then
+  body="$*"
+elif [[ ! -t 0 ]]; then
+  body="$(cat)"
+else
+  tmp="$(mktemp)"
+  "${EDITOR:-vi}" "$tmp"
+  body="$(cat "$tmp")"; rm -f "$tmp"
+fi
+
+[[ -z "${body// }" ]] && { echo "capture: nội dung rỗng, bỏ qua." >&2; exit 1; }
+
+now="$(date +%Y-%m-%dT%H:%M:%S)"
+day="$(date +%Y-%m-%d)"
+# slug từ tiêu đề hoặc dòng đầu của body
+raw="${title:-$(printf '%s' "$body" | head -1)}"
+slug="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' \
+        | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g' | cut -c1-50)"
+[[ -z "$slug" ]] && slug="note"
+file="$INBOX/${day}-${slug}.md"
+# tránh ghi đè
+n=1; while [[ -e "$file" ]]; do file="$INBOX/${day}-${slug}-${n}.md"; ((n++)); done
+
+{
+  echo "---"
+  echo "type: inbox"
+  [[ -n "$title" ]] && echo "title: $title"
+  echo "created: $now"
+  echo "processed: false"
+  echo "---"
+  echo
+  printf '%s\n' "$body"
+} > "$file"
+
+echo "→ $file"
