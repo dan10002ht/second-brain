@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# brain-sync — chạy tự động (theo lịch): sắp xếp inbox → index → git backup.
+# KHÔNG capture (đó là việc thủ công của con người).
+# Dùng: brain-sync            # chạy đầy đủ
+#       brain-sync --no-ai    # bỏ qua bước brain-learn (chỉ index + commit)
+set -uo pipefail
+
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+cd "$BRAIN_DIR" || { echo "brain-sync: không vào được $BRAIN_DIR" >&2; exit 1; }
+export PATH="$BRAIN_DIR/bin:$PATH"
+log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
+
+RUN_AI=1
+[[ "${1:-}" == "--no-ai" ]] && RUN_AI=0
+
+# 1) Sắp xếp inbox bằng Claude (chỉ khi inbox có file thật)
+if [[ $RUN_AI -eq 1 ]]; then
+  inbox_count=$(find 00-inbox -maxdepth 1 -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$inbox_count" -gt 0 ]]; then
+    log "Sắp xếp $inbox_count note trong inbox..."
+    brain-learn || log "brain-learn lỗi (bỏ qua, tiếp tục)"
+  else
+    log "Inbox trống, bỏ qua bước sắp xếp."
+  fi
+fi
+
+# 2) Cập nhật index semantic (chỉ khi backend embeddings có sẵn)
+if command -v brain-index >/dev/null 2>&1; then
+  log "Cập nhật index semantic..."
+  brain-index >/dev/null 2>&1 && log "Index xong." || log "Bỏ qua index (chưa cài deps embeddings)."
+fi
+
+# 3) Git backup nếu có thay đổi
+if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
+  log "Commit thay đổi..."
+  git add -A
+  git -c commit.gpgsign=false commit -q -m "brain-sync: $(date +%Y-%m-%d\ %H:%M)" && log "Đã commit."
+else
+  log "Không có thay đổi để commit."
+fi
+
+log "brain-sync hoàn tất."
