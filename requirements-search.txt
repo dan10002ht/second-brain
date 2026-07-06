@@ -1,0 +1,15 @@
+# Optional semantic-search layer for my-brain.
+# Install:  pip install -r requirements-search.txt
+# See docs/semantic-search.md for when/why to use this.
+
+# Vector store: sqlite-vec extension + Python bindings.
+sqlite-vec==0.1.6
+
+# Embedding backend B (fallback) — used only if Ollama is not running.
+# Backend A is Ollama (nomic-embed-text), which is a separate app, not a pip dep.
+# sentence-transformers pulls in torch; it is heavy. Uncomment if you want the
+# fallback available without Ollama.
+# sentence-transformers==3.3.1
+
+# numpy is a transitive dep of sentence-transformers; pinned loosely for clarity.
+numpy>=1.24

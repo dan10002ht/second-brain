@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""brain-search — semantic search over the my-brain markdown wiki.
+
+Embeds the query LOCALLY with the same backend used to build the index,
+runs a vector-similarity search against ~/projects/my-brain/.index/brain.db
+(sqlite-vec), and prints the top-K matches (file path + heading + snippet + score).
+
+Usage:
+    brain-search "how do I structure atomic notes"
+    brain-search -k 10 "rust ownership"
+    brain-search --full-text "some phrase"   # print full chunk, not a snippet
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sqlite3
+import sys
+import urllib.request
+from pathlib import Path
+
+BRAIN_ROOT = Path(__file__).resolve().parent.parent
+DB_PATH = BRAIN_ROOT / ".index" / "brain.db"
+
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("BRAIN_OLLAMA_MODEL", "nomic-embed-text")
+ST_MODEL = os.environ.get("BRAIN_ST_MODEL", "all-MiniLM-L6-v2")
+
+
+# --------------------------------------------------------------------------- #
+# Embedding backends (must match brain-index)
+# --------------------------------------------------------------------------- #
+def _ollama_available() -> bool:
+    try:
+        req = urllib.request.Request(f"{OLLAMA_URL}/api/tags")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            json.loads(resp.read().decode("utf-8"))
+        return True
+    except Exception:
+        return False
+
+
+def _ollama_embed(text: str) -> list[float]:
+    payload = json.dumps({"model": OLLAMA_MODEL, "prompt": text}).encode("utf-8")
+    req = urllib.request.Request(
+        f"{OLLAMA_URL}/api/embeddings",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    return data["embedding"]
+
+
+_ST_MODEL_OBJ = None
+
+
+def _st_available() -> bool:
+    try:
+        import sentence_transformers  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
+def _st_embed(text: str) -> list[float]:
+    global _ST_MODEL_OBJ
+    if _ST_MODEL_OBJ is None:
+        from sentence_transformers import SentenceTransformer
+
+        _ST_MODEL_OBJ = SentenceTransformer(ST_MODEL)
+    return list(map(float, _ST_MODEL_OBJ.encode([text], normalize_embeddings=True)[0]))
+
+
+def backend_for(name: str):
+    """Return an embed fn matching the backend name recorded in the index."""
+    family = (name or "").split(":")[0]
+    if family == "ollama":
+        if not _ollama_available():
+            sys.exit(
+                f"ERROR: index was built with Ollama ({name}) but Ollama is not reachable "
+                f"at {OLLAMA_URL}. Start Ollama or reindex with another backend."
+            )
+        return _ollama_embed
+    if family == "sentence-transformers":
+        if not _st_available():
+            sys.exit(
+                f"ERROR: index was built with {name} but sentence-transformers is not "
+                "installed. pip install sentence-transformers, or reindex."
+            )
+        return _st_embed
+    # Unknown / legacy index: auto-detect.
+    if _ollama_available():
+        return _ollama_embed
+    if _st_available():
+        return _st_embed
+    sys.exit("ERROR: no local embedding backend available (Ollama or sentence-transformers).")
+
+
+def snippet(text: str, width: int = 240) -> str:
+    s = " ".join(text.split())
+    return s if len(s) <= width else s[:width].rstrip() + "…"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Semantic search over my-brain.")
+    ap.add_argument("query", help="search query")
+    ap.add_argument("-k", type=int, default=5, help="number of results (default 5)")
+    ap.add_argument("--full-text", action="store_true", help="print full chunk text")
+    args = ap.parse_args()
+
+    if not DB_PATH.exists():
+        sys.exit(f"ERROR: no index at {DB_PATH}. Run:  bin/brain-index")
+
+    try:
+        import sqlite_vec
+    except ImportError:
+        sys.exit(
+            "ERROR: sqlite-vec not installed.\n"
+            "  pip install -r requirements-search.txt   (or: pip install sqlite-vec)"
+        )
+
+    db = sqlite3.connect(DB_PATH)
+    db.enable_load_extension(True)
+    sqlite_vec.load(db)
+    db.enable_load_extension(False)
+
+    row = db.execute("SELECT value FROM meta WHERE key='backend'").fetchone()
+    backend_name = row[0] if row else None
+    embed = backend_for(backend_name)
+
+    qvec = embed(args.query)
+    q = sqlite_vec.serialize_float32(qvec)
+
+    rows = db.execute(
+        """
+        SELECT c.path, c.heading, c.text, v.distance
+        FROM vec_chunks v
+        JOIN chunks c ON c.id = v.chunk_id
+        WHERE v.embedding MATCH ? AND k = ?
+        ORDER BY v.distance
+        """,
+        (q, args.k),
+    ).fetchall()
+    db.close()
+
+    if not rows:
+        print("No results. Is the index populated? Run:  bin/brain-index")
+        return 0
+
+    for i, (path, heading, text, dist) in enumerate(rows, 1):
+        score = 1.0 / (1.0 + dist)  # distance -> 0..1 similarity-ish
+        loc = f"{path}" + (f"  #{heading}" if heading else "")
+        print(f"{i}. [{score:.3f}] {loc}")
+        body = text.strip() if args.full_text else snippet(text)
+        for line in body.splitlines() if args.full_text else [body]:
+            print(f"    {line}")
+        print()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+#
+# brain-learn — auto-learn layer for my-brain
+#
+# Processes everything in 00-inbox/ by shelling out to Claude Code headless
+# mode (`claude -p`). For each inbox file Claude will: read it, decide its
+# type, add proper frontmatter per CLAUDE.md, move it to the correct layer
+# folder, suggest [[wiki-links]], mark it processed, and update index.md.
+#
+# Usage:
+#   brain-learn            # process the inbox (Claude may edit/move files)
+#   brain-learn --dry-run  # report what WOULD happen, no edits
+#
+# Env:
+#   BRAIN_DIR   path to the brain (default: $HOME/projects/my-brain)
+#
+set -euo pipefail
+
+# ---- config ---------------------------------------------------------------
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+DRY_RUN=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    -h|--help)
+      grep '^#' "$0" | sed 's/^# \{0,1\}//' | sed '1d'
+      exit 0
+      ;;
+    *)
+      echo "brain-learn: unknown argument: $arg" >&2
+      echo "Try 'brain-learn --help'." >&2
+      exit 2
+      ;;
+  esac
+done
+
+# ---- preflight checks -----------------------------------------------------
+if ! command -v claude >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+brain-learn: the `claude` CLI was not found on your PATH.
+
+Install Claude Code and make sure `claude` is runnable, e.g.:
+  npm install -g @anthropic-ai/claude-code
+Then verify with:
+  claude --version
+EOF
+  exit 127
+fi
+
+if [ ! -d "$BRAIN_DIR" ]; then
+  echo "brain-learn: BRAIN_DIR does not exist: $BRAIN_DIR" >&2
+  exit 1
+fi
+
+INBOX="$BRAIN_DIR/00-inbox"
+if [ ! -d "$INBOX" ]; then
+  echo "brain-learn: inbox not found: $INBOX" >&2
+  exit 1
+fi
+
+# ---- empty inbox guard ----------------------------------------------------
+# Count real entries (ignore dotfiles like .gitkeep / .DS_Store).
+shopt -s nullglob
+inbox_entries=("$INBOX"/*)
+shopt -u nullglob
+if [ "${#inbox_entries[@]}" -eq 0 ]; then
+  echo "brain-learn: inbox is empty ($INBOX) — nothing to process."
+  exit 0
+fi
+
+echo "brain-learn: found ${#inbox_entries[@]} item(s) in inbox."
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo "brain-learn: DRY RUN — Claude will only report, no files will change."
+fi
+
+# ---- build the prompt -----------------------------------------------------
+read -r -d '' PROMPT <<'PROMPT_EOF' || true
+You are the maintainer of this markdown knowledge brain ("my-brain"). Follow
+the conventions in CLAUDE.md exactly. First read index.md, then CLAUDE.md, to
+understand the structure, the frontmatter schema, and the maintenance rules.
+
+Your task: process EVERY file currently in the 00-inbox/ directory. For each
+file:
+
+1. Read the file's content.
+2. Decide its `type`: one of project | area | resource | note | feedback.
+   - project  -> 10-projects/   (goal + deadline)
+   - area     -> 20-areas/      (long-lived responsibility)
+   - resource -> 30-resources/  (topic / study material; learns/ lives here)
+   - note     -> notes/         (atomic Zettelkasten idea, 1 idea per file)
+   - feedback -> feedback/      (include Why + How to apply)
+3. Add proper YAML frontmatter matching the CLAUDE.md schema (type, title,
+   tags, created, updated, and optional source/status). Keep it light — do
+   not over-engineer frontmatter.
+4. Move the file into the correct layer folder (rename to a clean kebab-case
+   slug filename if helpful).
+5. Suggest and insert relevant [[wiki-links]] to related notes (links to
+   not-yet-existing notes are fine — they mark work to do later). Use [[slug]]
+   without the .md extension.
+6. Mark the item processed (it should no longer live in 00-inbox/).
+7. After processing all items, update index.md so it accurately reflects the
+   new/moved notes. index.md is the map and must stay correct.
+
+Rules:
+- NEVER modify anything under sources/ (immutable layer 1).
+- Prefer flat notes + links over deep nested folders.
+- Keep notes atomic; split long notes and link them.
+- Provenance: synthesized knowledge should point to its source via the
+  `source:` field; if unsure, note it as unverified.
+
+When finished, print a concise summary: for each inbox item, the chosen type,
+its new path, and the wiki-links you added; then note the index.md updates.
+PROMPT_EOF
+
+DRY_RUN_PROMPT='
+
+IMPORTANT — DRY RUN MODE: Do NOT create, edit, move, or delete any files.
+Do not modify index.md. Only READ files and print a detailed report of what
+you WOULD do for each inbox item (chosen type, destination path, frontmatter
+you would add, wiki-links you would suggest, and index.md changes you would
+make).'
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  PROMPT="$PROMPT$DRY_RUN_PROMPT"
+fi
+
+# ---- run claude headless --------------------------------------------------
+# --print          : headless / non-interactive print mode
+# --permission-mode: acceptEdits (auto-accept file edits) for a real run;
+#                    for --dry-run we do not need write perms, so keep the
+#                    default (safer) permission mode.
+cd "$BRAIN_DIR"
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  claude --print --add-dir "$BRAIN_DIR" "$PROMPT"
+else
+  claude --print --permission-mode acceptEdits --add-dir "$BRAIN_DIR" "$PROMPT"
+fi
+
+echo "brain-learn: done."
