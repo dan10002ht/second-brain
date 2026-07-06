@@ -3,11 +3,27 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-06 · Trạng thái: đã seed note mẫu đầu tiên_
+_Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
 - [[build-my-brain]] — dựng wiki tri thức cá nhân này (status: active, deadline 2026-07-31).
+
+**AVADA / Shopify apps (work):**
+- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep).
+- [[joy]] — Joy Loyalty & Rewards SaaS (deep).
+- [[joy-subscription-artifacts]] — kho artifact/CDN build của Joy Subscription.
+- [[avada-core]] — thư viện lõi auth Shopify + Firebase (Koa/TS).
+- [[crm]] — AVADA CRM marketing automation (monorepo + ML).
+- [[backup]] — Avada Backups & Restore.
+- [[pdf]] — PDF Invoice for Shopify. ⚠️ có secrets hardcode trong RELEASE_NOTE.
+- [[shipping-labels]] — in nhãn vận chuyển Shopify.
+- [[headless-demo]] — demo store Shopify headless (Next.js 15).
+
+**Khác:**
+- [[aws]] — nền tảng tự học AWS & chứng chỉ.
+- [[detect]] — Pipe Counter, AI on-device (YOLOv8 + Flutter).
+- [[customer-manager-mono]] — quản lý khách/đơn cho cơ sở may đo (WhatsApp).
 
 ## 🔁 Areas (20-areas/) — trách nhiệm duy trì lâu dài
 
@@ -21,6 +37,8 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed note mẫu đầu tiên_
   - [[discriminated-unions]] — tagged union + exhaustiveness check.
 - `learns/python/`
   - [[asyncio-gotchas]] — các bẫy asyncio thường gặp.
+- `learns/java/`
+  - [[dsa]] — luyện cấu trúc dữ liệu & giải thuật (Java).
 
 ## 🧠 Notes (notes/) — Zettelkasten, note atomic liên kết
 
