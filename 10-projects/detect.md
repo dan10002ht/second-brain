@@ -34,4 +34,4 @@ export TFLite → nhúng vào Flutter app.
   chạy offline trên mobile.
 
 ## Liên quan
-- [[10-projects/index]]
+- [[index]]

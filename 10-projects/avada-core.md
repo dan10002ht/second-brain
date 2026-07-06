@@ -29,5 +29,5 @@ Active, đang phát triển (chuỗi bản `4.8.x-alpha`). Commit gần nhất m
 - Git log cho thấy đang gỡ bỏ phụ thuộc `CHARGE_API` và middleware `userState` cũ — xu hướng gọn hoá tầng token/charge.
 
 ## Liên quan
-- [[shopify-app-auth-flow]]
-- [[firebase-firestore-patterns]]
+- [[app-development]]
+- [[firestore-multitenant]]

@@ -116,5 +116,5 @@ Luồng đáng chú ý:
 
 - [[joy-subscription-artifacts]] — chi tiết billing/plan artifacts của Joy
 - [[subscriptions]] — mô hình subscription/SaaS billing chung
-- [[shopify-app-architecture]] — pattern app Shopify (extensions, Functions API)
-- [[firebase-firestore-cost-optimization]] — tối ưu chi phí Firestore
+- [[app-development]] — pattern app Shopify (extensions, Functions API)
+- [[firestore-multitenant]] — tối ưu chi phí Firestore

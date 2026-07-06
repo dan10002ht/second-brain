@@ -47,4 +47,4 @@ Nói cách khác: đây là "đích deploy" của phần front-end, không phả
 - [[subscriptions]]
 - [[joy]]
 - [[avada-core]]
-- [[shopify]]
+- [[shopify-app-dev]]

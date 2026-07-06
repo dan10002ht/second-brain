@@ -32,5 +32,5 @@ repo: ~/projects/backup
 - `readme.md` chỉ là template GitLab mặc định — thông tin thật nằm ở `CLAUDE.md` và `TECHNICAL_ARCHITECTURE_REPORT.md` trong repo.
 
 ## Liên quan
-- [[shopify-app-development]]
-- [[firebase-functions]]
+- [[app-development]]
+- [[firestore-multitenant]]

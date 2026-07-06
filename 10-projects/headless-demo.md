@@ -37,5 +37,5 @@ là các bản vá nhỏ ("add some thing", "done").
   dùng `sdk.on(...)` trả về hàm unsubscribe, nhớ `sdk.destroy()` khi cleanup.
 
 ## Liên quan
-- [[shopify-headless]]
-- [[joy-subscription-sdk]]
+- [[app-development]]
+- [[subscriptions]]

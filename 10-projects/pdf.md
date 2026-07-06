@@ -30,5 +30,5 @@ Active, đang phát triển. Commit gần đây tập trung vào i18n/dịch thu
 - Lưu ý bảo mật: `RELEASE_NOTE.md` có chứa secrets/API keys cũ hard-code (SendGrid, Google OAuth) — nên xoay vòng.
 
 ## Liên quan
-- [[shopify-app-development]]
-- [[firebase-cloud-functions]]
+- [[app-development]]
+- [[firestore-multitenant]]

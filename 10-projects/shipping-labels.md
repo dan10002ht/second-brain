@@ -30,5 +30,5 @@ Active. Commit gần đây: sync BigQuery changelog 0.4.4, fix bug print action,
 - Docs nội bộ: `docs/techstack.md`, `readme.md`, `changelog.md`.
 
 ## Liên quan
-- [[shopify-app-development]]
-- [[firebase-functions]]
+- [[app-development]]
+- [[firestore-multitenant]]

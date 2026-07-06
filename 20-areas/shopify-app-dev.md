@@ -19,7 +19,7 @@ thuật lặp lại xuyên suốt các project.
 - **Frontend admin**: React + Shopify Polaris + App Bridge.
 - **Storefront**: Preact widget nhúng theme.
 - **Cấu trúc repo**: [[monorepo-yarn-workspaces]].
-- **Nền tảng**: [[shopify-app-development]] (extensions, billing, embedded).
+- **Nền tảng**: [[app-development]] (extensions, billing, embedded).
 - CI trên GitLab (gitlab.com/avada/*).
 
 ## Các app đang phụ trách

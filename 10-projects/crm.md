@@ -31,4 +31,4 @@ Active. Commit gần đây tập trung vào backfill/resync dữ liệu transact
 
 ## Liên quan
 - [[bigquery-sync]]
-- [[firebase-functions]]
+- [[firestore-multitenant]]
