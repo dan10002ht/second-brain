@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""slack — CLI mỏng gọi Slack Web API bằng user token (xoxp-...).
+
+Token đọc theo thứ tự: env SLACK_TOKEN → file ~/.config/avada/slack (chmod 600).
+Lấy token: https://slack-oauth.avada.net/slack/install (nhấn Allow).
+
+Mọi hành động hiện DƯỚI DANH NGHĨA CHÍNH BẠN trên Slack. Token không hết hạn
+trừ khi bị revoke — coi như mật khẩu, đừng commit / paste vào chat.
+
+Dùng:
+  slack whoami
+  slack send   <channel> <text...>
+  slack search <query...>              # form-encoded, hỗ trợ 'from:me deadline'
+  slack history <channel> [limit]
+  slack react  <channel> <ts> <emoji>  # emoji không có dấu ':' (vd thumbsup)
+  slack upload <channel> <file> [title]
+  slack api    <method> key=val ...    # raw, JSON body (search.* tự form-encode)
+
+channel: ID (C0123ABCD / U0123ABCD) hoặc #ten-kenh / @user cũng gửi được qua chat.postMessage.
+"""
+import json
+import os
+import sys
+from pathlib import Path
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+
+BASE = "https://slack.com/api"
+TOKEN_FILE = Path.home() / ".config" / "avada" / "slack"
+
+
+def load_token():
+    tok = os.environ.get("SLACK_TOKEN")
+    if tok:
+        return tok.strip()
+    if TOKEN_FILE.exists():
+        return TOKEN_FILE.read_text().strip()
+    sys.exit(
+        f"Thiếu token. Set env SLACK_TOKEN hoặc ghi vào {TOKEN_FILE} (chmod 600).\n"
+        "Lấy token: https://slack-oauth.avada.net/slack/install"
+    )
+
+
+def api(method, params, token):
+    url = f"{BASE}/{method}"
+    headers = {"Authorization": f"Bearer {token}"}
+    if method.startswith("search."):
+        # Slack search.* yêu cầu form-encoding, không phải JSON.
+        body = urlencode(params).encode()
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+    else:
+        body = json.dumps(params).encode()
+        headers["Content-Type"] = "application/json; charset=utf-8"
+    req = Request(url, data=body, headers=headers, method="POST")
+    try:
+        with urlopen(req) as r:
+            data = json.load(r)
+    except HTTPError as e:
+        sys.exit(f"HTTP {e.code}: {e.read().decode()[:300]}")
+    if not data.get("ok"):
+        sys.exit(f"{method} error: {data.get('error')}  {json.dumps(data)[:300]}")
+    return data
+
+
+def out(data):
+    print(json.dumps(data, ensure_ascii=False, indent=2))
+
+
+def main():
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help"):
+        print(__doc__)
+        return
+    cmd, rest = args[0], args[1:]
+    token = load_token()
+
+    if cmd == "whoami":
+        out(api("auth.test", {}, token))
+    elif cmd == "send":
+        if len(rest) < 2:
+            sys.exit("dùng: slack send <channel> <text...>")
+        out(api("chat.postMessage", {"channel": rest[0], "text": " ".join(rest[1:])}, token))
+    elif cmd == "search":
+        if not rest:
+            sys.exit("dùng: slack search <query...>")
+        out(api("search.messages", {"query": " ".join(rest), "count": 20}, token))
+    elif cmd == "history":
+        if not rest:
+            sys.exit("dùng: slack history <channel> [limit]")
+        limit = rest[1] if len(rest) > 1 else "20"
+        out(api("conversations.history", {"channel": rest[0], "limit": int(limit)}, token))
+    elif cmd == "react":
+        if len(rest) != 3:
+            sys.exit("dùng: slack react <channel> <ts> <emoji>")
+        ch, ts, name = rest
+        out(api("reactions.add", {"channel": ch, "timestamp": ts, "name": name.strip(":")}, token))
+    elif cmd == "upload":
+        upload(rest, token)
+    elif cmd == "api":
+        if not rest:
+            sys.exit("dùng: slack api <method> key=val ...")
+        params = {}
+        for kv in rest[1:]:
+            k, _, v = kv.partition("=")
+            params[k] = v
+        out(api(rest[0], params, token))
+    else:
+        sys.exit(f"lệnh lạ: {cmd}\n{__doc__}")
+
+
+def upload(rest, token):
+    """3 bước: getUploadURLExternal → PUT bytes → completeUploadExternal."""
+    if len(rest) < 2:
+        sys.exit("dùng: slack upload <channel> <file> [title]")
+    channel, path = rest[0], Path(rest[1])
+    title = rest[2] if len(rest) > 2 else path.name
+    if not path.exists():
+        sys.exit(f"không thấy file: {path}")
+    size = path.stat().st_size
+    step1 = api("files.getUploadURLExternal", {"filename": path.name, "length": size}, token)
+    upload_url, file_id = step1["upload_url"], step1["file_id"]
+    # Bước 2: PUT nội dung file lên upload_url (không cần Authorization).
+    put = Request(upload_url, data=path.read_bytes(), method="POST")
+    try:
+        urlopen(put)
+    except HTTPError as e:
+        sys.exit(f"upload PUT lỗi HTTP {e.code}: {e.read().decode()[:200]}")
+    files = json.dumps([{"id": file_id, "title": title}])
+    out(api("files.completeUploadExternal", {"files": files, "channel_id": channel}, token))
+
+
+if __name__ == "__main__":
+    main()
