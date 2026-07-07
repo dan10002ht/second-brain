@@ -10,7 +10,7 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 - [[build-my-brain]] — dựng wiki tri thức cá nhân này (status: active, deadline 2026-07-31).
 
 **AVADA / Shopify apps (work):**
-- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep).
+- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops).
 - [[joy]] — Joy Loyalty & Rewards SaaS (deep).
 - [[joy-subscription-artifacts]] — kho artifact/CDN build của Joy Subscription.
 - [[avada-core]] — thư viện lõi auth Shopify + Firebase (Koa/TS).
