@@ -1,6 +1,7 @@
 ---
 type: project
 title: Dựng "my-brain" — wiki tri thức cá nhân
+summary: Dựng wiki tri thức cá nhân này (PARA + Zettelkasten, LLM-maintained), deadline 2026-07-31.
 tags: [pkm, project, meta]
 created: 2026-07-06
 updated: 2026-07-06

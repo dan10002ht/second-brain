@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""brain-lint — health check cho second-brain (Karpathy LLM-wiki linter).
+
+Quét toàn wiki, báo cáo các vấn đề khiến LLM điều hướng kém:
+  1. Broken wiki-link  — [[slug]] trỏ tới note không tồn tại.
+  2. Missing summary   — note nội dung thiếu field `summary:` trong frontmatter.
+  3. Orphan note       — không file nào (kể cả index.md) link tới → LLM khó tìm.
+  4. Tag ngoài taxonomy — nếu có `tags.md`, tag không khai báo = sprawl.
+
+Dùng:
+  brain-lint            # chạy từ gốc brain, in report
+  brain-lint --strict   # exit code != 0 nếu có lỗi (dùng cho pre-commit)
+
+Không sửa gì — chỉ báo cáo.
+"""
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+# Thư mục chứa note nội dung (có slug, tham gia graph)
+CONTENT_DIRS = ["10-projects", "20-areas", "30-resources", "notes", "feedback", "70-decisions"]
+# Ephemeral / navigation — không bắt buộc summary, không tính orphan
+SKIP_NAMES = {"_template.md", "README.md", "CLAUDE.md"}
+
+LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
+
+
+def slug_of(path):
+    return path.stem
+
+
+def content_files():
+    files = []
+    for d in CONTENT_DIRS:
+        for f in (ROOT / d).rglob("*.md"):
+            if f.name not in SKIP_NAMES:
+                files.append(f)
+    return files
+
+
+def all_md_files():
+    """Mọi file có thể là đích của link (gồm daily, inbox, archive...)."""
+    files = {}
+    for f in ROOT.rglob("*.md"):
+        if f.name in SKIP_NAMES:
+            continue
+        # bỏ file trong bin/, docs/ (không phải note)
+        rel = f.relative_to(ROOT)
+        if rel.parts[0] in ("bin", "docs", ".claude", "sources"):
+            continue
+        files[slug_of(f)] = f
+    return files
+
+
+def parse_frontmatter(text):
+    if not text.startswith("---"):
+        return {}
+    end = text.find("\n---", 3)
+    if end == -1:
+        return {}
+    fm = {}
+    for line in text[3:end].splitlines():
+        if ":" in line:
+            k, _, v = line.partition(":")
+            fm[k.strip()] = v.strip()
+    return fm
+
+
+def norm_link(raw):
+    # [[slug|alias]] , [[slug#heading]] → slug
+    return raw.split("|")[0].split("#")[0].strip()
+
+
+def load_taxonomy():
+    tax = ROOT / "tags.md"
+    if not tax.exists():
+        return None
+    # mọi tag bọc trong `backtick`, kể cả nhiều tag trên 1 dòng (` · `)
+    tags = set(re.findall(r"`([a-z0-9\-]+)`", tax.read_text()))
+    return tags or None
+
+
+def main():
+    strict = "--strict" in sys.argv[1:]
+    slug_map = all_md_files()
+    known = set(slug_map)
+    taxonomy = load_taxonomy()
+
+    broken, missing_summary, orphan, bad_tags = [], [], [], []
+    linked_to = set()  # slug được ai đó link tới
+
+    # pass 1: gom link toàn wiki (index.md nằm sẵn trong slug_map)
+    scan = list(slug_map.values())
+    for f in scan:
+        if not f.exists():
+            continue
+        text = f.read_text(errors="ignore")
+        for m in LINK_RE.finditer(text):
+            tgt = norm_link(m.group(1))
+            if tgt:
+                linked_to.add(tgt)
+                if tgt not in known:
+                    broken.append((f.relative_to(ROOT), tgt))
+
+    # pass 2: mỗi note nội dung — summary, orphan, tags
+    for f in content_files():
+        text = f.read_text(errors="ignore")
+        fm = parse_frontmatter(text)
+        slug = slug_of(f)
+        if not fm.get("summary"):
+            missing_summary.append(f.relative_to(ROOT))
+        if slug not in linked_to:
+            orphan.append(f.relative_to(ROOT))
+        if taxonomy is not None:
+            raw = fm.get("tags", "").strip("[]")
+            for t in [x.strip() for x in raw.split(",") if x.strip()]:
+                if t not in taxonomy:
+                    bad_tags.append((f.relative_to(ROOT), t))
+
+    def section(title, items, fmt):
+        if not items:
+            return
+        print(f"\n## {title} ({len(items)})")
+        for it in items:
+            print("  - " + fmt(it))
+
+    total = len(broken) + len(missing_summary) + len(orphan) + len(bad_tags)
+    print(f"# brain-lint — {len(content_files())} note nội dung · {total} vấn đề")
+    section("🔴 Broken/pending wiki-link (có thể là note chưa viết — OK theo rule 3)", broken, lambda x: f"{x[0]} → [[{x[1]}]]")
+    section("🟡 Thiếu summary", missing_summary, str)
+    section("🟠 Orphan (không ai link tới)", orphan, str)
+    if taxonomy is not None:
+        section("🟣 Tag ngoài taxonomy", bad_tags, lambda x: f"{x[0]}: {x[1]}")
+    else:
+        print("\n(ℹ️  chưa có tags.md — bỏ qua kiểm tra taxonomy)")
+
+    if total == 0:
+        print("\n✅ Sạch.")
+    if strict and total:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

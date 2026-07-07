@@ -1,6 +1,7 @@
 ---
 type: resource
 title: Borrow checker — mượn tham chiếu an toàn
+summary: Mượn tham chiếu an toàn tại compile time thay vì move quyền sở hữu.
 tags: [rust, memory, borrow-checker]
 created: 2026-07-06
 updated: 2026-07-06

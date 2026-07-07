@@ -1,6 +1,7 @@
 ---
 type: feedback
 title: Viết note ngắn và atomic hơn
+summary: Feedback — viết note ngắn, atomic hơn.
 tags: [pkm, writing, feedback]
 created: 2026-07-06
 updated: 2026-07-06

@@ -1,6 +1,7 @@
 ---
 type: project
 title: AWS Learner — nền tảng học AWS & chứng chỉ
+summary: Nền tảng tự học AWS & luyện chứng chỉ (Next.js + LocalStack).
 tags: [aws, learning, cloud, certification, nextjs, localstack]
 created: 2026-07-06
 updated: 2026-07-06

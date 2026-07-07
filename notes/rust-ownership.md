@@ -1,6 +1,7 @@
 ---
 type: note
 title: Ownership trong Rust
+summary: Mỗi giá trị Rust có đúng một owner; hết scope thì giá trị được giải phóng.
 tags: [rust, memory, ownership]
 created: 2026-07-06
 updated: 2026-07-06

@@ -1,6 +1,7 @@
 ---
 type: note
 title: Type narrowing trong TypeScript
+summary: Thu hẹp union type xuống type cụ thể theo control flow.
 tags: [typescript, types, narrowing]
 created: 2026-07-06
 updated: 2026-07-06

@@ -1,6 +1,7 @@
 ---
 type: note
 title: Học công khai (learning in public)
+summary: Viết ra những gì đang học để hiểu sâu hơn (protégé effect).
 tags: [pkm, learning, method]
 created: 2026-07-06
 updated: 2026-07-06

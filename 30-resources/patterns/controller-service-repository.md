@@ -1,6 +1,7 @@
 ---
 type: resource
 title: Controller → Service → Repository layering
+summary: Kiến trúc backend phân tầng chuẩn của app AVADA (Koa + Firebase Functions).
 tags: [architecture, backend, pattern, nodejs]
 created: 2026-07-06
 updated: 2026-07-06

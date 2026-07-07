@@ -34,6 +34,9 @@ Mô hình: "compile once, keep current" (Karpathy LLM-wiki) — KHÔNG re-derive
 5. **Tránh folder lồng sâu** (cái bẫy của dev). Ưu tiên note phẳng + link hơn là nested folders.
 6. **Đừng over-engineer frontmatter.** Giữ nhẹ (xem schema dưới). Không thêm field nếu không dùng.
 7. **Cập nhật `index.md`** mỗi khi thêm/di chuyển note đáng kể — đây là bản đồ, phải luôn đúng.
+8. **Mỗi note PHẢI có `summary:`** (1 câu TLDR trong frontmatter). LLM đọc summary để quyết định có mở full note không — rẻ vài giây, tiết kiệm việc đọc file không liên quan. Dòng trong `index.md` nên khớp với `summary:` của note (nguồn để auto-generate index sau này). Daily notes ephemeral — không bắt buộc summary.
+9. **Tag phải nằm trong `tags.md`** (taxonomy). Cần tag mới → khai báo ở `tags.md` TRƯỚC rồi mới dùng. Chống tag sprawl.
+10. **Chạy `bin/brain-lint` trước khi commit** — báo link hỏng, note thiếu summary, note orphan, tag ngoài taxonomy. Sạch rồi mới commit.
 
 ## Frontmatter schema (giữ nhẹ)
 
@@ -41,6 +44,7 @@ Mô hình: "compile once, keep current" (Karpathy LLM-wiki) — KHÔNG re-derive
 ---
 type: project | area | resource | note | feedback | source | daily | decision
 title: <ngắn gọn>
+summary: <1 câu TLDR — LLM đọc dòng này để quyết định có mở full note không>
 tags: [tag1, tag2]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD

@@ -1,6 +1,7 @@
 ---
 type: resource
 title: Monorepo với Yarn workspaces
+summary: Cấu trúc monorepo dùng chung ở nhiều app AVADA (Yarn 4 workspaces).
 tags: [monorepo, yarn, tooling, pattern]
 created: 2026-07-06
 updated: 2026-07-06

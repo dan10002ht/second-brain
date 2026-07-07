@@ -1,6 +1,7 @@
 ---
 type: resource
 title: Các bẫy thường gặp với asyncio
+summary: Tổng hợp các bẫy asyncio thường gặp khi viết code Python.
 tags: [python, asyncio, concurrency]
 created: 2026-07-06
 updated: 2026-07-06

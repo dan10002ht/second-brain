@@ -1,6 +1,7 @@
 ---
 type: note
 title: MOC — Học tập & Quản lý tri thức cá nhân
+summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
 updated: 2026-07-06

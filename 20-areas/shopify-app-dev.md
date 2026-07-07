@@ -1,6 +1,7 @@
 ---
 type: area
 title: Shopify app development (AVADA)
+summary: Phát triển & bảo trì các app Shopify embedded tại AVADA — mảng công việc chính.
 tags: [shopify, avada, career, area]
 created: 2026-07-06
 updated: 2026-07-06

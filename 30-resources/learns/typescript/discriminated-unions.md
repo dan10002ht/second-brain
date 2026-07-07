@@ -1,6 +1,7 @@
 ---
 type: resource
 title: Discriminated unions
+summary: Tagged union theo field discriminant + kiểm tra exhaustiveness trong TypeScript.
 tags: [typescript, types, patterns]
 created: 2026-07-06
 updated: 2026-07-06

@@ -1,6 +1,7 @@
 ---
 type: area
 title: Kỹ năng lập trình
+summary: Duy trì & nâng kỹ năng lập trình (JS/TS/Node chính; Rust/Python học thêm).
 tags: [career, skills, area]
 created: 2026-07-06
 updated: 2026-07-06

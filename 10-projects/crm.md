@@ -1,6 +1,7 @@
 ---
 type: project
 title: AVADA CRM - Marketing Automation
+summary: AVADA CRM marketing automation (monorepo + ML, Firebase + BigQuery).
 tags: [crm, nodejs, firebase, bigquery, marketing-automation]
 created: 2026-07-06
 updated: 2026-07-06

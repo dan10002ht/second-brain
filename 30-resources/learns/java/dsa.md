@@ -1,6 +1,7 @@
 ---
 type: resource
 title: DSA - Luyện Cấu trúc dữ liệu & Giải thuật (Java)
+summary: Luyện cấu trúc dữ liệu & giải thuật bằng Java (chuẩn bị phỏng vấn).
 tags: [dsa, algorithms, java, practice, interview]
 created: 2026-07-06
 updated: 2026-07-06

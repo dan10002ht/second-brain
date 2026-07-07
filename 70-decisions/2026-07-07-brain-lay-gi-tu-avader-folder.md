@@ -1,6 +1,7 @@
 ---
 type: decision
 title: Trộm daily/decisions/skills từ avader-folder, bỏ agent-board & role system
+summary: Chỉ mượn layer nhẹ (daily/decisions/skills) từ avader-folder, bỏ agent-board & role system (review 2026-10-07).
 tags: [pkm, brain, tooling]
 created: 2026-07-07
 updated: 2026-07-07

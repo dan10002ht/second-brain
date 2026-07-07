@@ -1,6 +1,7 @@
 ---
 type: decision
 title:
+summary:
 tags: []
 created:
 updated:

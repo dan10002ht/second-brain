@@ -1,6 +1,7 @@
 ---
 type: project
 title: headless-demo
+summary: Demo store Shopify headless (Next.js 15) tích hợp subscription SDK.
 tags: [shopify, nextjs, headless, subscription, sdk]
 created: 2026-07-06
 updated: 2026-07-06

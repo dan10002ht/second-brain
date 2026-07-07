@@ -1,6 +1,7 @@
 ---
 type: project
 title: Customer Manager Mono
+summary: Quản lý khách/đơn cho cơ sở may đo qua WhatsApp (monorepo React + Node + PostgreSQL).
 tags: [monorepo, react, nodejs, postgresql, quan-ly-khach-hang]
 created: 2026-07-06
 updated: 2026-07-06

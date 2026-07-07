@@ -1,6 +1,7 @@
 ---
 type: note
 title: Nguyên tắc atomic note (Zettelkasten)
+summary: Mỗi note chứa đúng một ý, liên kết bằng wiki-link.
 tags: [pkm, zettelkasten, method]
 created: 2026-07-06
 updated: 2026-07-06

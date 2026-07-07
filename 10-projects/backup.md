@@ -1,6 +1,7 @@
 ---
 type: project
 title: Avada Backups & Restore (Shopify app)
+summary: App Shopify sao lưu & khôi phục dữ liệu store (Node.js + Firebase).
 tags: [shopify, nodejs, firebase, backup]
 created: 2026-07-06
 updated: 2026-07-06

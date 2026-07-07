@@ -1,6 +1,7 @@
 ---
 type: project
 title: Detect - Pipe Counter (On-device AI)
+summary: Pipe Counter, AI on-device đếm ống (YOLOv8 + Flutter).
 tags: [ai, computer-vision, yolov8, flutter, mobile]
 created: 2026-07-06
 updated: 2026-07-06

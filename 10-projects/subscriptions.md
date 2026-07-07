@@ -1,6 +1,7 @@
 ---
 type: project
 title: Joy Subscription (AVADA Shopify App)
+summary: Joy Subscription — app Shopify bán hàng theo gói định kỳ (monorepo Node/Firebase/Preact).
 tags: [shopify, subscription, nodejs, firebase, react, preact, monorepo]
 created: 2026-07-06
 updated: 2026-07-06

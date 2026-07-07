@@ -1,6 +1,7 @@
 ---
 type: project
 title: "Joy — Shopify Loyalty & Rewards App (AVADA)"
+summary: Joy Loyalty & Rewards SaaS trên Shopify (Node/React/Firebase).
 tags: [js, nodejs, react, shopify, firebase, subscription, loyalty, saas]
 created: 2026-07-06
 updated: 2026-07-06

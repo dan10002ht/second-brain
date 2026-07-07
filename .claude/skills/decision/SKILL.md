@@ -18,6 +18,7 @@ Ghi quyết định vào `70-decisions/` theo chuẩn brain. Mục tiêu: giữ 
    - `created`/`updated` = ngày hôm nay (xem currentDate trong context).
    - `review` = ngày hôm nay + 3 tháng.
    - `status: active`.
+   - `summary:` = 1 câu TLDR về quyết định (LLM đọc để lọc liên quan).
    - Slug ngắn, tiếng Việt không dấu hoặc tiếng Anh, kebab-case.
 4. **Điền đủ**: Bối cảnh, Quyết định, Why, Tradeoff, Phương án khác đã cân nhắc.
 5. **Gợi ý `[[links]]`** tới project/note/area liên quan (quét index.md nếu cần).

@@ -1,6 +1,7 @@
 ---
 type: project
 title: Avada Shipping Labels
+summary: App in nhãn vận chuyển cho Shopify (Firebase + React).
 tags: [shopify, firebase, react, shipping]
 created: 2026-07-06
 updated: 2026-07-06

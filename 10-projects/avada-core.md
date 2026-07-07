@@ -1,6 +1,7 @@
 ---
 type: project
 title: avada-core
+summary: Thư viện lõi auth Shopify + Firebase (Koa/TS) dùng chung cho các app AVADA.
 tags: [shopify, firebase, koa, typescript, auth, billing]
 created: 2026-07-06
 updated: 2026-07-06

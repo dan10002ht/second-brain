@@ -1,6 +1,7 @@
 ---
 type: area
 title: AWS certification & cloud skills
+summary: Trách nhiệm học AWS & lấy chứng chỉ, ôn định kỳ tới khi thi.
 tags: [aws, cloud, learning, area]
 created: 2026-07-06
 updated: 2026-07-06

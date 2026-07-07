@@ -1,6 +1,7 @@
 ---
 type: resource
 title: Shopify app development
+summary: Kiến thức nền tái dùng cho app Shopify embedded — extensions, billing, Polaris.
 tags: [shopify, polaris, extensions, billing]
 created: 2026-07-06
 updated: 2026-07-06

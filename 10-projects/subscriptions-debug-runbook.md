@@ -1,6 +1,7 @@
 ---
 type: note
 title: Subscriptions — Debug & Ops Runbook
+summary: Cách điều tra bug Joy Subscription bằng data thật (BigQuery/Firestore/Redis).
 tags: [shopify, subscription, debug, bigquery, firestore, redis, runbook]
 created: 2026-07-07
 updated: 2026-07-07

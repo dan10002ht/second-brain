@@ -1,6 +1,7 @@
 ---
 type: note
 title: Gọi hàm blocking làm nghẽn event loop asyncio
+summary: Đừng gọi hàm blocking trong asyncio — chỉ có một event loop trên một thread.
 tags: [python, asyncio, concurrency]
 created: 2026-07-06
 updated: 2026-07-06

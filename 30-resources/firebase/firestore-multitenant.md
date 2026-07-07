@@ -1,6 +1,7 @@
 ---
 type: resource
 title: Firestore multi-tenant theo shopId
+summary: Cô lập dữ liệu mỗi shop thành một tenant bằng shopId trong các app Shopify AVADA.
 tags: [firebase, firestore, multitenant, backend]
 created: 2026-07-06
 updated: 2026-07-06

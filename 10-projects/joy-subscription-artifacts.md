@@ -1,6 +1,7 @@
 ---
 type: project
 title: joy-subscription-artifacts
+summary: Kho artifact/CDN build storefront của Joy Subscription (webpack/vite).
 tags: [subscription, shopify, cdn, artifacts, storefront, webpack, vite, avada]
 created: 2026-07-06
 updated: 2026-07-06

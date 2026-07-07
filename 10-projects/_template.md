@@ -1,6 +1,7 @@
 ---
 type: project
 title: 
+summary: 
 tags: []
 created: 
 updated: 

@@ -1,6 +1,7 @@
 ---
 type: project
 title: PDF Invoice for Shopify
+summary: App tạo hóa đơn PDF cho Shopify (Node + Firebase + React); lưu ý có secrets hardcode trong RELEASE_NOTE.
 tags: [shopify, firebase, nodejs, react, pdf, invoice]
 created: 2026-07-06
 updated: 2026-07-06
