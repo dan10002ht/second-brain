@@ -60,6 +60,15 @@ App Shopify (do AVADA phát triển, tên nội bộ `@avada/app`, brand "Joy Su
 - **Công việc gần đây (07/2026)**: tập trung mảng installment/bundle trả góp (defer-last, partial payment), collection-swap (fix currency/pricing/multi-location save), migrate storefront sang Horizon theme block, bump extension api_version 2025-10.
 - **API_DOCUMENTATION.md** (~27KB) là nguồn tra cứu endpoint đầy đủ (product/plan/bundle APIs...).
 
+## Bug lặp lại (rút từ lịch sử session)
+
+- **Race condition `contractCreate` ↔ `contractUpdate` khi swap variant** → sync sai / duplicate order. Hiển thị luôn là sp đầu tiên, chỉ swap về sp đúng khi **billing attempt / charge** (nghi swap ở tầng contract). Đang debug 2026-07-07 → [[2026-07-07]]. Hướng xử lý đã bàn: Redis chống race (giữ `randomId`).
+- **Webhook `subscription_contracts/create` bị miss** → contract không mirror vào Firestore → app báo "not found" + subscriber list trống.
+- **BigQuery cost gotcha**: query bảng shard/cluster phải siết date range (vd 90→7 ngày), tránh full scan. Chỉ fetch data khi manual contract / case lỗi, không fetch luôn luôn.
+- **Deploy nhầm `app.toml`** thay vì toml môi trường đúng (staging2 `joy-subscription-staging2.toml`, staging4 `ag-subscriptions-staging-4`, prod `avada-subscription-app`). Query tiền thật phải dùng `serviceAccount.prod.json`.
+- **Không được phá tích hợp Joy Loyalty** (app thứ 3) qua webhook cũ. Pricing v3 = legacy MRR grandfathered.
+- **Không bắn nhiều webhook** (`orders/create+update+cancelled`, `contracts/update`) vì bắn rất nhiều; refactor `customer/update` sang Pub/Sub để dedup + giảm cost.
+
 ## Bài học
 
 - App subscription "thật" phức tạp hơn nhiều so với demo: lõi nằm ở lifecycle contract + billing attempt + đồng bộ ngược Shopify, không phải ở UI.

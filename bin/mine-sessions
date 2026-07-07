@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""mine-sessions — cô đọng transcript Claude Code (.jsonl) của 1 project thành markdown.
+
+Claude Code lưu mỗi session ở ~/.claude/projects/<escaped-cwd>/<uuid>.jsonl.
+Script này lọc lấy LƯỢT USER (text thật) + tóm tắt ngắn lượt assistant, bỏ tool
+output / code dump / message meta — để mình (LLM) đọc bản cô đọng rồi rút feedback,
+quyết định, quy ước; KHÔNG nhét 500MB raw vào context.
+
+Dùng:
+  mine-sessions <project-slug|path> [--assistant N] [--out FILE]
+
+  project-slug: tên thư mục dưới ~/.claude/projects, hoặc phần đuôi (vd 'subscriptions'
+                → khớp -Users-dantt1002-projects-subscriptions). Hoặc path tuyệt đối tới dir.
+  --assistant N : số ký tự tối đa giữ mỗi lượt assistant (mặc định 240; 0 = bỏ hẳn assistant).
+  --out FILE    : ghi ra file thay vì stdout.
+"""
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path.home() / ".claude" / "projects"
+
+
+def resolve(slug):
+    p = Path(slug)
+    if p.is_dir():
+        return p
+    cand = ROOT / slug
+    if cand.is_dir():
+        return cand
+    matches = [d for d in ROOT.iterdir() if d.is_dir() and d.name.endswith(slug)]
+    if len(matches) == 1:
+        return matches[0]
+    if not matches:
+        sys.exit(f"Không tìm thấy project khớp '{slug}' trong {ROOT}")
+    sys.exit("Khớp nhiều dir, nói rõ hơn:\n  " + "\n  ".join(m.name for m in matches))
+
+
+def user_text(msg):
+    """Lượt user 'thật' = content là string. content dạng list thường là tool_result → bỏ."""
+    c = msg.get("content")
+    if isinstance(c, str):
+        s = c.strip()
+        # bỏ message hệ thống/hook/command chèn vào dưới danh nghĩa user
+        if not s or s.startswith("<") or s.startswith("Caveat:") or s.startswith("[Request"):
+            return None
+        return s
+    return None
+
+
+def assistant_text(msg, limit):
+    if limit == 0:
+        return None
+    c = msg.get("content")
+    if not isinstance(c, list):
+        return None
+    parts = [b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text"]
+    s = " ".join(parts).strip()
+    if not s:
+        return None
+    return s[:limit] + ("…" if len(s) > limit else "")
+
+
+def main():
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help"):
+        print(__doc__)
+        return
+    slug = args[0]
+    a_limit = 240
+    out = None
+    i = 1
+    while i < len(args):
+        if args[i] == "--assistant":
+            a_limit = int(args[i + 1]); i += 2
+        elif args[i] == "--out":
+            out = args[i + 1]; i += 2
+        else:
+            sys.exit(f"cờ lạ: {args[i]}")
+
+    proj = resolve(slug)
+    files = sorted(proj.glob("*.jsonl"), key=lambda f: f.stat().st_mtime)
+    buf = [f"# Mined sessions — {proj.name}", f"_{len(files)} session_\n"]
+
+    for f in files:
+        session_lines = []
+        for line in f.open(errors="ignore"):
+            try:
+                d = json.loads(line)
+            except Exception:
+                continue
+            t = d.get("type")
+            if t == "user":
+                s = user_text(d.get("message", {}))
+                if s:
+                    session_lines.append(f"**U:** {s}")
+            elif t == "assistant":
+                s = assistant_text(d.get("message", {}), a_limit)
+                if s:
+                    session_lines.append(f"A: {s}")
+        if not any(l.startswith("**U:**") for l in session_lines):
+            continue  # session không có lượt user thật → bỏ
+        buf.append(f"\n## session {f.stem[:8]}\n")
+        buf.extend(session_lines)
+
+    text = "\n".join(buf)
+    if out:
+        Path(out).write_text(text)
+        print(f"Ghi {len(text)} ký tự → {out}  ({text.count(chr(10))} dòng)")
+    else:
+        print(text)
+
+
+if __name__ == "__main__":
+    main()
