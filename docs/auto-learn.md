@@ -103,11 +103,11 @@ Under the hood the script runs Claude Code headless mode from inside the brain
 directory:
 
 ```bash
-# real run
-claude --print --permission-mode acceptEdits --add-dir "$BRAIN_DIR" "<prompt>"
+# real run  (prompt MUST come right after --print — --add-dir swallows trailing args)
+claude --print "<prompt>" --permission-mode acceptEdits --add-dir "$BRAIN_DIR"
 
 # dry run (no write permission needed)
-claude --print --add-dir "$BRAIN_DIR" "<prompt>"
+claude --print "<prompt>" --add-dir "$BRAIN_DIR"
 ```
 
 - `--print` (`-p`) — non-interactive headless mode: run the prompt, print the

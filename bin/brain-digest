@@ -160,10 +160,13 @@ fi
 
 # ---- run claude headless --------------------------------------------------
 cd "$BRAIN_DIR"
+# NOTE: prompt MUST come right after --print. `--add-dir` greedily consumes
+# following args, so a prompt placed after it gets swallowed (claude then errors
+# "Input must be provided...").
 if [ "$DRY_RUN" -eq 1 ]; then
-  claude --print --add-dir "$BRAIN_DIR" --add-dir "$TMP" "$PROMPT"
+  claude --print "$PROMPT" --add-dir "$BRAIN_DIR" --add-dir "$TMP"
 else
-  claude --print --permission-mode acceptEdits --add-dir "$BRAIN_DIR" --add-dir "$TMP" "$PROMPT"
+  claude --print "$PROMPT" --permission-mode acceptEdits --add-dir "$BRAIN_DIR" --add-dir "$TMP"
   touch "$WATERMARK"
 fi
 

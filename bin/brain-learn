@@ -132,10 +132,13 @@ fi
 #                    default (safer) permission mode.
 cd "$BRAIN_DIR"
 
+# NOTE: prompt MUST come right after --print. `--add-dir` greedily consumes
+# following args, so a prompt placed after it gets swallowed (claude then errors
+# "Input must be provided...").
 if [ "$DRY_RUN" -eq 1 ]; then
-  claude --print --add-dir "$BRAIN_DIR" "$PROMPT"
+  claude --print "$PROMPT" --add-dir "$BRAIN_DIR"
 else
-  claude --print --permission-mode acceptEdits --add-dir "$BRAIN_DIR" "$PROMPT"
+  claude --print "$PROMPT" --permission-mode acceptEdits --add-dir "$BRAIN_DIR"
 fi
 
 echo "brain-learn: done."
