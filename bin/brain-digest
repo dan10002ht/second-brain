@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+#
+# brain-digest — self-learning front half for my-brain
+#
+# Finds Claude Code session transcripts (~/.claude/projects/*.jsonl) that are
+# NEW since the last run, condenses them with bin/mine-sessions, then shells
+# out to Claude Code headless (`claude -p`) to distill durable learnings
+# (feedback / decision / bug / technique) into PROPOSAL files in 00-inbox/.
+#
+# It never matures or commits. You review the inbox, then run `brain-learn`
+# to promote proposals into the wiki. Human stays in the loop.
+#
+# Quality filter: if a project's new sessions contain nothing worth keeping,
+# NO file is written for it. An empty digest is success, not failure.
+#
+# Usage:
+#   brain-digest            # mine new sessions -> write inbox proposals
+#   brain-digest --dry-run  # report only, no files written, watermark untouched
+#   brain-digest --since N  # override: look back N days instead of watermark
+#
+# Env:
+#   BRAIN_DIR       path to the brain     (default: $HOME/projects/my-brain)
+#   PROJECTS_ROOT   Claude session store  (default: $HOME/.claude/projects)
+#
+set -euo pipefail
+
+# ---- config ---------------------------------------------------------------
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+PROJECTS_ROOT="${PROJECTS_ROOT:-$HOME/.claude/projects}"
+STATE_DIR="$BRAIN_DIR/.state"
+WATERMARK="$STATE_DIR/brain-digest.watermark"
+INBOX="$BRAIN_DIR/00-inbox"
+MINE="$BRAIN_DIR/bin/mine-sessions"
+TODAY="$(date +%F)"
+
+DRY_RUN=0
+SINCE_DAYS=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1 ;;
+    --since) shift; SINCE_DAYS="${1:-}" ;;
+    -h|--help) grep '^#' "$0" | sed 's/^# \{0,1\}//' | sed '1d'; exit 0 ;;
+    *) echo "brain-digest: unknown argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+# ---- preflight ------------------------------------------------------------
+command -v claude >/dev/null 2>&1 || {
+  echo "brain-digest: 'claude' CLI not found on PATH. Install Claude Code first." >&2
+  exit 127
+}
+[ -d "$BRAIN_DIR" ] || { echo "brain-digest: BRAIN_DIR missing: $BRAIN_DIR" >&2; exit 1; }
+[ -d "$PROJECTS_ROOT" ] || { echo "brain-digest: PROJECTS_ROOT missing: $PROJECTS_ROOT" >&2; exit 1; }
+[ -x "$MINE" ] || { echo "brain-digest: mine-sessions not found/executable: $MINE" >&2; exit 1; }
+mkdir -p "$STATE_DIR" "$INBOX"
+
+# ---- find new sessions ----------------------------------------------------
+# A session is "new" if its .jsonl is newer than the watermark. First run (or
+# --since) falls back to a look-back window. We skip the my-brain project
+# itself (meta noise) and internal subagent transcripts.
+find_new() {
+  local root="$1"
+  if [ -n "$SINCE_DAYS" ]; then
+    find "$root" -name '*.jsonl' -mtime "-${SINCE_DAYS}" 2>/dev/null
+  elif [ -f "$WATERMARK" ]; then
+    find "$root" -name '*.jsonl' -newer "$WATERMARK" 2>/dev/null
+  else
+    # first ever run: look back 1 day so we don't distill the whole history
+    find "$root" -name '*.jsonl' -mtime -1 2>/dev/null
+  fi
+}
+
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/brain-digest.XXXXXX")"
+trap 'rm -rf "$TMP"' EXIT
+
+declare -a MINED_ARGS=()
+projects_with_new=0
+
+# group new files by project dir
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  pdir="$(dirname "$f")"
+  pname="$(basename "$pdir" | sed 's/^-Users-[^-]*-projects-//')"
+  # skip meta / self / subagents
+  case "$pname" in
+    ""|-Users-*|subagents|*my-brain) continue ;;
+  esac
+  mkdir -p "$TMP/$pname"
+  ln -sf "$f" "$TMP/$pname/$(basename "$f")"
+done < <(find_new "$PROJECTS_ROOT")
+
+# extract each project's new sessions into a condensed markdown file
+for pdir in "$TMP"/*/; do
+  [ -d "$pdir" ] || continue
+  pname="$(basename "$pdir")"
+  out="$TMP/mined-$pname.md"
+  if "$MINE" "$pdir" --assistant 160 --out "$out" >/dev/null 2>&1 && [ -s "$out" ]; then
+    MINED_ARGS+=("$pname => $out")
+    projects_with_new=$((projects_with_new + 1))
+  fi
+done
+
+if [ "$projects_with_new" -eq 0 ]; then
+  echo "brain-digest: no new sessions since last run — nothing to distill."
+  [ "$DRY_RUN" -eq 0 ] && touch "$WATERMARK"
+  exit 0
+fi
+
+echo "brain-digest: found new sessions in $projects_with_new project(s):"
+printf '  - %s\n' "${MINED_ARGS[@]%% =>*}"
+
+# ---- build distill prompt -------------------------------------------------
+FILES_BLOCK=""
+for entry in "${MINED_ARGS[@]}"; do
+  FILES_BLOCK="$FILES_BLOCK
+- project \"${entry%% =>*}\": ${entry##*=> }"
+done
+
+read -r -d '' PROMPT <<PROMPT_EOF || true
+You are the maintainer of this markdown knowledge brain ("my-brain"). Read
+index.md then CLAUDE.md first to learn the schema and rules.
+
+Below are condensed transcripts of NEW Claude Code sessions per project. Each
+file has user turns (lines starting **U:**) and short assistant summaries (A:).
+$FILES_BLOCK
+
+Your task: for EACH project's file, distill only DURABLE, reusable learnings:
+  - feedback on how to work, decisions (with why), bugs with root cause,
+    reusable techniques/commands, gotchas.
+
+Then, for each project that HAS worthwhile learnings, create ONE proposal file
+at 00-inbox/digest-<project>-$TODAY.md containing:
+  - lightweight frontmatter: type: note, title, summary (1-line TLDR),
+    tags (only from tags.md — declare nothing new), created: $TODAY,
+    source: (name the project + "session history").
+  - a short body grouped by: Feedback / Decisions / Bugs / Techniques.
+  - suggested [[wiki-links]] to related existing notes.
+
+CRITICAL quality filter:
+  - If a project's new sessions contain nothing durable (routine edits, chit-
+    chat, or facts ALREADY captured in the brain — check existing notes), write
+    NO file for that project. An empty digest is a SUCCESS. Do not pad.
+  - Mark anything you are not sure of as "chưa xác minh".
+  - These are PROPOSALS only: write into 00-inbox/ ONLY. Do NOT move/mature
+    notes, do NOT edit index.md, do NOT touch anything under sources/, do NOT
+    commit. brain-learn will mature them later after human review.
+
+When done, print a concise summary: which projects produced a proposal (with
+path) and which were skipped as "nothing durable", and why.
+PROMPT_EOF
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  PROMPT="$PROMPT
+
+IMPORTANT — DRY RUN: do NOT create or edit any file. Only READ the mined files
+and print, per project, what proposal you WOULD write (or why you'd skip it)."
+fi
+
+# ---- run claude headless --------------------------------------------------
+cd "$BRAIN_DIR"
+if [ "$DRY_RUN" -eq 1 ]; then
+  claude --print --add-dir "$BRAIN_DIR" --add-dir "$TMP" "$PROMPT"
+else
+  claude --print --permission-mode acceptEdits --add-dir "$BRAIN_DIR" --add-dir "$TMP" "$PROMPT"
+  touch "$WATERMARK"
+fi
+
+echo "brain-digest: done. Review 00-inbox/, then run brain-learn to mature."

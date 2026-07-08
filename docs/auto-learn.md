@@ -1,5 +1,46 @@
 # Auto-learn layer
 
+## Vòng tự học đầy đủ (self-learning loop)
+
+```
+[session .jsonl]  →(A) mine-sessions  →  [mined .md]  →(B) brain-digest  →  [00-inbox/ proposals]  →(C) brain-learn  →  [mature notes]
+     Claude Code            extract           condensed        distill (claude -p)      human review          promote to wiki
+```
+
+- **(A) `bin/mine-sessions`** — cô đọng transcript 1 project thành markdown (bỏ tool output).
+- **(B) `bin/brain-digest`** — tìm session MỚI kể từ watermark (mọi project), extract, rồi `claude -p`
+  distill thành **đề xuất trong `00-inbox/`**. Có bộ lọc: không đáng học → không ghi gì. KHÔNG tự chín/commit.
+- **(C) `bin/brain-learn`** — bạn duyệt inbox rồi promote đề xuất thành note chín (xem dưới).
+
+Human-in-the-loop: (B) chỉ ghi vào inbox (tầng capture), bạn quyết định cái gì lên wiki.
+
+### brain-digest — chạy tay
+
+```bash
+bin/brain-digest --dry-run     # xem sẽ đề xuất gì, không ghi
+bin/brain-digest               # ghi đề xuất vào 00-inbox/, cập nhật watermark
+bin/brain-digest --since 3     # bỏ qua watermark, quét lại 3 ngày gần nhất
+```
+
+Watermark ở `.state/brain-digest.watermark` (gitignored). Lần đầu (chưa có watermark) chỉ quét 24h
+gần nhất để khỏi distill toàn bộ lịch sử.
+
+### brain-digest — chạy tự động (launchd, macOS)
+
+Session file nằm local nên phải chạy **local** (không dùng cloud routine). Dùng `launchd` chạy mỗi tối 21:00:
+
+```bash
+cp bin/com.avada.brain-digest.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.avada.brain-digest.plist
+launchctl start com.avada.brain-digest   # chạy thử ngay
+```
+
+Sáng hôm sau: mở brain, đọc `00-inbox/digest-*.md`, chạy `brain-learn` để chín cái đáng giữ. Log ở `.state/`.
+
+---
+
+## brain-learn (tầng (C))
+
 The **auto-learn layer** turns inbox processing into a single command instead
 of manually typing a prompt to Claude each time. It implements the LLM-wiki
 model (Karpathy: "compile once, keep current") — an LLM agent does the

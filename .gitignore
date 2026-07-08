@@ -7,3 +7,6 @@
 .index/
 __pycache__/
 *.pyc
+
+# self-learning watermark/state
+.state/

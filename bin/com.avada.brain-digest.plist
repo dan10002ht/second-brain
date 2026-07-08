@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd job: chạy brain-digest mỗi tối 21:00 để brain tự học từ session trong ngày.
+  Cài:
+    cp bin/com.avada.brain-digest.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.avada.brain-digest.plist
+  Chạy thử ngay:
+    launchctl start com.avada.brain-digest
+  Gỡ:
+    launchctl unload ~/Library/LaunchAgents/com.avada.brain-digest.plist
+  Log: .state/brain-digest.out.log / .err.log trong brain.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.avada.brain-digest</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/dantt1002/projects/my-brain/bin/brain-digest</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/dantt1002/projects/my-brain</string>
+
+  <!-- launchd có env tối thiểu; nạp PATH đủ để tìm claude + node -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/dantt1002/.nvm/versions/node/v20.19.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>BRAIN_DIR</key>
+    <string>/Users/dantt1002/projects/my-brain</string>
+  </dict>
+
+  <!-- 21:00 mỗi ngày -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>21</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-digest.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-digest.err.log</string>
+</dict>
+</plist>
