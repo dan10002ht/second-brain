@@ -56,6 +56,7 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 - [[ts-type-narrowing]] — thu hẹp union type theo control flow.
 - [[python-asyncio-blocking]] — đừng chặn event loop asyncio.
 - [[subscription-installment-horizon-digest]] — root cause race auto-swap + gotchas Horizon theme block (Joy Subscription).
+- [[subscription-digest-2026-07-09]] — bug MRR hardcode v5, best-seller API Shopify, bẫy selective-deploy CI, dedup BigQuery, multi-agent workflow.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
