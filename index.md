@@ -58,6 +58,7 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 - [[subscription-installment-horizon-digest]] — root cause race auto-swap + gotchas Horizon theme block (Joy Subscription).
 - [[subscription-digest-2026-07-09]] — bug MRR hardcode v5, best-seller API Shopify, bẫy selective-deploy CI, dedup BigQuery, multi-agent workflow.
 - [[subscription-digest-2026-07-10]] — soi Redis prod qua GCE+IAP tạm, bẫy attribution cost BigQuery, pattern controller cho widget AOV, gotcha option widget subscription.
+- [[subscription-digest-2026-07-11]] — giá installment ăn theo variant (bỏ enforceFixedPrice), 2 mode partial/defer-last, bug volume discount đa tầng (display-path/discount code AOV/stale lib), gotcha 2 cart-form + AOV chiếm add-to-cart, deploy 1 block đa theme.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
