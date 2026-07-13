@@ -37,6 +37,7 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 - `shopify/` — [[app-development]]: extensions, billing, Polaris, embedded app.
 - `firebase/` — [[firestore-multitenant]]: cô lập dữ liệu theo `shopId`.
 - `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]].
+- [[caching-layers]] — caching qua các layer (client→CDN→proxy→app→Redis→DB): 3 pattern lõi + 3 cái khó (invalidation, key, stampede).
 
 **Học tập:**
 - `learns/rust/`
@@ -59,6 +60,7 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 - [[subscription-digest-2026-07-09]] — bug MRR hardcode v5, best-seller API Shopify, bẫy selective-deploy CI, dedup BigQuery, multi-agent workflow.
 - [[subscription-digest-2026-07-10]] — soi Redis prod qua GCE+IAP tạm, bẫy attribution cost BigQuery, pattern controller cho widget AOV, gotcha option widget subscription.
 - [[subscription-digest-2026-07-11]] — giá installment ăn theo variant (bỏ enforceFixedPrice), 2 mode partial/defer-last, bug volume discount đa tầng (display-path/discount code AOV/stale lib), gotcha 2 cart-form + AOV chiếm add-to-cart, deploy 1 block đa theme.
+- [[subscription-digest-2026-07-12]] — bỏ hẳn app-side capture/reprice volume (vol% đến từ Shopify discount code của AOV — supersede giả định 07-11), update installment chỉ đụng metafield bỏ validate giá, verify helper phải rebuild lib.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)

@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+#
+# brain-gitlog — "what shipped" front half for my-brain
+#
+# Reads `repo:` frontmatter from active project notes (10-projects/*.md),
+# collects NEW git commits in each repo since the last run (watermark), then
+# shells out to Claude Code headless (`claude -p`) to distill a "shipped
+# digest" PROPOSAL per repo into 00-inbox/. Complements brain-digest (which
+# mines Claude session transcripts): gitlog has REAL commit hashes, so its
+# facts are verified by construction.
+#
+# It never matures or commits. You review the inbox, then run `brain-learn`
+# to promote proposals into the wiki. Human stays in the loop.
+#
+# Quality filter: a repo with no new commits produces NO file. An empty
+# digest is success, not failure.
+#
+# Usage:
+#   brain-gitlog            # collect new commits -> write inbox proposals
+#   brain-gitlog --dry-run  # report only, no files written, watermark untouched
+#   brain-gitlog --since N  # override: look back N days instead of watermark
+#
+# Env:
+#   BRAIN_DIR   path to the brain (default: $HOME/projects/my-brain)
+#
+set -euo pipefail
+
+# ---- config ---------------------------------------------------------------
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+STATE_DIR="$BRAIN_DIR/.state"
+WATERMARK="$STATE_DIR/brain-gitlog.watermark"
+INBOX="$BRAIN_DIR/00-inbox"
+TODAY="$(date +%F)"
+
+DRY_RUN=0
+SINCE_DAYS=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1 ;;
+    --since) shift; SINCE_DAYS="${1:-}" ;;
+    -h|--help) grep '^#' "$0" | sed 's/^# \{0,1\}//' | sed '1d'; exit 0 ;;
+    *) echo "brain-gitlog: unknown argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+# ---- preflight ------------------------------------------------------------
+command -v claude >/dev/null 2>&1 || {
+  echo "brain-gitlog: 'claude' CLI not found on PATH. Install Claude Code first." >&2
+  exit 127
+}
+[ -d "$BRAIN_DIR" ] || { echo "brain-gitlog: BRAIN_DIR missing: $BRAIN_DIR" >&2; exit 1; }
+mkdir -p "$STATE_DIR" "$INBOX"
+
+# ---- since window ----------------------------------------------------------
+if [ -n "$SINCE_DAYS" ]; then
+  SINCE_ARG="--since=${SINCE_DAYS} days ago"
+elif [ -f "$WATERMARK" ]; then
+  SINCE_ARG="--since=$(date -r "$WATERMARK" '+%Y-%m-%d %H:%M:%S')"
+else
+  # first ever run: look back 1 day so we don't distill the whole history
+  SINCE_ARG="--since=1 day ago"
+fi
+
+# ---- discover repos from project notes -------------------------------------
+# Any 10-projects/*.md with `repo:` frontmatter and status: active is tracked.
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/brain-gitlog.XXXXXX")"
+trap 'rm -rf "$TMP"' EXIT
+
+declare -a LOG_ENTRIES=()
+repos_with_new=0
+
+for note in "$BRAIN_DIR"/10-projects/*.md; do
+  case "$(basename "$note")" in _template.md) continue ;; esac
+  grep -q '^status: active' "$note" || continue
+  repo_raw="$(grep -m1 '^repo:' "$note" | sed 's/^repo:[[:space:]]*//')" || true
+  [ -n "$repo_raw" ] || continue
+  repo="${repo_raw/#\~/$HOME}"
+  [ -d "$repo/.git" ] || { echo "brain-gitlog: skip (not a git repo): $repo" >&2; continue; }
+  pname="$(basename "$repo")"
+
+  out="$TMP/log-$pname.md"
+  {
+    # commits on all local branches, newest first, with per-commit file stats
+    git -C "$repo" log --all "$SINCE_ARG" \
+      --pretty=format:'## %h %ad %d%n**%s**%n%b' --date=short --stat=100 2>/dev/null
+  } > "$out" || true
+  if [ -s "$out" ]; then
+    LOG_ENTRIES+=("$pname => $out")
+    repos_with_new=$((repos_with_new + 1))
+  fi
+done
+
+if [ "$repos_with_new" -eq 0 ]; then
+  echo "brain-gitlog: no new commits since last run — nothing to distill."
+  [ "$DRY_RUN" -eq 0 ] && touch "$WATERMARK"
+  exit 0
+fi
+
+echo "brain-gitlog: found new commits in $repos_with_new repo(s):"
+printf '  - %s\n' "${LOG_ENTRIES[@]%% =>*}"
+
+# ---- build distill prompt ---------------------------------------------------
+FILES_BLOCK=""
+for entry in "${LOG_ENTRIES[@]}"; do
+  FILES_BLOCK="$FILES_BLOCK
+- repo \"${entry%% =>*}\": ${entry##*=> }"
+done
+
+read -r -d '' PROMPT <<PROMPT_EOF || true
+You are the maintainer of this markdown knowledge brain ("my-brain"). Read
+index.md then CLAUDE.md first to learn the schema and rules.
+
+Below are raw git logs (commits since the last run, with file stats) per repo:
+$FILES_BLOCK
+
+Your task: for EACH repo's log, distill a "shipped digest" — what actually
+changed and landed:
+  - group commits into coherent changes (feature / fix / revert / refactor),
+    keep the REAL commit hashes next to each item,
+  - flag deploy-relevant signals: commit titles containing [deploy-functions]
+    (forces full CI deploy), reverts, version bumps, migration files,
+  - skip pure noise (formatting, lockfile-only, WIP squashed later).
+
+Then, for each repo that HAS meaningful shipped changes, create ONE proposal
+file at 00-inbox/shipped-<repo>-$TODAY.md containing:
+  - lightweight frontmatter: type: note, title, summary (1-line TLDR),
+    tags (only from tags.md — declare nothing new), created: $TODAY,
+    source: (name the repo + "git log", these hashes ARE verified).
+  - a short body grouped by: Shipped / Reverted / Deploy notes.
+  - suggested [[wiki-links]] to related existing notes (e.g. the matching
+    subscription-digest-* notes — cross-link, do not duplicate their content).
+
+CRITICAL quality filter:
+  - If a repo's commits are all noise or already captured in the brain (check
+    existing notes), write NO file for that repo. Empty digest = SUCCESS.
+  - These are PROPOSALS only: write into 00-inbox/ ONLY. Do NOT move/mature
+    notes, do NOT edit index.md, do NOT touch anything under sources/, do NOT
+    commit. brain-learn will mature them later after human review.
+
+When done, print a concise summary: which repos produced a proposal (with
+path) and which were skipped, and why.
+PROMPT_EOF
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  PROMPT="$PROMPT
+
+IMPORTANT — DRY RUN: do NOT create or edit any file. Only READ the log files
+and print, per repo, what proposal you WOULD write (or why you'd skip it)."
+fi
+
+# ---- run claude headless ----------------------------------------------------
+cd "$BRAIN_DIR"
+# NOTE: prompt MUST come right after --print. `--add-dir` greedily consumes
+# following args, so a prompt placed after it gets swallowed (claude then errors
+# "Input must be provided...").
+if [ "$DRY_RUN" -eq 1 ]; then
+  claude --print "$PROMPT" --add-dir "$BRAIN_DIR" --add-dir "$TMP"
+else
+  claude --print "$PROMPT" --permission-mode acceptEdits --add-dir "$BRAIN_DIR" --add-dir "$TMP"
+  touch "$WATERMARK"
+fi
+
+echo "brain-gitlog: done. Review 00-inbox/, then run brain-learn to mature."

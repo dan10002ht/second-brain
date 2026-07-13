@@ -25,7 +25,7 @@ source: subscriptions (session history — chưa xác minh hết chi tiết)
 - **Giá installment ăn theo PRODUCT variant, KHÔNG theo giá setup fixed bundle.** Bỏ hẳn `enforceInstallmentFixedPrice`. Why: merchant thêm variant tay ($100/$200/$300) trên sản phẩm cha; fixed bundle chỉ để setup "cycle giao gì". Charge giá variant as-is mọi kỳ. Khi bật Installment: 2 radio "Use product prices/Use fixed price" **disable (grey-out) chứ không ẩn**, ẩn ô Order price từng cycle. (Cập nhật [[2026-07-08-installment-mode-design]].)
 - **Hai mode installment khác nhau CHỈ ở origin/mid order:** `partial` = mọi order thêm children @$0 (giao từng phần); `defer-last` = origin & mid parent-only, chỉ payment cuối của lifecycle mới collapse toàn bộ children để giao. Phân biệt qua property `_joy_installment_mode`.
 - **Loại 3 hướng fix race auto-swap (Why):** (1) direct mirror-write — loop N orders **vỡ functions memory + Shopify bucket**; (2) deferred re-sync Cloud Task — **đổi kiến trúc app**; (3) đẩy qua Redis — không chữa đúng bug. → Fix gọn trong luồng webhook, gate `trigger === 'contract_create'`.
-- **Auto-swap reprice: giữ `basePrice = catalog price`, chỉ bake vol% ở `autoSwapService`; freq% để display tự áp.** Why: `prepareLineDiscountData` luôn tính freq từ `basePrice` → swap bake luôn freq% sẽ **double-discount**.
+- ~~**Auto-swap reprice: giữ `basePrice = catalog price`, chỉ bake vol% ở `autoSwapService`; freq% để display tự áp.**~~ **SUPERSEDED 07-12:** vol% thực ra do Shopify discount code của AOV áp (`discountAllocations`), app bake lại là double-count → đã revert hẳn Phase 2 vol-reprice. Xem [[subscription-digest-2026-07-12]].
 
 ## Bugs (root cause)
 

@@ -17,6 +17,7 @@
 - `python` · `asyncio` · `concurrency` · `rust` · `ownership` · `borrow-checker` · `java`
 - `firebase` · `firestore` · `multitenant` · `redis` · `bigquery` · `postgresql` · `sdk`
 - `koa` · `backend` · `architecture` · `patterns` · `monorepo` · `yarn` · `auth`
+- `caching` · `performance` · `system-design` · `http`
 - `nextjs` · `headless` · `storefront` · `extensions` · `cdn` · `webpack` · `vite` · `flutter` · `localstack` · `artifacts`
 
 ## Cấu trúc / hoạt động

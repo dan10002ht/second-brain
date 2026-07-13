@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd job: chạy brain-gitlog mỗi sáng 06:00 để brain học "what shipped"
+  từ git log các repo active (repo: frontmatter trong 10-projects/).
+  Cài:
+    cp bin/com.avada.brain-gitlog.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.avada.brain-gitlog.plist
+  Chạy thử ngay:
+    launchctl start com.avada.brain-gitlog
+  Gỡ:
+    launchctl unload ~/Library/LaunchAgents/com.avada.brain-gitlog.plist
+  Log: .state/brain-gitlog.out.log / .err.log trong brain.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.avada.brain-gitlog</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/dantt1002/projects/my-brain/bin/brain-gitlog</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/dantt1002/projects/my-brain</string>
+
+  <!-- launchd có env tối thiểu; nạp PATH đủ để tìm claude + node -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/dantt1002/.nvm/versions/node/v20.19.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>BRAIN_DIR</key>
+    <string>/Users/dantt1002/projects/my-brain</string>
+  </dict>
+
+  <!-- 06:00 mỗi sáng -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>6</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-gitlog.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-gitlog.err.log</string>
+</dict>
+</plist>
