@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
+_Cập nhật: 2026-07-14 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -61,6 +61,8 @@ _Cập nhật: 2026-07-06 · Trạng thái: đã seed 12 project + notes học t
 - [[subscription-digest-2026-07-10]] — soi Redis prod qua GCE+IAP tạm, bẫy attribution cost BigQuery, pattern controller cho widget AOV, gotcha option widget subscription.
 - [[subscription-digest-2026-07-11]] — giá installment ăn theo variant (bỏ enforceFixedPrice), 2 mode partial/defer-last, bug volume discount đa tầng (display-path/discount code AOV/stale lib), gotcha 2 cart-form + AOV chiếm add-to-cart, deploy 1 block đa theme.
 - [[subscription-digest-2026-07-12]] — bỏ hẳn app-side capture/reprice volume (vol% đến từ Shopify discount code của AOV — supersede giả định 07-11), update installment chỉ đụng metafield bỏ validate giá, verify helper phải rebuild lib.
+- [[subscription-digest-2026-07-13]] — cart-transform chỉ one-time (sub expansion ở contract-create), 2 quy ước cycleIndex, property `_`prefix ẩn/hiện, convert snippet→Horizon block, ẩn badge native AOV + đọc giá render (tránh double-discount), rtk/Serena chỉ tối ưu leaf-ops, BigQuery billing gộp nhiều project → phồng ~7×.
+- [[subscription-shipped-2026-07-13]] — commit landed 07-13: redis distributed lock chống double-charge + syncPlansFrequency (v2.33.76), Volume Bundle quantity-break (SB-13947, chưa merge), Dynamic Widget Editor block system (WIP), LTV order-revenue analytics + deploy-functions staging.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
