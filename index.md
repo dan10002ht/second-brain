@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-15 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
+_Cập nhật: 2026-07-16 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -65,6 +65,7 @@ _Cập nhật: 2026-07-15 · Trạng thái: đã seed 12 project + notes học t
 - [[subscription-shipped-2026-07-13]] — commit landed 07-13: redis distributed lock chống double-charge + syncPlansFrequency (v2.33.76), Volume Bundle quantity-break (SB-13947, chưa merge), Dynamic Widget Editor block system (WIP), LTV order-revenue analytics + deploy-functions staging.
 - [[subscription-digest-2026-07-14]] — build Dynamic Widget Editor 3-pane theo pattern SubscriptionBox/FixedBundleBox + verify UI thật bằng screenshot; root cause race sync orders lúc contract-create (gate theo trigger); gotcha Yup stripUnknown, barrel export, Polaris v12 Card.
 - [[subscription-shipped-2026-07-14]] — commit landed 07-14: guard chống double-charge ship rồi REVERT sạch cùng ngày (v2.33.78/80 → v2.33.82), LTV analytics merged master (v2.33.83), Joy rebrand landed, Dynamic Widget Editor + Discovery Product build tiếp (chưa merge).
+- [[subscription-digest-2026-07-15]] — tối ưu stored-procedure BigQuery (partition-prune + verify equivalence), logic report legacy pricing v3, gotcha widget requires_selling_plan/default-option, CSS theme ebay-bootstrap đè select.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
