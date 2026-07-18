@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-17 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
+_Cập nhật: 2026-07-18 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -68,6 +68,10 @@ _Cập nhật: 2026-07-17 · Trạng thái: đã seed 12 project + notes học t
 - [[subscription-digest-2026-07-15]] — tối ưu stored-procedure BigQuery (partition-prune + verify equivalence), logic report legacy pricing v3, gotcha widget requires_selling_plan/default-option, CSS theme ebay-bootstrap đè select.
 - [[subscription-digest-2026-07-16]] — one-time bundle qua Cart Transform `expand` (không `update` Plus-only), installment discount 1 Shopify Function 2 mode per-product metafield, flag ẩn `enableAovBundleSwap`, bug placeholder-date `WIDGET_V4_DATE` đã thành quá khứ, Shopify Functions limits/register/deploy, self-healing metafield/discount lúc save.
 - [[subscription-shipped-2026-07-16]] — commit landed 07-16: Widget V4 merged (v2.33.91) + polish, RE-APPLY guard double-charge scoped (v2.33.90, đóng câu hỏi mở 07-14), fix price-sync stuck PENDING (v2.33.88), fix LCP Home (v2.33.89); WIP one-time cart-transform + defer-last-discount (2 migration), shipping-rate FX SB-14315, Discovery multi-currency.
+- [[digest-subscriptions-2026-07-17]] — CHỈ phần mới: sandbox test ≈ staging (2 loại data own bởi 2 bên), app dùng Billing API cũ (chưa App Events), expose tsTool DFY API + gotcha Yup stripUnknown/2 mô hình Plan.
+- [[shipped-subscriptions-2026-07-18]] — commit landed 07-17 (v2.33.94→100): Onboarding V5 Concierge [deploy-all], fix cuối giá ATC Cellexia (populate selling_plan input) sau khi revert cách MutationObserver, Bird Delivery Location Name (attr + backfill), dời Payment Recovery sang Retention hub.
+- [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
+- [[digest-claude-chat-2026-07-17]] — cleanup disk macOS: thủ phạm thật thường là Docker/Colima VM (qcow2) + build cache, không phải project files hay macOS update; cách dọn an toàn.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
