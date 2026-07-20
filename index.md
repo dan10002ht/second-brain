@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-19 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
+_Cập nhật: 2026-07-20 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -71,6 +71,7 @@ _Cập nhật: 2026-07-19 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-07-17]] — CHỈ phần mới: sandbox test ≈ staging (2 loại data own bởi 2 bên), app dùng Billing API cũ (chưa App Events), expose tsTool DFY API + gotcha Yup stripUnknown/2 mô hình Plan.
 - [[shipped-subscriptions-2026-07-18]] — commit landed 07-17 (v2.33.94→100): Onboarding V5 Concierge [deploy-all], fix cuối giá ATC Cellexia (populate selling_plan input) sau khi revert cách MutationObserver, Bird Delivery Location Name (attr + backfill), dời Payment Recovery sang Retention hub.
 - [[digest-subscriptions-2026-07-18]] — app handle 3DS/SCA chỉ "một nửa" (attempt kẹt SCA → tự gửi verify3dsSecure email qua Pub/Sub, Shopify không tự gửi link), charge nhiều lần/cycle là bình thường, chẩn đoán order "from App (via import)" ≠ Online Store checkout, query MRR loại dev store.
+- [[digest-subscriptions-2026-07-19]] — CHỈ phần mới của build installment custom: discount nướng thẳng vào giá selling-plan + whitelist từ `sellingPlanIds` thật, bug strikethrough/double-discount (`prepareLineDiscountData` chỉ ở `orderController.getOne`) + inject selling_plan sai form, và kỹ thuật tái dùng (decrypt token query Shopify local, Storefront API khi admin token stale, BQ changelog forensics, validate JS Liquid, Shopify Functions byte-limits, metafield-def chỉ ensure lúc install).
 - [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-claude-chat-2026-07-17]] — cleanup disk macOS: thủ phạm thật thường là Docker/Colima VM (qcow2) + build cache, không phải project files hay macOS update; cách dọn an toàn.
