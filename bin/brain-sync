@@ -39,4 +39,10 @@ else
   log "Không có thay đổi để commit."
 fi
 
+# 4) Push backup lên remote (không chặn job nếu mạng/auth lỗi)
+if [[ -n "$(git log origin/master..master --oneline 2>/dev/null)" ]]; then
+  log "Push lên origin/master..."
+  git push origin master && log "Đã push." || log "Push lỗi (mạng/auth?) — commit vẫn an toàn ở local, sẽ push lần sau."
+fi
+
 log "brain-sync hoàn tất."
