@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-22 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
+_Cập nhật: 2026-07-23 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -76,12 +76,15 @@ _Cập nhật: 2026-07-22 · Trạng thái: đã seed 12 project + notes học t
 - [[shipped-subscriptions-2026-07-21]] — commit landed 07-20 (v2.34.02→05): xoá publicApi + secrets về env, bỏ cờ chết `discountConfig.enabled`, mở lại Crisp/Contact sau cửa sổ review Shopify, fix `installAt` [deploy-functions]; LCP/web-vitals và transform-discount còn WIP.
 - [[digest-subscriptions-2026-07-21]] — CHỈ phần mới: freeze discount vào line attribute lúc mua, chuỗi bug giá email billing/reschedule do lấy sai order nguồn, `AVADA_BUNDLE` global lag phải đọc DOM, lỗ hổng download PDF không auth, loạt gotcha Liquid/Horizon + kỷ luật branch.
 - [[shipped-subscriptions-2026-07-22]] — commit landed 07-21 (v2.34.09→13): SB-14396 chặn contract cancel/pause vẫn giữ upcoming orders bằng per-contract Redis lock, fix fixed-bundle ghi tồn đúng location (SB-14486), LCP/web-vitals [deploy-functions] merged, sửa copy limit-banner lifetime/monthly.
+- [[digest-subscriptions-2026-07-22]] — CHỈ phần mới: nhúng Customer Portal vào Chatty (iframe same-origin, trang login Shopify chặn framing → popup-OAuth cho ca chưa login), loạt bẫy widget preview (field vô nghĩa nếu scripttag không đọc, gate theo version chứ không layout, 2 endpoint schema khác).
+- [[shipped-subscriptions-2026-07-23]] — commit landed 07-22 (v2.34.16→21): fixed-bundle one-time cart-transform expand [deploy-all], fix pubsub memory-leak + right-size apiHookV2 [deploy-functions], shipping-rate lấy đúng contract currency (SB-14315), admin boot LCP, fix standalone dev boot nhầm embed.js (vite replace ăn comment CSS); transform-discount/onboarding-v5/discovery/chatty-embed còn WIP.
 - [[digest-pdf-2026-07-21]] — PDF Invoice: cờ trạng thái DB không thay được tracking hành vi (set ở 5 chỗ), Firestore phải ở repository không phải service, mutation check chứng minh test thật sự bắt lỗi. *(digest đầu tiên cho [[pdf]])*
 - [[digest-pdf-apiv1-workflow-2026-07-21]] — workflow multi-agent extend apiV1 của PDF Invoice: ràng buộc kiến trúc apiV1, 2 lỗi critical (Puppeteer lọt cold start 256MiB, resend luôn fail), blacklist field bị bypass qua route legacy, chứng minh lint finding pre-existing.
 - [[shipped-pdf-2026-07-22]] — commit landed 07-21 (v3.1.53→54): apiV1 refactor sang controller-service-repository + 16 write endpoint (14→30 route). WIP: tracking store unlock template (banner_claim vs devzone_manual) + docs public-api.
 - [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
+- [[digest-moonie-2026-07-22]] — phần mới của Mooni (CI + giai đoạn 4/5): golangci-lint fail trên CI dù local xanh (CGO/version action/checksum), testcontainers Postgres flaky do wait-strategy yếu, race TOCTOU convert lead→đơn, doanh thu tháng lệch múi giờ (UTC).
 - [[digest-claude-chat-2026-07-17]] — cleanup disk macOS: thủ phạm thật thường là Docker/Colima VM (qcow2) + build cache, không phải project files hay macOS update; cách dọn an toàn.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
