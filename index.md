@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-24 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
+_Cập nhật: 2026-07-25 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -79,6 +79,9 @@ _Cập nhật: 2026-07-24 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-07-22]] — CHỈ phần mới: nhúng Customer Portal vào Chatty (iframe same-origin, trang login Shopify chặn framing → popup-OAuth cho ca chưa login), loạt bẫy widget preview (field vô nghĩa nếu scripttag không đọc, gate theo version chứ không layout, 2 endpoint schema khác).
 - [[shipped-subscriptions-2026-07-23]] — commit landed 07-22 (v2.34.16→21): fixed-bundle one-time cart-transform expand [deploy-all], fix pubsub memory-leak + right-size apiHookV2 [deploy-functions], shipping-rate lấy đúng contract currency (SB-14315), admin boot LCP, fix standalone dev boot nhầm embed.js (vite replace ăn comment CSS); transform-discount/onboarding-v5/discovery/chatty-embed còn WIP.
 - [[shipped-subscriptions-2026-07-24]] — commit landed 07-23 (v2.34.22→26): vá IDOR contract lookup + open-redirect returnUrl [deploy-all], chặn discount function tin attribute client-set, one-time bundle price về 1 field merchant-set multi-currency (+ fix giá add-on theo variant), onboarding-v5 expert questions vào Step 1; WIP lớn Win Back flow builder [deploy-functions] + Grow card/Help center.
+- [[digest-subscriptions-2026-07-24]] — CHỈ phần mới: bug tên shipping recurring (SB-14649) + backfill ghi đè, race auto-swap lúc contract-create, PubSub singleton leak OOM, `shopify app deploy` không rebuild wasm khi build command rỗng, cụm gotcha Horizon theme block + giọng Slack.
+- [[shipped-subscriptions-2026-07-25]] — commit landed 07-24 (v2.34.29→32): chuỗi SB-14649 (fix → backfill [deploy-functions] → hotfix chặn ghi đè carrier đúng → audit script), fix address mất company/zip ở 6 chỗ, portal highlight chờ skeleton; Grow card merge rồi revert sau 8 giây (+ bẫy merge revert); WIP Mystery Product + bundle sync banner.
+- [[digest-artifact-2026-07-24]] — Joy Subscription artifacts: tách hosting khỏi deploy để giữ chunk cũ (chống blank/404), cách dọn repo phồng an toàn (`comm -23` + `xargs`), `.git` không co lại. *(digest đầu tiên cho [[joy-subscription-artifacts]])*
 - [[digest-pdf-2026-07-21]] — PDF Invoice: cờ trạng thái DB không thay được tracking hành vi (set ở 5 chỗ), Firestore phải ở repository không phải service, mutation check chứng minh test thật sự bắt lỗi. *(digest đầu tiên cho [[pdf]])*
 - [[digest-pdf-apiv1-workflow-2026-07-21]] — workflow multi-agent extend apiV1 của PDF Invoice: ràng buộc kiến trúc apiV1, 2 lỗi critical (Puppeteer lọt cold start 256MiB, resend luôn fail), blacklist field bị bypass qua route legacy, chứng minh lint finding pre-existing.
 - [[shipped-pdf-2026-07-22]] — commit landed 07-21 (v3.1.53→54): apiV1 refactor sang controller-service-repository + 16 write endpoint (14→30 route). WIP: tracking store unlock template (banner_claim vs devzone_manual) + docs public-api.
@@ -87,8 +90,11 @@ _Cập nhật: 2026-07-24 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
 - [[digest-moonie-2026-07-22]] — phần mới của Mooni (CI + giai đoạn 4/5): golangci-lint fail trên CI dù local xanh (CGO/version action/checksum), testcontainers Postgres flaky do wait-strategy yếu, race TOCTOU convert lead→đơn, doanh thu tháng lệch múi giờ (UTC).
+- [[digest-moonie-2026-07-24]] — phần mới của Mooni: skill QA tái dùng (mọi thứ riêng-app vào 1 config ở root, docs derived + trace REQ), giá trị harness = gate mỗi task chứ không phải mốc phase, root cause chính xác Colima/testcontainers Ryuk + golangci-lint CI, npm lock lệch platform.
 - [[digest-claude-chat-2026-07-17]] — cleanup disk macOS: thủ phạm thật thường là Docker/Colima VM (qcow2) + build cache, không phải project files hay macOS update; cách dọn an toàn.
 - [[digest-aws-2026-07-23]] — build course/ngân hàng đề AWS quy mô lớn bằng workflow author→critic + plan bền trên đĩa; root cause SVG inline vỡ render do dòng trống (CommonMark), truyền list qua file thay vì args, verify ground-truth không tin report workflow. *(digest đầu tiên cho [[aws]])*
+- [[digest-aws-2026-07-24]] — CHỈ phần mới: vòng tự nhịp nhiều phần (`build-content-loop`) + evaluator–optimizer, chạy gate deterministic TRƯỚC evaluator LLM, SVG inline theme-aware bằng `currentColor`, loạt gotcha viết Workflow script + bug appender/TS union.
+- [[shipped-aws-2026-07-25]] — commit landed 07-24 trên `main`: trọn infra track (~90 lesson) — 4 course mới (DISTRIBUTED/DATASTORES/MESSAGING/CLOUDNATIVE) theo nhịp scaffold + gold lesson → workflow `author-course`, cộng 2 chapter extension (SRE Observability, BACKEND Service Communication); không revert, không tín hiệu deploy.
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
