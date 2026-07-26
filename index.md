@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-25 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects_
+_Cập nhật: 2026-07-26 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -90,7 +90,9 @@ _Cập nhật: 2026-07-25 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
 - [[digest-moonie-2026-07-22]] — phần mới của Mooni (CI + giai đoạn 4/5): golangci-lint fail trên CI dù local xanh (CGO/version action/checksum), testcontainers Postgres flaky do wait-strategy yếu, race TOCTOU convert lead→đơn, doanh thu tháng lệch múi giờ (UTC).
+- [[digest-subscriptions-2026-07-25]] — CHỈ phần mới: bake giá vào metafield gây stale + lẫn currency (one-time $3.741), Firestore snapshot không chứa `discountAllocations` nên đừng kết luận "không có discount", chẩn đoán ATC chết bằng Admin API vs Storefront API `@inContext`, bỏ nhánh `frozenDiscount` (line attribute client-settable).
 - [[digest-moonie-2026-07-24]] — phần mới của Mooni: skill QA tái dùng (mọi thứ riêng-app vào 1 config ở root, docs derived + trace REQ), giá trị harness = gate mỗi task chứ không phải mốc phase, root cause chính xác Colima/testcontainers Ryuk + golangci-lint CI, npm lock lệch platform.
+- [[digest-moonie-2026-07-25]] — phần mới của Mooni (UI giai đoạn 3 & 5): held-out Playwright chỉ chắc khi form có `name`/`aria-label` rõ (nhãn nhập nhằng là tín hiệu UX chứ không phải test khó tính), design-evaluator bắt lỗi thật (overflow-hidden cắt cột, font thiếu subset tiếng Việt, hardcode hex), đọc thẳng mockup thay vì phán từ trí nhớ.
 - [[digest-claude-chat-2026-07-17]] — cleanup disk macOS: thủ phạm thật thường là Docker/Colima VM (qcow2) + build cache, không phải project files hay macOS update; cách dọn an toàn.
 - [[digest-aws-2026-07-23]] — build course/ngân hàng đề AWS quy mô lớn bằng workflow author→critic + plan bền trên đĩa; root cause SVG inline vỡ render do dòng trống (CommonMark), truyền list qua file thay vì args, verify ground-truth không tin report workflow. *(digest đầu tiên cho [[aws]])*
 - [[digest-aws-2026-07-24]] — CHỈ phần mới: vòng tự nhịp nhiều phần (`build-content-loop`) + evaluator–optimizer, chạy gate deterministic TRƯỚC evaluator LLM, SVG inline theme-aware bằng `currentColor`, loạt gotcha viết Workflow script + bug appender/TS union.
