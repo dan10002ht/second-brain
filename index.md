@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-26 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
+_Cập nhật: 2026-07-28 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -17,7 +17,7 @@ _Cập nhật: 2026-07-26 · Trạng thái: đã seed 12 project + notes học t
 - [[crm]] — AVADA CRM marketing automation (monorepo + ML).
 - [[backup]] — Avada Backups & Restore.
 - [[pdf]] — PDF Invoice for Shopify. ⚠️ có secrets hardcode trong RELEASE_NOTE.
-- [[shipping-labels]] — in nhãn vận chuyển Shopify.
+- [[shipping-labels]] — in nhãn vận chuyển Shopify. → [[digest-shipping-labels-2026-07-27]] (2 lỗ auth đã vá).
 - [[headless-demo]] — demo store Shopify headless (Next.js 15).
 
 **Khác:**
@@ -91,12 +91,17 @@ _Cập nhật: 2026-07-26 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
 - [[digest-moonie-2026-07-22]] — phần mới của Mooni (CI + giai đoạn 4/5): golangci-lint fail trên CI dù local xanh (CGO/version action/checksum), testcontainers Postgres flaky do wait-strategy yếu, race TOCTOU convert lead→đơn, doanh thu tháng lệch múi giờ (UTC).
 - [[digest-subscriptions-2026-07-25]] — CHỈ phần mới: bake giá vào metafield gây stale + lẫn currency (one-time $3.741), Firestore snapshot không chứa `discountAllocations` nên đừng kết luận "không có discount", chẩn đoán ATC chết bằng Admin API vs Storefront API `@inContext`, bỏ nhánh `frozenDiscount` (line attribute client-settable).
+- [[digest-subscriptions-2026-07-27]] — CHỈ phần mới: chuỗi bug lấy sai nguồn sự thật (cycleIndex Firestore ≠ Shopify billing cycle, `line.product.customAttributes` ≠ `line.customAttributes`, plan doc id đổi sau khi mua nên auto-swap không bao giờ chạy), hàm `ensure` chỉ create-if-missing nên cấu hình sai cũ không được chữa (SB-14456), widget inject `selling_plan` nhầm form (product page có 2 form), thiếu scope `*_cart_transforms` ở staging.
+- [[shipped-subscriptions-2026-07-28]] — commit landed 07-27 (v2.34.33→36): vá tenant-isolation `X-Shopify-Shop-Id` + 403 tripwire, 2 dev-zone override (force pricing version, `disableSubCountLimit`), shipping price theo billed cycle SB-14694 + audit script, propagate address ra mọi upcoming order; WIP lớn: one-time-only add product SB-14700, Mystery Product, bulk error banner SB-14564.
 - [[digest-moonie-2026-07-24]] — phần mới của Mooni: skill QA tái dùng (mọi thứ riêng-app vào 1 config ở root, docs derived + trace REQ), giá trị harness = gate mỗi task chứ không phải mốc phase, root cause chính xác Colima/testcontainers Ryuk + golangci-lint CI, npm lock lệch platform.
 - [[digest-moonie-2026-07-25]] — phần mới của Mooni (UI giai đoạn 3 & 5): held-out Playwright chỉ chắc khi form có `name`/`aria-label` rõ (nhãn nhập nhằng là tín hiệu UX chứ không phải test khó tính), design-evaluator bắt lỗi thật (overflow-hidden cắt cột, font thiếu subset tiếng Việt, hardcode hex), đọc thẳng mockup thay vì phán từ trí nhớ.
+- [[digest-moonie-2026-07-27]] — chốt hạ bỏ `npm ci` (lock darwin không bao giờ đủ cho linux — Tailwind v4 oxide native), Colima mất ổn định I/O giữa session, skill `security-review` chỉ soi `git diff` nên bỏ sót file untracked, `timeout` không có trên macOS.
 - [[digest-claude-chat-2026-07-17]] — cleanup disk macOS: thủ phạm thật thường là Docker/Colima VM (qcow2) + build cache, không phải project files hay macOS update; cách dọn an toàn.
 - [[digest-aws-2026-07-23]] — build course/ngân hàng đề AWS quy mô lớn bằng workflow author→critic + plan bền trên đĩa; root cause SVG inline vỡ render do dòng trống (CommonMark), truyền list qua file thay vì args, verify ground-truth không tin report workflow. *(digest đầu tiên cho [[aws]])*
 - [[digest-aws-2026-07-24]] — CHỈ phần mới: vòng tự nhịp nhiều phần (`build-content-loop`) + evaluator–optimizer, chạy gate deterministic TRƯỚC evaluator LLM, SVG inline theme-aware bằng `currentColor`, loạt gotcha viết Workflow script + bug appender/TS union.
 - [[shipped-aws-2026-07-25]] — commit landed 07-24 trên `main`: trọn infra track (~90 lesson) — 4 course mới (DISTRIBUTED/DATASTORES/MESSAGING/CLOUDNATIVE) theo nhịp scaffold + gold lesson → workflow `author-course`, cộng 2 chapter extension (SRE Observability, BACKEND Service Communication); không revert, không tín hiệu deploy.
+- [[digest-aws-2026-07-27]] — CHỈ phần mới: workflow `thorough` thay `/loop` để chống "làm qua loa trong 1 phiên", union type TS vỡ khi mảng >1.100 phần tử (JSON sidecar làm nguồn sự thật), SVG dòng-trống tái phát 279 block/116 file → gate phải chạy trên đường render thật, hljs theme sáng trên nền tối, `/search-index.json` force-static; kỷ luật không tin report của agent mà dùng ground truth.
+- [[digest-shipping-labels-2026-07-27]] — Shipping Labels: `verifyExtensionToken` không verify chữ ký session token + webhook thiếu HMAC → fix fail-closed, phải bơm `SHOPIFY_API_KEY`/`SECRET` qua `PROD_ENV_FILE` của GitLab CI và bỏ dòng echo secret. *(digest đầu tiên cho [[shipping-labels]])*
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
