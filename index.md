@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-07-30 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
+_Cập nhật: 2026-07-31 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -88,6 +88,8 @@ _Cập nhật: 2026-07-30 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-pdf-2026-07-23]] — PDF Invoice: gcloud/bq lấy project từ config toàn cục của máy (không theo cwd) → dễ query cost/metric nhầm app; prod = GCP `pdf-invoice-4717c`; token hết hạn không refresh được ở non-interactive.
 - [[digest-pdf-2026-07-29]] — CHỈ phần mới: root cause dòng hàng bị xẻ đôi qua biên trang (engine tự cộng dồn chiều cao + Chrome tự scale khi nội dung tràn khổ, `PAGE_HEIGHT.TECH = 1220`), `break-inside` vô hiệu trong flex container, leak Chromium ở nhánh `outputFormat: 'html'`, đảo hướng từ fix chung sang vá CSS riêng cho 1 store, cụm gotcha dev store `access_scopes` rỗng / managed install.
 - [[shipped-pdf-2026-07-30]] — commit landed 07-29 (v3.1.58→59): engine row-integrity merged master rồi **revert nguyên merge trên nhánh** `revert/print-page-break` (chưa vào master → prod vẫn mang bản fix bị đánh giá chưa chín), draft-order pro metafield; WIP Templates redesign + Setup Checklist Card SB-14770.
+- [[digest-pdf-2026-07-30]] — CHỈ phần mới: khối tổng tiền vắt qua biên trang (CSS vá trước chỉ bảo vệ dòng hàng), header bảng không lặp vì là `<tr>` trần — Chrome chỉ lặp header trong `<thead>`, "lặp header bằng CSS" vô tác dụng; quét selector `nth-child` trước khi bọc `<thead>`, và phải kiểm cả hai đường in (đơn lẻ vs in gộp). ⚠️ có mục "chưa xác minh" (khách chưa xác nhận fix khối tổng).
+- [[shipped-pdf-2026-07-31]] — commit landed 07-30: master CHỈ nhận 1 MR đổi **1 dòng** (devzone navigation standalone, `v3.1.61`); khối lượng thật còn trên nhánh — CrossAppPromoModal chia 70-30 bằng **hash tất định từ `shop.id`** (không DB, không migration), quickstart mở thẳng màn edit template, Setup Checklist Card SB-14770, skeleton Templates đếm theo `newTemplatesUnlocked`, fix mất data emulator lúc `pm2 stop`; không revert, không `[deploy-functions]`.
 - [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
