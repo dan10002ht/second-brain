@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-01 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
+_Cập nhật: 2026-08-02 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
@@ -108,6 +108,7 @@ _Cập nhật: 2026-08-01 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-moonie-2026-07-24]] — phần mới của Mooni: skill QA tái dùng (mọi thứ riêng-app vào 1 config ở root, docs derived + trace REQ), giá trị harness = gate mỗi task chứ không phải mốc phase, root cause chính xác Colima/testcontainers Ryuk + golangci-lint CI, npm lock lệch platform.
 - [[digest-moonie-2026-07-25]] — phần mới của Mooni (UI giai đoạn 3 & 5): held-out Playwright chỉ chắc khi form có `name`/`aria-label` rõ (nhãn nhập nhằng là tín hiệu UX chứ không phải test khó tính), design-evaluator bắt lỗi thật (overflow-hidden cắt cột, font thiếu subset tiếng Việt, hardcode hex), đọc thẳng mockup thay vì phán từ trí nhớ.
 - [[digest-moonie-2026-07-27]] — chốt hạ bỏ `npm ci` (lock darwin không bao giờ đủ cho linux — Tailwind v4 oxide native), Colima mất ổn định I/O giữa session, skill `security-review` chỉ soi `git diff` nên bỏ sót file untracked, `timeout` không có trên macOS.
+- [[digest-moonie-2026-08-01]] — CHỈ 2 điểm chưa ghi: warning collation glibc→musl khi đổi `postgres:16` sang `16-alpine` trên volume cũ không refresh được (phải tạo volume mới), và admin gọi API qua Server Action (server-to-server, forward cookie) nên không chạm CORS. ⚠️ có mục "chưa xác minh" về việc CORS/Server Action cùng tồn tại hay thay thế nhau.
 - [[digest-claude-chat-2026-07-17]] — cleanup disk macOS: thủ phạm thật thường là Docker/Colima VM (qcow2) + build cache, không phải project files hay macOS update; cách dọn an toàn.
 - [[digest-aws-2026-07-23]] — build course/ngân hàng đề AWS quy mô lớn bằng workflow author→critic + plan bền trên đĩa; root cause SVG inline vỡ render do dòng trống (CommonMark), truyền list qua file thay vì args, verify ground-truth không tin report workflow. *(digest đầu tiên cho [[aws]])*
 - [[digest-aws-2026-07-24]] — CHỈ phần mới: vòng tự nhịp nhiều phần (`build-content-loop`) + evaluator–optimizer, chạy gate deterministic TRƯỚC evaluator LLM, SVG inline theme-aware bằng `currentColor`, loạt gotcha viết Workflow script + bug appender/TS union.
