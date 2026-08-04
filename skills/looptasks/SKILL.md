@@ -5,7 +5,8 @@ description: Nhặt task từ file task list (mặc định BRIEF.md của proje
 
 # looptasks — nhặt task từ file, giao subagent làm, mark done
 
-Main agent **orchestrate + verify**, KHÔNG tự viết code. Code do subagent Sonnet 5 làm.
+Main agent **orchestrate + git + bookkeeping**, KHÔNG tự viết code và KHÔNG tự verify.
+Code do subagent Sonnet 5 làm, chấm do agent `verifier` làm (context tách rời).
 
 ## Input
 
@@ -100,28 +101,52 @@ Brief phải đủ:
 
 Rào này xoá nguyên lớp rủi ro agent này `checkout` phá việc agent khác.
 
-## Bước 5 — Verify
+## Bước 5 — Verify (giao agent `verifier`, KHÔNG tự chấm)
 
-Chờ agent xong, đọc report. **Không tin report — tự verify.** Chạy đúng done-criteria
-(`tsc` / build / test tuỳ task) và **đọc output thật** trước khi kết luận.
+Chờ agent xong. **Đừng tự verify** — bạn là đứa vừa spawn ra code đó, chấm bài của mình thì
+không còn là gate. Giao cho subagent `verifier` (`~/.claude/agents/verifier.md`): context sạch,
+không có Edit/Write, chạy done-criteria thật và trả verdict kèm bằng chứng.
 
-Nhóm worktree: verify **ngay trong worktree** của nó. Xanh rồi thì commit vào nhánh của task đó
-và **dừng ở đấy** — không merge đi đâu cả, nhánh sống độc lập chờ bạn tạo MR. Worktree đã xong
-việc thì gỡ (`git worktree remove`), nhánh vẫn còn nguyên.
+Brief cho `verifier` gồm:
+
+- Mô tả task **nguyên văn** + done-criteria cụ thể
+- **Đường dẫn tuyệt đối** nơi phải chạy (worktree của task, hoặc repo root nếu tuần tự) —
+  kèm câu: *"`cd` không persist giữa các Bash call, mọi lệnh phải viết `cd <path> && <lệnh>`
+  trong cùng một call"*
+- Danh sách file agent nói đã sửa
+
+**Không dán report giải thích của agent viết code vào brief.** Cần đưa thì gắn nhãn rõ
+"tuyên bố của agent, cần kiểm chứng" — verifier đã được dạy đối xử như vậy, nhưng đừng thử nó.
+
+Xử theo verdict:
+
+| Verdict | Làm gì |
+|---|---|
+| `PASS` | commit vào nhánh của task, sang Bước 6 |
+| `FAIL` | giao lại **đúng một vòng** cho subagent sửa (brief = finding của verifier, nguyên văn), rồi verify lại. Vòng hai vẫn `FAIL` → blocker |
+| `UNVERIFIED` | **không được coi là pass.** Chạy lại nếu là lỗi môi trường nhất thời; vẫn `UNVERIFIED` → blocker |
+
+Blocker thì theo nhánh fail ở Bước 6: trả `[⏳]` về `[ ]`, ghi verdict + finding dưới task, report user.
+**Không mark done.**
+
+Nhóm worktree: verifier chạy **ngay trong worktree** của task đó (truyền path vào brief).
+`PASS` rồi thì commit vào nhánh của task và **dừng ở đấy** — không merge đi đâu cả, nhánh sống
+độc lập chờ bạn tạo MR. Worktree đã xong việc thì gỡ (`git worktree remove`), nhánh vẫn còn nguyên.
 
 ## Bước 6 — Đóng task
 
-Xong và verify xanh:
+Chỉ khi verifier trả `PASS`:
 
 1. Sửa file task `[⏳ HH:MM]` → `[✅ YYYY-MM-DD]` (ngày hôm nay — cần cho bước dọn)
 2. Viết tóm tắt **ngay dưới task, indent**: **tên nhánh + commit hash ngắn**, file nào sửa,
-   cách làm, verify status (xem mẫu ở mục Git)
+   cách làm, và **gate nào verifier đã chạy + exit code** (xem mẫu ở mục Git)
 3. Cập nhật `CHANGELOG.md` ở project root (tạo nếu chưa có) — 1 entry theo ngày.
    Repo đã có convention changelog riêng thì **theo convention đó**, đừng áp khuôn mới.
 4. Report cho user: task nào vừa xong, tóm tắt ngắn
 
-**Fail / blocker** (thiếu credential, task mô tả không rõ, verify đỏ):
-ghi blocker dưới task, **ĐỪNG mark done**, trả `[⏳]` về `[ ]`, report user. Không đoán bừa để cho xong.
+**Fail / blocker** (thiếu credential, task mô tả không rõ, verifier trả `FAIL` sau vòng sửa thứ hai,
+hoặc `UNVERIFIED` không gỡ được): ghi blocker dưới task **kèm verdict + finding nguyên văn của
+verifier**, **ĐỪNG mark done**, trả `[⏳]` về `[ ]`, report user. Không đoán bừa để cho xong.
 
 ## Bước 7 — Dọn task cũ (housekeeping)
 
@@ -191,7 +216,9 @@ Mỗi task một commit, message theo convention repo (repo Avada: `type - role 
 
 ## Nguyên tắc
 
-- **Main agent không viết code.** Chỉ orchestrate, verify, bookkeeping.
+- **Main agent không viết code, cũng không tự verify.** Chỉ orchestrate, bookkeeping, và git.
+  Code do subagent Sonnet làm, chấm do `verifier` làm — hai context tách rời, không đứa nào
+  vừa viết vừa chấm.
 - **Idempotent.** `[✅]` bỏ qua tuyệt đối. Lock có timestamp lo phần `[⏳]`.
 - **Không tự thêm task, không mở rộng scope.** Làm đúng cái file ghi.
 - **Surgical.** Mỗi thay đổi trace được về đúng một task.

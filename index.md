@@ -55,6 +55,8 @@ _Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học t
 
 - [[atomic-notes-principle]] — mỗi note một ý, liên kết bằng wiki-link.
 - [[learning-in-public]] — viết ra để học sâu hơn.
+- [[graph-engineering]] — lớp thứ 5 (node/edge/shared-state); trong Claude Code, graph đúng nghĩa nhất là dynamic workflow — kế hoạch nằm trong script chứ không trong context window.
+- [[looptasks-vs-workflow]] — looptasks đã là graph viết bằng văn xuôi với state trên đĩa; workflow thắng ở điều phối rerun được, thua ở state bền + git tập trung → hybrid. Harness là gate làm graph đáng tin.
 - [[rust-ownership]] — mô hình sở hữu một owner trong Rust.
 - [[ts-type-narrowing]] — thu hẹp union type theo control flow.
 - [[python-asyncio-blocking]] — đừng chặn event loop asyncio.
@@ -130,6 +132,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 
 - [[2026-07-07-brain-lay-gi-tu-avader-folder]] — chỉ mượn daily/decisions/skills từ avader-folder, bỏ agent-board & role system (review 2026-10-07).
 - [[2026-07-08-installment-mode-design]] — thiết kế installment 2 mode (partial vs defer-last), giá bám variant product (review 2026-10-08).
+- [[2026-08-04-looptasks-verifier-doc-lap]] — `/looptasks` Bước 5 giao cho agent `verifier` context sạch (không Edit/Write, verdict PASS/FAIL/UNVERIFIED); main agent không tự chấm code do chính nó spawn (review 2026-11-04).
 
 ## 💬 Feedback (feedback/)
 
