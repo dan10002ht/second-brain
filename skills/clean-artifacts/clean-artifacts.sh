@@ -65,11 +65,18 @@ N_REMOVE=$(wc -l < files_to_remove.txt | tr -d ' ')
 PCT=$(( N_REMOVE * 100 / N_ALL ))
 [ "$PCT" -lt 90 ] || die "sẽ xoá ${PCT}% tổng file ($N_REMOVE/$N_ALL) — gần như chắc chắn danh sách sai."
 
-# --- Guard 5: entrypoint URL cố định không được xoá ---------------------
-ENTRY=$(grep -E '(main\.min\.js|/index\.html)$' files_to_remove.txt || true)
+# --- Guard 5: entrypoint URL cố định KHÔNG BAO GIỜ xoá ------------------
+# Các file này không có content hash, storefront theme trỏ thẳng vào URL cố định.
+# Chúng bị ghi đè mỗi build (không tích luỹ) nên không phải nguồn phình repo;
+# nhưng app nào không build trong window thì entrypoint của nó rơi vào diện xoá => chết widget.
+ENTRY_RE='(main\.min\.js|/index\.html|/embed-template\.html|/standalone\.html)$'
+ENTRY=$(grep -E "$ENTRY_RE" files_to_remove.txt || true)
 if [ -n "$ENTRY" ]; then
-  printf '%s\n' "$ENTRY" >&2
-  die "danh sách xoá chứa entrypoint URL cố định (ở trên) — storefront trỏ thẳng vào, xoá là chết widget mọi merchant."
+  printf '\033[33m== bảo vệ %s entrypoint (không hash) khỏi bị xoá:\033[0m\n' "$(printf '%s\n' "$ENTRY" | wc -l | tr -d ' ')"
+  printf '%s\n' "$ENTRY" | sed 's/^/    /'
+  grep -Ev "$ENTRY_RE" files_to_remove.txt > files_to_remove.tmp && mv files_to_remove.tmp files_to_remove.txt
+  N_REMOVE=$(wc -l < files_to_remove.txt | tr -d ' ')
+  [ "$N_REMOVE" -gt 0 ] || { info "sau khi loại entrypoint thì không còn gì để xoá"; exit 0; }
 fi
 
 SIZE=$(tr '\n' '\0' < files_to_remove.txt | xargs -0 du -ch 2>/dev/null | tail -1 | cut -f1 || echo '?')
@@ -77,9 +84,11 @@ SIZE=$(tr '\n' '\0' < files_to_remove.txt | xargs -0 du -ch 2>/dev/null | tail -
 cat <<EOF
 
   window       : $SINCE
-  giữ lại      : $N_CHANGED file (có build trong window)
-  tổng         : $N_ALL file
+  đang có      : $N_ALL file trên HEAD
   sẽ xoá       : $N_REMOVE file (${PCT}%), ~$SIZE
+  còn lại      : $(( N_ALL - N_REMOVE )) file
+  (tham chiếu  : $N_CHANGED đường dẫn từng xuất hiện trong commit của window,
+                 gồm cả bản đã bị build sau ghi đè)
 
   sample:
 $(head -3 files_to_remove.txt | sed 's/^/    /')

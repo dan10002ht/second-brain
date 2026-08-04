@@ -57,7 +57,7 @@ Script abort nếu vi phạm. Nếu bạn chạy tay, tự kiểm đủ 5 cái n
 | 2 | `changed_files.txt` không được rỗng | Rỗng nghĩa là window không phủ commit nào — dữ liệu vô nghĩa, không phải "không có gì đổi". |
 | 3 | Commit gần nhất chạm `static/` phải mới hơn window | Cùng gốc với #1: repo không có build mới trong window thì **không có gì an toàn để xoá**. |
 | 4 | Tỉ lệ xoá < 90% tổng file | Xoá gần hết luôn là bug của bước sinh danh sách, không phải retention thật. |
-| 5 | Không được có `*-main.min.js` trong danh sách xoá | 6 file entrypoint (`avada-subscription-main.min.js`, `avada-customer-portal-main.min.js`…) có **URL cố định không hash**, storefront theme trỏ thẳng vào. Xoá = mọi merchant chết widget ngay lập tức, không cần reload. |
+| 5 | Entrypoint không hash bị **loại khỏi danh sách xoá** (không abort, có in cảnh báo) | 6 file `*-main.min.js` + `*.html` có **URL cố định không hash**, storefront theme trỏ thẳng vào. App nào không build trong window thì entrypoint của nó rơi vào diện xoá → merchant chết widget ngay, không cần reload. **Đã xảy ra thật** (2026-08-04: cod-form + 3 biến thể subscription-box). Chúng bị ghi đè mỗi build nên không tích luỹ — xoá không bao giờ đúng. |
 
 ## Lưu ý quan trọng
 
@@ -78,6 +78,12 @@ Script abort nếu vi phạm. Nếu bạn chạy tay, tự kiểm đủ 5 cái n
 | `--apply` luôn không dry-run trước | Luôn đọc báo cáo dry-run trước |
 | Tự push sau khi commit | Để người review `git show --stat` rồi push |
 | Rút window xuống vài ngày cho xoá được nhiều | Window ngắn = khách đang mở tab bị 404 |
+
+## Lần chạy thật gần nhất
+
+**2026-08-04**, `joy-subscription-artifacts`, window 2 tuần: xoá **9.869/18.195 file (54%)**,
+`static/` 608M → 316M, `assets/` 17.823 → 7.984, `scripttag/` 372 → 342. 4 entrypoint được guard 5 giữ lại.
+Commit `fc1f6e4704`, chưa push.
 
 ## Liên quan
 
