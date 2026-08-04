@@ -31,9 +31,23 @@ Nói cách khác: đây là "đích deploy" của phần front-end, không phả
   - `avada-cod-form-main.min.js` — form COD (Cash on Delivery).
 - `static/embed-template.html`, `static/standalone.html` — shell HTML nhúng app admin qua Shopify App Bridge (`shopify-api-key`).
 - `static/changelog/index.html` — trang changelog tĩnh (mới chỉ có `[0.0.1] 2019-04-10 Initialize project`, gần như bỏ hoang).
-- `all_files.txt`, `changed_files.txt`, `files_to_remove.txt` — **danh sách đường dẫn** (33k / 10k / 23k dòng) do CI sinh, dùng cho bước **dọn artifact cũ**.
+- `all_files.txt`, `changed_files.txt`, `files_to_remove.txt` — **danh sách đường dẫn** (33k / 10k / 23k dòng) sinh ra ở bước **dọn artifact cũ**, được git track.
+
+## Dọn artifact cũ
+
+Dùng skill `/clean-artifacts` (`~/projects/my-brain/skills/clean-artifacts/`) — bọc quy trình
+`git log --since` → `comm -23` → `rm` của doc "Avada React App Artifacts", kèm 5 guardrail.
+
+**Bẫy đã gặp thật (2026-08-04):** chạy đúng y 3 lệnh trong doc trên bản local cũ 4 tháng
+(HEAD `b80622b`, behind origin 394 commit) cho ra `changed_files.txt` **rỗng** →
+`files_to_remove.txt` = **toàn bộ 27.122 file**. Bước `rm` sau đó sẽ xoá sạch CDN.
+Luôn `git pull --ff-only` trước, và abort nếu `changed_files.txt` rỗng.
+
+Nguy hiểm nhất là 6 file `*-main.min.js` trong `static/scripttag/` — **URL cố định không hash**,
+theme storefront trỏ thẳng vào; xoá là mọi merchant chết widget ngay, không cần reload.
 
 ## Quyết định & gotcha
+- **Xoá file + commit KHÔNG làm nhỏ `.git`** (đo 2026-08-04: `.git` 1.9GB vs `static/` 1.0GB). Dọn chỉ nhẹ checkout và giải phóng chỗ cho build mới; muốn giảm thật phải rewrite history — team cố ý không làm để khỏi phá cache CDN.
 - **Repo phình cực to (~2.9GB)** vì tích lũy artifact theo từng lần build mà không xoá bản cũ — mỗi component để lại hàng trăm file hash trùng nội dung (`static/assets` có ~26k tên phân biệt sau khi bỏ hash). Đây là root cause của nhánh `hotfix/remove-artifacts` + commit gần nhất `remove artifacts` (HEAD `b80622b`).
 - Có **hai hệ bundler song song** (Vite ở `assets/`, Webpack ở `scripttag/`) — dấu hiệu app được viết/migrate qua nhiều giai đoạn; khi debug phải biết widget nào ra từ pipeline nào.
 - Không được sửa file trong repo này thủ công: nó là **output do CI ghi đè**, sửa tay sẽ mất khi build kế tiếp.
