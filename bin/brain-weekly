@@ -97,7 +97,8 @@ fi
 # repo to ask (and say so, so the reader discounts it).
 STALE="$TMP/stale-projects.txt"
 : > "$STALE"
-for note in "$BRAIN_DIR"/10-projects/*.md; do
+# Flat note OR one-level folder — see the same glob pair in brain-gitlog.
+for note in "$BRAIN_DIR"/10-projects/*.md "$BRAIN_DIR"/10-projects/*/*.md; do
   [ -f "$note" ] || continue
   case "$(basename "$note")" in _template.md) continue ;; esac
   grep -q '^status: active' "$note" || continue

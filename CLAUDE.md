@@ -32,6 +32,9 @@ Mô hình: "compile once, keep current" (Karpathy LLM-wiki) — KHÔNG re-derive
 3. **Link liberally:** dùng `[[slug]]` (không đuôi .md). Link tới note chưa tồn tại cũng OK — nó đánh dấu việc cần viết sau.
 4. **Provenance:** kiến thức tổng hợp phải trỏ nguồn qua field `source:` để tránh bịa đặt bị đóng băng thành "sự thật". Nếu không chắc → ghi "chưa xác minh".
 5. **Tránh folder lồng sâu** (cái bẫy của dev). Ưu tiên note phẳng + link hơn là nested folders.
+   Ngoại lệ: `10-projects/<project>/` **một tầng** khi project đã có ≥2-3 file riêng (note + brief +
+   PRD…). Project nhỏ giữ note phẳng. Sâu hơn một tầng thì không — `brain-gitlog`/`brain-weekly`
+   chỉ glob 2 mức, và slug wiki-link là tên file nên lồng sâu chỉ thêm đường dẫn chứ không thêm gì.
 6. **Đừng over-engineer frontmatter.** Giữ nhẹ (xem schema dưới). Không thêm field nếu không dùng.
 7. **Cập nhật `index.md`** mỗi khi thêm/di chuyển note đáng kể — đây là bản đồ, phải luôn đúng.
 8. **Mỗi note PHẢI có `summary:`** (1 câu TLDR trong frontmatter). LLM đọc summary để quyết định có mở full note không — rẻ vài giây, tiết kiệm việc đọc file không liên quan. Dòng trong `index.md` nên khớp với `summary:` của note (nguồn để auto-generate index sau này). Daily notes ephemeral — không bắt buộc summary.

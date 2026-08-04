@@ -71,7 +71,13 @@ trap 'rm -rf "$TMP"' EXIT
 declare -a LOG_ENTRIES=()
 repos_with_new=0
 
-for note in "$BRAIN_DIR"/10-projects/*.md; do
+# Two globs, not one: a project may be a flat note (backup.md) or a folder when
+# it grows extra files (subscriptions/subscriptions.md + brief + runbook). Only
+# one level deep — deeper nesting is the trap CLAUDE.md rule 5 warns about.
+# What makes a note a project is the `repo:` + `status: active` frontmatter,
+# not where the file sits, so a brief/runbook next to it is never picked up.
+for note in "$BRAIN_DIR"/10-projects/*.md "$BRAIN_DIR"/10-projects/*/*.md; do
+  [ -f "$note" ] || continue   # unmatched glob stays literal
   case "$(basename "$note")" in _template.md) continue ;; esac
   grep -q '^status: active' "$note" || continue
   repo_raw="$(grep -m1 '^repo:' "$note" | sed 's/^repo:[[:space:]]*//')" || true
