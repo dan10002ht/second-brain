@@ -22,4 +22,4 @@ Feedback rút từ session history khi làm [[subscriptions]] (07/2026).
 **How to apply:** trước khi sửa Joy Subscription — viết text khách bằng tiếng Anh; gộp thay đổi rồi commit một lần theo `type - role - scope`; khi đề xuất fix swap/re-sync, giữ trong flow webhook có sẵn, không thêm loop mirror-write hay Cloud Task.
 
 ## Liên quan
-- [[subscriptions]] · [[subscriptions-debug-runbook]] · [[commit-style]] · [[subscription-installment-horizon-digest]]
+- [[subscriptions]] · [[subscriptions-debug-runbook]] · [[feedback-commit-style]] · [[subscription-installment-horizon-digest]]
