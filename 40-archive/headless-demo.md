@@ -4,12 +4,15 @@ title: headless-demo
 summary: Demo store Shopify headless (Next.js 15) tích hợp subscription SDK.
 tags: [shopify, nextjs, headless, subscription, sdk]
 created: 2026-07-06
-updated: 2026-07-06
-status: active
+updated: 2026-08-04
+status: done
 repo: ~/projects/headless-demo
 ---
 
 # headless-demo
+
+> **Archived 2026-08-04** — `~/projects/headless-demo` không còn tồn tại trên máy.
+> Note giữ lại làm tham chiếu kiến thức; `brain-gitlog` không còn quét repo này.
 
 ## Mục đích
 Demo store Shopify headless dùng Next.js, làm ví dụ tích hợp **joy-subscription-sdk**

@@ -84,12 +84,15 @@ Your task: process EVERY file currently in the 00-inbox/ directory. For each
 file:
 
 1. Read the file's content.
-2. Decide its `type`: one of project | area | resource | note | feedback.
+2. Decide its `type`. If the file already declares a `type:` in its frontmatter,
+   TRUST IT — the producing script chose it deliberately. Only override when the
+   declared type is clearly wrong for the content. Valid types:
    - project  -> 10-projects/   (goal + deadline)
    - area     -> 20-areas/      (long-lived responsibility)
    - resource -> 30-resources/  (topic / study material; learns/ lives here)
    - note     -> notes/         (atomic Zettelkasten idea, 1 idea per file)
    - feedback -> feedback/      (include Why + How to apply)
+   - decision -> 70-decisions/  (include Why + Tradeoff — BOTH are mandatory)
 3. Add proper YAML frontmatter matching the CLAUDE.md schema (type, title,
    tags, created, updated, and optional source/status). Keep it light — do
    not over-engineer frontmatter.

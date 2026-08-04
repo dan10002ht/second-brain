@@ -1,0 +1,226 @@
+#!/usr/bin/env bash
+#
+# brain-weekly — the roll-up layer for my-brain
+#
+# brain-digest and brain-gitlog work at DAY scale: they turn "what happened
+# today" into notes/. That is why notes/ grows and every other layer sits
+# still — nothing operates at the scale where areas, resources and project
+# status actually change.
+#
+# brain-weekly closes that gap. Once a week it reads the notes that landed in
+# the last 7 days, compares them against the standing layers (20-areas/,
+# 30-resources/, 10-projects/), and writes PROPOSALS into 00-inbox/ for:
+#
+#   1. Resource consolidation — a technique that showed up in 3+ notes across
+#      different projects has outgrown "note" and deserves a resource page.
+#   2. Area drift — an area whose reality moved but whose note did not.
+#   3. Stale projects — status: active but nothing shipped or learned in weeks.
+#
+# It never matures or commits. brain-learn (via brain-sync) matures the inbox
+# afterwards. Human stays in the loop.
+#
+# Quality filter: a quiet week produces NO file. An empty roll-up is success.
+#
+# Usage:
+#   brain-weekly            # roll up the last 7 days -> inbox proposals
+#   brain-weekly --dry-run  # report only, no files written, watermark untouched
+#   brain-weekly --since N  # override: look back N days instead of 7
+#
+# Env:
+#   BRAIN_DIR   path to the brain (default: $HOME/projects/my-brain)
+#
+set -euo pipefail
+
+# ---- config ---------------------------------------------------------------
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+STATE_DIR="$BRAIN_DIR/.state"
+WATERMARK="$STATE_DIR/brain-weekly.watermark"
+INBOX="$BRAIN_DIR/00-inbox"
+TODAY="$(date +%F)"
+
+DRY_RUN=0
+SINCE_DAYS=7
+STALE_DAYS=21   # a status:active project untouched this long is a stale candidate
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1 ;;
+    --since) shift; SINCE_DAYS="${1:-7}" ;;
+    -h|--help) grep '^#' "$0" | sed 's/^# \{0,1\}//' | sed '1d'; exit 0 ;;
+    *) echo "brain-weekly: unknown argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+# ---- preflight ------------------------------------------------------------
+command -v claude >/dev/null 2>&1 || {
+  echo "brain-weekly: 'claude' CLI not found on PATH. Install Claude Code first." >&2
+  exit 127
+}
+[ -d "$BRAIN_DIR" ] || { echo "brain-weekly: BRAIN_DIR missing: $BRAIN_DIR" >&2; exit 1; }
+mkdir -p "$STATE_DIR" "$INBOX"
+cd "$BRAIN_DIR"
+
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/brain-weekly.XXXXXX")"
+trap 'rm -rf "$TMP"' EXIT
+
+# ---- 1) notes that landed in the window -----------------------------------
+# Prefer git (authoritative: when did the note actually enter the brain?) and
+# fall back to mtime on a fresh clone with no history.
+RECENT="$TMP/recent-notes.txt"
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  git log --since="${SINCE_DAYS} days ago" --name-only --pretty=format: -- notes/ 2>/dev/null \
+    | grep -E '^notes/.+\.md$' | sort -u > "$RECENT" || true
+fi
+if [ ! -s "$RECENT" ]; then
+  find notes -maxdepth 1 -name '*.md' -mtime "-${SINCE_DAYS}" 2>/dev/null | sort -u > "$RECENT" || true
+fi
+# Drop entries git remembers but that no longer exist on disk (renamed/deleted).
+if [ -s "$RECENT" ]; then
+  while IFS= read -r n; do [ -f "$n" ] && echo "$n"; done < "$RECENT" > "$RECENT.tmp"
+  mv "$RECENT.tmp" "$RECENT"
+fi
+
+RECENT_COUNT=$(wc -l < "$RECENT" | tr -d ' ')
+if [ "$RECENT_COUNT" -eq 0 ]; then
+  echo "brain-weekly: no new notes in the last ${SINCE_DAYS} days — nothing to roll up."
+  [ "$DRY_RUN" -eq 0 ] && touch "$WATERMARK"
+  exit 0
+fi
+
+# ---- 2) stale active projects ---------------------------------------------
+# Liveness MUST come from the project's own repo, not from the brain note.
+# Every project note was seeded on the same day and most have never been edited
+# since, so "last commit touching the note" reports the seed date for all of
+# them — a signal that looks like 28 days of silence for projects that shipped
+# yesterday. Ask the repo instead; only fall back to the note when there is no
+# repo to ask (and say so, so the reader discounts it).
+STALE="$TMP/stale-projects.txt"
+: > "$STALE"
+for note in "$BRAIN_DIR"/10-projects/*.md; do
+  [ -f "$note" ] || continue
+  case "$(basename "$note")" in _template.md) continue ;; esac
+  grep -q '^status: active' "$note" || continue
+  slug="$(basename "$note" .md)"
+
+  last_touch=""; signal=""
+  repo_raw="$(grep -m1 '^repo:' "$note" | sed 's/^repo:[[:space:]]*//' || true)"
+  repo="${repo_raw/#\~/$HOME}"
+
+  if [ -n "$repo_raw" ] && [ -d "$repo/.git" ]; then
+    last_touch="$(git -C "$repo" log -1 --all --format=%ad --date=short 2>/dev/null || true)"
+    signal="last commit in $repo_raw"
+  elif [ -n "$repo_raw" ]; then
+    # repo declared but gone — that IS the strongest possible staleness signal
+    printf -- '- %s (repo path no longer exists: %s)\n' "$slug" "$repo_raw" >> "$STALE"
+    continue
+  else
+    # no repo to ask: fall back to brain activity, and flag it as weak
+    if git rev-parse --git-dir >/dev/null 2>&1; then
+      last_touch="$(git log -1 --format=%ad --date=short -- "$note" "notes/*${slug}*" 2>/dev/null || true)"
+    fi
+    [ -n "$last_touch" ] || last_touch="$(date -r "$note" +%F 2>/dev/null || echo "")"
+    signal="last mention in the brain (WEAK: no repo: field, may just mean nobody wrote about it)"
+  fi
+
+  [ -n "$last_touch" ] || continue
+  last_epoch=$(date -j -f %Y-%m-%d "$last_touch" +%s 2>/dev/null || echo 0)
+  [ "$last_epoch" -gt 0 ] || continue
+  age_days=$(( ( $(date +%s) - last_epoch ) / 86400 ))
+  [ "$age_days" -ge "$STALE_DAYS" ] && printf -- '- %s (%s: %s, %d days ago)\n' \
+    "$slug" "$signal" "$last_touch" "$age_days" >> "$STALE"
+done
+
+echo "brain-weekly: ${RECENT_COUNT} new note(s) in the last ${SINCE_DAYS} days."
+[ -s "$STALE" ] && echo "brain-weekly: $(wc -l < "$STALE" | tr -d ' ') stale active project(s) flagged."
+
+RECENT_BLOCK="$(sed 's/^/  - /' "$RECENT")"
+STALE_BLOCK="$( [ -s "$STALE" ] && sed 's/^/  /' "$STALE" || echo "  (none)" )"
+
+# ---- build roll-up prompt --------------------------------------------------
+read -r -d '' PROMPT <<PROMPT_EOF || true
+You are the maintainer of this markdown knowledge brain ("my-brain"). Read
+index.md then CLAUDE.md first to learn the schema and the maintenance rules.
+
+This is the WEEKLY ROLL-UP, not a daily digest. The daily jobs already captured
+what happened each day into notes/. Your job is the pass that only makes sense
+at week scale: noticing what those notes ADD UP TO.
+
+Notes that landed in the last ${SINCE_DAYS} days:
+$RECENT_BLOCK
+
+Active projects with no activity in ${STALE_DAYS}+ days:
+$STALE_BLOCK
+
+Read the recent notes above, then read the standing layers they should be
+feeding — 20-areas/, 30-resources/, 10-projects/ — and produce AT MOST THREE
+kinds of proposal in 00-inbox/:
+
+  1. RESOURCE CONSOLIDATION -> 00-inbox/resource-<slug>-$TODAY.md
+     type: resource
+     Trigger: the same technique, pattern, or piece of knowledge appears in 3+
+     recent notes, ideally across MORE THAN ONE project, and there is no
+     30-resources/ page for it yet. Write the durable version: the concept, when
+     it applies, the gotcha — NOT a retelling of the sessions. Link back to the
+     source notes with [[wiki-links]] instead of copying their content.
+
+  2. AREA UPDATE -> 00-inbox/area-<slug>-$TODAY.md
+     type: area
+     Trigger: an existing 20-areas/ note is now materially out of date given the
+     week's notes (the stack changed, a responsibility moved, a stated practice
+     is no longer what actually happens). Propose the REVISED area note in full,
+     and open the body with a short "## Đề xuất thay đổi" section saying exactly
+     what differs from the current version and which notes are the evidence.
+     Do NOT edit 20-areas/ directly — this is a proposal.
+
+  3. STALE PROJECT -> 00-inbox/decision-archive-<slug>-$TODAY.md
+     type: decision
+     Only for projects in the stale list above, and read the signal each entry
+     names before trusting it: a stale "last commit in <repo>" is real evidence;
+     a stale "last mention in the brain" only means nobody wrote about it, which
+     is not the same as dead. Some repos are quiet by design (CI-only commits,
+     artifact/deploy targets). Verify before proposing. If the project does look
+     finished or abandoned, propose archiving it, with a mandatory **Why:**
+     section and a **Tradeoff:** section (what we lose by archiving, e.g. it
+     drops out of brain-gitlog scanning), plus a review date +3 months.
+
+CRITICAL quality filter — a quiet week SHOULD produce nothing:
+  - Do not manufacture a resource page from a single note, or from three notes
+    about the same one-off incident. The bar is: would this still be true and
+    useful three months from now, on a different project?
+  - Do not propose an area update for cosmetic drift.
+  - If nothing clears the bar, write NO file and say so. An empty roll-up is a
+    SUCCESS, not a failure. Zero proposals is a perfectly good week.
+  - Mark anything you are not sure of as "chưa xác minh".
+
+Every proposal gets lightweight frontmatter: type, title, summary (1-line TLDR),
+tags (ONLY tags already declared in tags.md — declare nothing new),
+created: $TODAY, and source: pointing at the notes you drew from.
+
+These are PROPOSALS ONLY. Write into 00-inbox/ and nowhere else. Do NOT move or
+mature notes, do NOT edit index.md, do NOT touch anything under sources/, do NOT
+edit 20-areas/ or 10-projects/ in place, do NOT commit. brain-learn will mature
+the inbox afterwards, after human review.
+
+When done, print a concise summary: each proposal written (with path and why it
+cleared the bar), and what you considered but deliberately skipped.
+PROMPT_EOF
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  PROMPT="$PROMPT
+
+IMPORTANT — DRY RUN: do NOT create or edit any file. Only READ, and print what
+you WOULD propose (or why you would skip)."
+fi
+
+# ---- run claude headless ---------------------------------------------------
+# NOTE: prompt MUST come right after --print. `--add-dir` greedily consumes
+# following args, so a prompt placed after it gets swallowed.
+if [ "$DRY_RUN" -eq 1 ]; then
+  claude --print "$PROMPT" --add-dir "$BRAIN_DIR"
+else
+  claude --print "$PROMPT" --permission-mode acceptEdits --add-dir "$BRAIN_DIR"
+  touch "$WATERMARK"
+fi
+
+echo "brain-weekly: done. Review 00-inbox/, then brain-learn will mature it."

@@ -4,12 +4,15 @@ title: avada-core
 summary: Thư viện lõi auth Shopify + Firebase (Koa/TS) dùng chung cho các app AVADA.
 tags: [shopify, firebase, koa, typescript, auth, billing]
 created: 2026-07-06
-updated: 2026-07-06
-status: active
+updated: 2026-08-04
+status: done
 repo: ~/projects/avada-core
 ---
 
 # avada-core
+
+> **Archived 2026-08-04** — `~/projects/avada-core` không còn tồn tại trên máy.
+> Note giữ lại làm tham chiếu kiến thức; `brain-gitlog` không còn quét repo này.
 
 ## Mục đích
 Thư viện lõi (`@avada/core`) cung cấp phần **xác thực (authorization) Shopify** dùng chung cho các Shopify App của Avada, tích hợp với **Firebase**. Đóng gói OAuth Shopify, quản lý session/token, billing (charge/subscription), webhook và các middleware bảo mật để các app không phải viết lại.

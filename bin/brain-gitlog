@@ -77,7 +77,17 @@ for note in "$BRAIN_DIR"/10-projects/*.md; do
   repo_raw="$(grep -m1 '^repo:' "$note" | sed 's/^repo:[[:space:]]*//')" || true
   [ -n "$repo_raw" ] || continue
   repo="${repo_raw/#\~/$HOME}"
-  [ -d "$repo/.git" ] || { echo "brain-gitlog: skip (not a git repo): $repo" >&2; continue; }
+  # A stale repo: path is a data problem in the brain, not a script problem —
+  # say what to do about it instead of logging the same line forever.
+  if [ ! -d "$repo" ]; then
+    echo "brain-gitlog: $(basename "$note") is status:active but repo path is gone: $repo" >&2
+    echo "brain-gitlog:   -> move the note to 40-archive/, or fix its repo: field." >&2
+    continue
+  fi
+  if [ ! -d "$repo/.git" ]; then
+    echo "brain-gitlog: $(basename "$note"): $repo exists but is not a git repo — skipping." >&2
+    continue
+  fi
   pname="$(basename "$repo")"
 
   out="$TMP/log-$pname.md"
@@ -125,12 +135,21 @@ changed and landed:
 
 Then, for each repo that HAS meaningful shipped changes, create ONE proposal
 file at 00-inbox/shipped-<repo>-$TODAY.md containing:
-  - lightweight frontmatter: type: note, title, summary (1-line TLDR),
+  - lightweight frontmatter: type: note (a shipped log is factual history, so
+    note is the correct type here), title, summary (1-line TLDR),
     tags (only from tags.md — declare nothing new), created: $TODAY,
     source: (name the repo + "git log", these hashes ARE verified).
   - a short body grouped by: Shipped / Reverted / Deploy notes.
   - suggested [[wiki-links]] to related existing notes (e.g. the matching
     subscription-digest-* notes — cross-link, do not duplicate their content).
+
+One exception to type: note — if the log shows a genuine reversal of direction
+(a revert of a substantial feature, a rewrite replacing an earlier approach,
+a dependency swapped out), ALSO write a separate
+00-inbox/decision-<slug>-$TODAY.md with type: decision, a **Why:** section and
+a **Tradeoff:** section, citing the real commit hashes as evidence, and a review
+date +3 months. Do this only for real direction changes — not for routine
+bugfix reverts.
 
 CRITICAL quality filter:
   - If a repo's commits are all noise or already captured in the brain (check

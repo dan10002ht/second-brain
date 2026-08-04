@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd job: chạy brain-weekly Chủ nhật 18:00 — tầng tổng hợp tuần.
+  Đứng TRƯỚC brain-digest (19:00) và brain-sync (20:00) để proposal của nó
+  được mature ngay trong tối Chủ nhật, không phải chờ sang tuần.
+  Cài:
+    cp bin/com.avada.brain-weekly.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.avada.brain-weekly.plist
+  Chạy thử ngay:
+    launchctl start com.avada.brain-weekly
+  Gỡ:
+    launchctl unload ~/Library/LaunchAgents/com.avada.brain-weekly.plist
+  Log: .state/brain-weekly.out.log / .err.log trong brain.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.avada.brain-weekly</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/dantt1002/projects/my-brain/bin/brain-weekly</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/dantt1002/projects/my-brain</string>
+
+  <!-- launchd có env tối thiểu; nạp PATH đủ để tìm claude + node -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/dantt1002/.nvm/versions/node/v20.19.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>BRAIN_DIR</key>
+    <string>/Users/dantt1002/projects/my-brain</string>
+  </dict>
+
+  <!-- Chủ nhật (Weekday 0) 18:00 -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key><integer>0</integer>
+    <key>Hour</key><integer>18</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-weekly.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-weekly.err.log</string>
+</dict>
+</plist>

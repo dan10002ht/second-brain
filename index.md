@@ -13,12 +13,10 @@ _Cập nhật: 2026-08-02 · Trạng thái: đã seed 12 project + notes học t
 - [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops).
 - [[joy]] — Joy Loyalty & Rewards SaaS (deep).
 - [[joy-subscription-artifacts]] — kho artifact/CDN build của Joy Subscription.
-- [[avada-core]] — thư viện lõi auth Shopify + Firebase (Koa/TS).
 - [[crm]] — AVADA CRM marketing automation (monorepo + ML).
 - [[backup]] — Avada Backups & Restore.
 - [[pdf]] — PDF Invoice for Shopify. ⚠️ có secrets hardcode trong RELEASE_NOTE.
 - [[shipping-labels]] — in nhãn vận chuyển Shopify. → [[digest-shipping-labels-2026-07-27]] (2 lỗ auth đã vá).
-- [[headless-demo]] — demo store Shopify headless (Next.js 15).
 
 **Khác:**
 - [[aws]] — nền tảng tự học AWS & chứng chỉ.
@@ -140,7 +138,8 @@ _(chưa có)_
 
 ## 🗄️ Archive (40-archive/)
 
-_(chưa có)_
+- [[avada-core]] — thư viện lõi auth Shopify + Firebase (Koa/TS). Archived 2026-08-04: repo không còn trên máy.
+- [[headless-demo]] — demo store Shopify headless (Next.js 15). Archived 2026-08-04: repo không còn trên máy.
 
 ---
 

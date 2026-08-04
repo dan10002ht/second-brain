@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  launchd job: chạy brain-digest mỗi tối 21:00 để brain tự học từ session trong ngày.
+  launchd job: chạy brain-digest mỗi tối 19:00 để brain tự học từ session trong ngày.
+  PHẢI chạy TRƯỚC brain-sync (20:00), nếu không proposal nằm chờ trong inbox
+  tới 20:00 hôm SAU mới được mature (trễ 1 ngày).
   Cài:
     cp bin/com.avada.brain-digest.plist ~/Library/LaunchAgents/
     launchctl load ~/Library/LaunchAgents/com.avada.brain-digest.plist
@@ -33,10 +35,10 @@
     <string>/Users/dantt1002/projects/my-brain</string>
   </dict>
 
-  <!-- 21:00 mỗi ngày -->
+  <!-- 19:00 mỗi ngày — trước brain-sync 20:00 -->
   <key>StartCalendarInterval</key>
   <dict>
-    <key>Hour</key><integer>21</integer>
+    <key>Hour</key><integer>19</integer>
     <key>Minute</key><integer>0</integer>
   </dict>
 
