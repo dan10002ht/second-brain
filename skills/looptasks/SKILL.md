@@ -146,13 +146,36 @@ Quy tắc:
 
 ---
 
-## Nguyên tắc
+## Git — nhánh, worktree, commit
+
+**Nhánh nền.** User không nói gì → base từ **`origin/master`** (hoặc `origin/main` nếu repo dùng
+tên đó — kiểm bằng `git symbolic-ref refs/remotes/origin/HEAD`, đừng đoán). **`git fetch` trước**
+rồi mới base: `master` local rất hay cũ hơn remote, base nhầm vào đó là kéo theo cả đống diff
+không liên quan lúc tạo MR.
+
+Không bao giờ làm việc thẳng trên `master`/`main`.
+
+**Một nhánh tích hợp cho cả phiên loop**, không phải mỗi task một nhánh — nếu không thì 10 task
+thành 10 MR vụn. Đặt tên theo convention của chính repo đó (`git branch -a | head -30` để xem
+repo đang dùng `feat/…`, `fix/…` hay tiền tố ticket, rồi theo). Task có mã ticket
+(`SB-…`, `JSUB-…`) thì đưa mã vào tên nhánh.
+
+**Worktree chỉ cho nhóm song song.** Mỗi agent song song một worktree, nhánh tạm base từ nhánh
+tích hợp; xong thì verify trong worktree rồi merge lần lượt về nhánh tích hợp, verify lại sau
+mỗi merge. Nhóm tuần tự **không** tạo worktree — chạy thẳng trong thư mục hiện tại, commit
+thẳng vào nhánh tích hợp.
+
+**Commit tự động, push thì KHÔNG.** Loop chạy nền 5 phút nên không thể hỏi trước từng commit;
+commit vào nhánh riêng là an toàn vì chưa ra khỏi máy và user review được bằng `git log`/`git diff`.
+Nhưng **push và tạo MR luôn phải hỏi** — đó là lúc việc ra khỏi máy và người khác nhìn thấy.
+
+Mỗi task một commit, message theo convention repo (repo Avada: `type - role - scope`).
 
 - **Main agent không viết code.** Chỉ orchestrate, verify, bookkeeping.
 - **Idempotent.** `[✅]` bỏ qua tuyệt đối. Lock có timestamp lo phần `[⏳]`.
 - **Không tự thêm task, không mở rộng scope.** Làm đúng cái file ghi.
 - **Surgical.** Mỗi thay đổi trace được về đúng một task.
-- **Git do main agent làm.** Repo project: tạo nhánh, hỏi trước khi commit (xem `brain-core.md`).
+- **Git do main agent làm.** Subagent chỉ sửa file (xem mục Git ở trên).
 - **File task ở brain thì KHÔNG commit nó.** Cứ sửa và để đó — `brain-sync` 20:00 mỗi tối tự
   commit + push master. Đừng commit brain giữa chừng chỉ để lưu một cái checkbox.
 
