@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# brain-skills-link — nối skills/ của brain vào ~/.claude/skills/ để dùng ở MỌI project.
+#
+# Vấn đề: ~/.claude/ không phải git repo → skill đặt ở đó mất khi đổi máy.
+# Cách giải: source of truth nằm trong repo này (skills/, được git track),
+# global chỉ giữ symlink. Máy mới: clone brain → chạy script này → xong.
+#
+# Dùng: brain-skills-link          # tạo/sửa symlink còn thiếu
+#       brain-skills-link --check  # chỉ báo cáo, không đụng gì (exit 1 nếu lệch)
+set -uo pipefail
+
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+SRC="$BRAIN_DIR/skills"
+DST="$HOME/.claude/skills"
+
+CHECK_ONLY=0
+[[ "${1:-}" == "--check" ]] && CHECK_ONLY=1
+
+[[ -d "$SRC" ]] || { echo "brain-skills-link: không có $SRC" >&2; exit 1; }
+mkdir -p "$DST"
+
+drift=0
+for dir in "$SRC"/*/; do
+  [[ -d "$dir" ]] || continue
+  name=$(basename "$dir")
+  link="$DST/$name"
+
+  # Đã trỏ đúng chỗ rồi → bỏ qua
+  if [[ -L "$link" && "$(readlink "$link")" == "${dir%/}" ]]; then
+    echo "  ok      $name"
+    continue
+  fi
+
+  # Có file/thư mục THẬT ở global → KHÔNG ghi đè, để người quyết định.
+  if [[ -e "$link" && ! -L "$link" ]]; then
+    echo "  ⚠️  đụng  $name — $link là bản thật, không phải symlink." >&2
+    echo "           So sánh rồi tự xử lý: diff -ru '$link' '${dir%/}'" >&2
+    drift=1
+    continue
+  fi
+
+  if [[ $CHECK_ONLY -eq 1 ]]; then
+    echo "  thiếu   $name"
+    drift=1
+    continue
+  fi
+
+  rm -f "$link"
+  ln -s "${dir%/}" "$link"
+  echo "  + link  $name"
+done
+
+if [[ $drift -ne 0 ]]; then
+  echo
+  echo "Có mục cần xử lý tay (xem ⚠️ ở trên)." >&2
+  [[ $CHECK_ONLY -eq 1 ]] && exit 1
+fi
+
+echo
+echo "Xong. Skill trong $SRC giờ dùng được ở mọi project."
+echo "Lưu ý: mở session MỚI thì Claude Code mới nạp skill vừa link."

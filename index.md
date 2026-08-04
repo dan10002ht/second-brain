@@ -3,7 +3,10 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-02 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
+_Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống_
+
+> **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
+> vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
 
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
