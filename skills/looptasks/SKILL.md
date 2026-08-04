@@ -9,8 +9,22 @@ Main agent **orchestrate + verify**, KHÔNG tự viết code. Code do subagent S
 
 ## Input
 
-`args` = đường dẫn file task (vd `30-projects/avada-dbbackup/BRIEF.md`).
-Không có args → tìm `BRIEF.md` ở project root; không thấy thì hỏi user, đừng đoán.
+`args` = đường dẫn file task. **cwd vẫn là repo project** (để `CLAUDE.md` + settings của repo
+được load) — chỉ file task là trỏ đi nơi khác.
+
+Mặc định file task sống ở brain, **ngoài repo code**:
+
+```
+~/projects/my-brain/10-projects/<tên-repo>-brief.md
+```
+
+Lý do: repo của team sạch, tự sync đa máy qua brain-sync, và **worktree không bao giờ thấy file
+này** nên subagent không thể sửa/commit nhầm làm revert trạng thái checkbox lúc merge.
+
+Không có args → thử `~/projects/my-brain/10-projects/<tên-thư-mục-cwd>-brief.md`, rồi `BRIEF.md`
+ở project root. Không thấy cái nào → **hỏi user, đừng đoán, đừng tự tạo file rỗng.**
+
+Task list dùng chung với đồng đội thì là ngoại lệ: để trong repo, trên nhánh feature.
 
 ## Định dạng task
 
@@ -114,6 +128,8 @@ ghi blocker dưới task, **ĐỪNG mark done**, trả `[⏳]` về `[ ]`, repor
 - **Không tự thêm task, không mở rộng scope.** Làm đúng cái file ghi.
 - **Surgical.** Mỗi thay đổi trace được về đúng một task.
 - **Git do main agent làm.** Repo project: tạo nhánh, hỏi trước khi commit (xem `brain-core.md`).
+- **File task ở brain thì KHÔNG commit nó.** Cứ sửa và để đó — `brain-sync` 20:00 mỗi tối tự
+  commit + push master. Đừng commit brain giữa chừng chỉ để lưu một cái checkbox.
 
 ## Chạy định kỳ
 
