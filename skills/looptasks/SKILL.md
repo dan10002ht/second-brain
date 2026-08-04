@@ -105,16 +105,17 @@ Rào này xoá nguyên lớp rủi ro agent này `checkout` phá việc agent kh
 Chờ agent xong, đọc report. **Không tin report — tự verify.** Chạy đúng done-criteria
 (`tsc` / build / test tuỳ task) và **đọc output thật** trước khi kết luận.
 
-Nhóm worktree: verify trong worktree của nó, xanh rồi mới merge về nhánh làm việc.
-Merge **lần lượt từng cái**, verify lại sau mỗi lần merge — conflict lúc merge là chuyện
-bình thường, gỡ ngay tại chỗ.
+Nhóm worktree: verify **ngay trong worktree** của nó. Xanh rồi thì commit vào nhánh của task đó
+và **dừng ở đấy** — không merge đi đâu cả, nhánh sống độc lập chờ bạn tạo MR. Worktree đã xong
+việc thì gỡ (`git worktree remove`), nhánh vẫn còn nguyên.
 
 ## Bước 6 — Đóng task
 
 Xong và verify xanh:
 
 1. Sửa file task `[⏳ HH:MM]` → `[✅ YYYY-MM-DD]` (ngày hôm nay — cần cho bước dọn)
-2. Viết tóm tắt **ngay dưới task, indent**: file nào sửa, cách làm, verify status
+2. Viết tóm tắt **ngay dưới task, indent**: **tên nhánh + commit hash ngắn**, file nào sửa,
+   cách làm, verify status (xem mẫu ở mục Git)
 3. Cập nhật `CHANGELOG.md` ở project root (tạo nếu chưa có) — 1 entry theo ngày.
    Repo đã có convention changelog riêng thì **theo convention đó**, đừng áp khuôn mới.
 4. Report cho user: task nào vừa xong, tóm tắt ngắn
@@ -155,21 +156,40 @@ không liên quan lúc tạo MR.
 
 Không bao giờ làm việc thẳng trên `master`/`main`.
 
-**Một nhánh tích hợp cho cả phiên loop**, không phải mỗi task một nhánh — nếu không thì 10 task
-thành 10 MR vụn. Đặt tên theo convention của chính repo đó (`git branch -a | head -30` để xem
-repo đang dùng `feat/…`, `fix/…` hay tiền tố ticket, rồi theo). Task có mã ticket
-(`SB-…`, `JSUB-…`) thì đưa mã vào tên nhánh.
+**MỘT TASK = MỘT NHÁNH.** Không gộp cả phiên loop vào một nhánh: nhánh chứa 10 task hỗn hợp thì
+review không nổi, revert một việc là đụng chín việc kia, và không map được task ↔ thay đổi khi
+cần truy lại sau vài tuần. Mỗi task một nhánh, một MR, đúng nhịp một ticket một MR.
 
-**Worktree chỉ cho nhóm song song.** Mỗi agent song song một worktree, nhánh tạm base từ nhánh
-tích hợp; xong thì verify trong worktree rồi merge lần lượt về nhánh tích hợp, verify lại sau
-mỗi merge. Nhóm tuần tự **không** tạo worktree — chạy thẳng trong thư mục hiện tại, commit
-thẳng vào nhánh tích hợp.
+Hệ quả tốt: **không còn bước merge về nhánh chung**, nên cũng không còn conflict lúc gom — mỗi
+nhánh sống độc lập tới khi bạn tạo MR.
+
+Đặt tên theo convention đọc được từ chính repo (`git branch -a | head -30` xem repo dùng `feat/…`,
+`fix/…` hay tiền tố ticket). Task có mã ticket (`SB-…`, `JSUB-…`) thì mã đó vào tên nhánh.
+
+**Base:** task **độc lập** → mỗi nhánh base thẳng từ `origin/master`, không nối tiếp nhau.
+Task **tuần tự vì đụng cùng file** → chúng vốn liên quan về logic, nên hoặc gộp vào một nhánh,
+hoặc stack nhánh sau lên nhánh trước và ghi rõ "depends on <nhánh>" trong tóm tắt.
+
+**Worktree chỉ cho nhóm song song** — mỗi task song song một worktree, khớp sẵn với một nhánh
+riêng của nó. Nhóm tuần tự không cần worktree, chỉ `git switch` giữa các nhánh trong thư mục chính.
 
 **Commit tự động, push thì KHÔNG.** Loop chạy nền 5 phút nên không thể hỏi trước từng commit;
 commit vào nhánh riêng là an toàn vì chưa ra khỏi máy và user review được bằng `git log`/`git diff`.
 Nhưng **push và tạo MR luôn phải hỏi** — đó là lúc việc ra khỏi máy và người khác nhìn thấy.
 
 Mỗi task một commit, message theo convention repo (repo Avada: `type - role - scope`).
+
+**Ghi nhánh vào `BRIEF.md`.** Tóm tắt dưới mỗi task xong **phải có tên nhánh + commit hash ngắn**.
+Đây là cách truy lại: mở `BRIEF.md` (hoặc `BRIEF-done.md` sau khi dọn) là thấy ngay task nào nằm
+ở nhánh nào, không phải mò `git log`.
+
+```markdown
+1. [✅ 2026-08-04] fix format tiền ở export CSV
+   - nhánh `fix/SB-14901-csv-money` · commit `a1b2c3d`
+   - Sửa `app/utils/money.js`; verify: tsc exit 0, test pass
+```
+
+## Nguyên tắc
 
 - **Main agent không viết code.** Chỉ orchestrate, verify, bookkeeping.
 - **Idempotent.** `[✅]` bỏ qua tuyệt đối. Lock có timestamp lo phần `[⏳]`.
