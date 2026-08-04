@@ -13,8 +13,8 @@ _Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học t
 - [[build-my-brain]] — dựng wiki tri thức cá nhân này (status: active, deadline 2026-07-31).
 
 **AVADA / Shopify apps (work):**
-- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops), [[subscriptions-brief]] (task list cho `/looptasks`).
-  _Project đầu tiên dùng cấu trúc thư mục `10-projects/<project>/` — project nào phình thêm file thì gom vào folder, project nhỏ giữ note phẳng._
+- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops).
+  _Project đầu tiên dùng cấu trúc thư mục `10-projects/<project>/` — project nào phình thêm file thì gom vào folder, project nhỏ giữ note phẳng. Task list là `BRIEF.md` trong folder đó (state của `/looptasks`, cố ý nằm ngoài graph)._
 - [[joy]] — Joy Loyalty & Rewards SaaS (deep).
 - [[joy-subscription-artifacts]] — kho artifact/CDN build của Joy Subscription.
 - [[crm]] — AVADA CRM marketing automation (monorepo + ML).

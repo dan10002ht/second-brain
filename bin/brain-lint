@@ -22,7 +22,10 @@ ROOT = Path(__file__).resolve().parent.parent
 # Thư mục chứa note nội dung (có slug, tham gia graph)
 CONTENT_DIRS = ["10-projects", "20-areas", "30-resources", "notes", "feedback", "70-decisions"]
 # Ephemeral / navigation — không bắt buộc summary, không tính orphan
+# BRIEF*.md là STATE của /looptasks, không phải knowledge: mọi project đều dùng
+# cùng tên nên slug sẽ đụng nhau nếu đưa vào graph.
 SKIP_NAMES = {"_template.md", "README.md", "CLAUDE.md"}
+SKIP_PREFIXES = ("BRIEF",)
 
 LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
 
@@ -31,11 +34,15 @@ def slug_of(path):
     return path.stem
 
 
+def is_skipped(f):
+    return f.name in SKIP_NAMES or f.name.startswith(SKIP_PREFIXES)
+
+
 def content_files():
     files = []
     for d in CONTENT_DIRS:
         for f in (ROOT / d).rglob("*.md"):
-            if f.name not in SKIP_NAMES:
+            if not is_skipped(f):
                 files.append(f)
     return files
 
@@ -44,7 +51,7 @@ def all_md_files():
     """Mọi file có thể là đích của link (gồm daily, inbox, archive...)."""
     files = {}
     for f in ROOT.rglob("*.md"):
-        if f.name in SKIP_NAMES:
+        if is_skipped(f):
             continue
         # bỏ file trong bin/, docs/ (không phải note)
         rel = f.relative_to(ROOT)

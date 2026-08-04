@@ -15,14 +15,17 @@ Main agent **orchestrate + verify**, KHÔNG tự viết code. Code do subagent S
 Mặc định file task sống ở brain, **ngoài repo code**:
 
 ```
-~/projects/my-brain/10-projects/<tên-repo>-brief.md
+~/projects/my-brain/10-projects/<tên-repo>/BRIEF.md
 ```
 
 Lý do: repo của team sạch, tự sync đa máy qua brain-sync, và **worktree không bao giờ thấy file
 này** nên subagent không thể sửa/commit nhầm làm revert trạng thái checkbox lúc merge.
 
-Không có args → thử `~/projects/my-brain/10-projects/<tên-thư-mục-cwd>-brief.md`, rồi `BRIEF.md`
+Không có args → thử `~/projects/my-brain/10-projects/<tên-thư-mục-cwd>/BRIEF.md`, rồi `BRIEF.md`
 ở project root. Không thấy cái nào → **hỏi user, đừng đoán, đừng tự tạo file rỗng.**
+
+`BRIEF.md` cố ý **nằm ngoài graph wiki** (`brain-lint` bỏ qua mọi file tên `BRIEF*`): nó là state
+của loop, không phải knowledge, và mọi project đều dùng cùng tên nên slug sẽ đụng nhau.
 
 Task list dùng chung với đồng đội thì là ngoại lệ: để trong repo, trên nhánh feature.
 
@@ -31,12 +34,12 @@ Task list dùng chung với đồng đội thì là ngoại lệ: để trong re
 ```markdown
 1. [ ] làm xyz
 2. [⏳ 14:32] đang làm abc
-3. [✅] đã xong kkk
+3. [✅ 2026-08-02] đã xong kkk
 ```
 
 - `[ ]` / `[]` → chưa done, cần làm
 - `[⏳ HH:MM]` → đang có agent nhận (xem mục Lock bên dưới)
-- `[✅]` / `[x]` → xong, **bỏ qua**
+- `[✅ YYYY-MM-DD]` / `[✅]` / `[x]` → xong, **bỏ qua**
 
 Task có thể có dòng con (bullet, sub-detail) — đọc hết block thuộc task đó làm context.
 
@@ -110,7 +113,7 @@ bình thường, gỡ ngay tại chỗ.
 
 Xong và verify xanh:
 
-1. Sửa file task `[⏳ HH:MM]` → `[✅]`
+1. Sửa file task `[⏳ HH:MM]` → `[✅ YYYY-MM-DD]` (ngày hôm nay — cần cho bước dọn)
 2. Viết tóm tắt **ngay dưới task, indent**: file nào sửa, cách làm, verify status
 3. Cập nhật `CHANGELOG.md` ở project root (tạo nếu chưa có) — 1 entry theo ngày.
    Repo đã có convention changelog riêng thì **theo convention đó**, đừng áp khuôn mới.
@@ -118,6 +121,28 @@ Xong và verify xanh:
 
 **Fail / blocker** (thiếu credential, task mô tả không rõ, verify đỏ):
 ghi blocker dưới task, **ĐỪNG mark done**, trả `[⏳]` về `[ ]`, report user. Không đoán bừa để cho xong.
+
+## Bước 7 — Dọn task cũ (housekeeping)
+
+Chạy **một lần mỗi iteration, sau khi đóng task**. Giữ `BRIEF.md` là danh sách việc *đang sống*,
+không phải kho lưu trữ — file phình lên thì mỗi iteration lại tốn công đọc lại thứ đã xong.
+
+Task `[✅ YYYY-MM-DD]` **quá 3 ngày** → cắt khỏi `BRIEF.md`, append sang `BRIEF-done.md`
+cùng thư mục (tạo nếu chưa có), **giữ nguyên tóm tắt indent bên dưới** — đó là lịch sử,
+đừng vứt. Nhóm theo ngày:
+
+```markdown
+## 2026-08-04
+- [✅] fix format tiền ở export CSV
+  - Sửa `app/utils/money.js`; verify: tsc exit 0, test pass
+```
+
+Quy tắc:
+
+- Task xong **trong vòng 3 ngày** → để nguyên trong `BRIEF.md` (user còn muốn thấy việc vừa làm)
+- `[✅]` **không có ngày** (format cũ) → để nguyên, không đoán ngày
+- Chỉ dọn khi có ít nhất 1 task đủ điều kiện. Không có thì bỏ qua im lặng, đừng tạo file rỗng
+- `BRIEF-done.md` cũng ngoài graph — cùng tiền tố `BRIEF` nên `brain-lint` đã bỏ qua sẵn
 
 ---
 
