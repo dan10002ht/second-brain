@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 digest/shipped ngày 08-03→08-04)_
+_Cập nhật: 2026-08-05 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 08-05: 2 digest + 1 resource)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -11,6 +11,7 @@ _Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học t
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
 - [[build-my-brain]] — dựng wiki tri thức cá nhân này (status: active, deadline 2026-07-31).
+- [[ai-eng-guide]] — bộ guide 5 layer (Prompt → Context → Harness → Loop → Graph) cho team dev Avada dùng Claude Code. → [[ai-eng-thuat-ngu]] · [[ai-eng-01-prompt]] · [[ai-eng-02-context]] · [[ai-eng-03-harness]] · [[ai-eng-04-loop]] · [[ai-eng-05-graph]] · [[ai-eng-cho-tester]] (cho QA)
 
 **AVADA / Shopify apps (work):**
 - [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops).
@@ -38,7 +39,7 @@ _Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học t
 **Tech stack dùng hằng ngày (tham chiếu xuyên project):**
 - `shopify/` — [[app-development]]: extensions, billing, Polaris, embedded app.
 - `firebase/` — [[firestore-multitenant]]: cô lập dữ liệu theo `shopId`.
-- `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]].
+- `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]], [[lich-dinh-ky-neo-theo-ngay-du-kien]] (scheduler định kỳ neo theo mốc *dự kiến* của kỳ trước, không theo ngày xử lý thực tế — chống drift).
 - [[caching-layers]] — caching qua các layer (client→CDN→proxy→app→Redis→DB): 3 pattern lõi + 3 cái khó (invalidation, key, stampede).
 
 **Học tập:**
@@ -98,6 +99,7 @@ _Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học t
 - [[shipped-pdf-2026-08-01]] — commit landed 07-31 (v3.1.64→65): dev-zone custom currency + seed money format từ Shopify lúc install (kèm 2 fix có sẵn của filter `money`: đường email chưa từng đăng ký filter, `toFixed` lệch cent), fix nhận diện dev store đã chọn plan test để không rơi nhầm vào bucket promo 70%; còn trên nhánh: HS code + country of origin phủ 77/83 theme (SB-14896), Email Sender/Custom SMTP (có 1 fix XSS), Setup Checklist Card SB-14770; không revert.
 - [[digest-pdf-2026-08-03]] — CHỈ phần mới: dựng luồng unsubscribe HMAC không cần DB migration, chuỗi bẫy Firebase Hosting/emulator/koa-bodyparser, và kỷ luật vận hành khi gửi hàng loạt (resume qua progress file, batch ngắn vì tiến trình bị giết).
 - [[shipped-pdf-2026-08-04]] — commit landed 08-03 — master nhận 5 MR: unsubscribe cho email marketing (HMAC stateless, RFC 8058), HS code/country of origin phủ 102 theme + 113 ngôn ngữ + gate theo plan, fix 422 khi Save Settings (yup 0.29 tự dựng default cho nested object), font DM Sans, quickstart; nhánh còn script gửi bulk resume được; không revert. ⚠️ nợ bảo mật: 3 key Google Translate còn trong git history — cần rotate.
+- [[digest-pdf-2026-08-05]] — CHỈ số chốt của chiến dịch email marketing đầu tiên (27.626/27.626 gửi thành công, 1 lỗi, ~0.09% unsubscribe) và ngưỡng batch thực dụng ≈1.000 mail/lượt trong môi trường hay giết tiến trình nền. ⚠️ con số unsubscribe cuối *chưa xác minh*.
 - [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
@@ -113,6 +115,7 @@ _Cập nhật: 2026-08-04 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-03]] — CHỈ phần mới: chiến dịch giảm CLS in-app (skeleton lệch chiều cao, Crisp wrapper 0.916/lượt) với kỷ luật đo A/B, skill security-audit chủ động lộ ra `storage.rules` public, bug `pricingGate` chặn nhầm gói trả tiền, và deploy extensions chết vì CI pin Shopify CLI cũ.
 - [[shipped-subscriptions-2026-08-04]] — commit landed 08-03 (v2.34.45→46): master nhận 2 MR (docs Sidekick Phase 1 `[deploy-extensions]`, chiến dịch giảm CLS boot/home/crisp/list table kèm số đo trước-sau); trên nhánh còn chuỗi fix CI build extension (pin yarn 1.22.22, bump Shopify CLI 3.94.3), fix pricing gate uncapped plan, Volume Bundle `[deploy-all]`; không revert.
 - [[digest-subscriptions-2026-08-04]] — CHỈ phần mới: pattern "block của mình = controller, block AOV bị ẩn = engine" khi custom theme cho khách, kèm luật hiện badge của AOV volume (`isDefault` → badge global, còn lại theo `isShowBadgeEachTier`). ⚠️ có mục "chưa xác minh" về fix BQ cost.
+- [[digest-subscriptions-2026-08-05]] — CHỈ phần mới: delivery-anchored billing cho Spray Farmacy (tính Delivery Date trước rồi suy Charge Date, mốc là delivery *dự kiến* kỳ trước nên không drift), gate "chỉ contract mới" phải ghi cờ lên contract chứ không theo flag shop (3 call site), + gotcha storefront không expose metafield của function. → khái quát hoá ở [[lich-dinh-ky-neo-theo-ngay-du-kien]]. ⚠️ 2 mục treo: offset Sun/Mon/Tue, timezone của "00:00".
 - [[shipped-subscriptions-2026-07-28]] — commit landed 07-27 (v2.34.33→36): vá tenant-isolation `X-Shopify-Shop-Id` + 403 tripwire, 2 dev-zone override (force pricing version, `disableSubCountLimit`), shipping price theo billed cycle SB-14694 + audit script, propagate address ra mọi upcoming order; WIP lớn: one-time-only add product SB-14700, Mystery Product, bulk error banner SB-14564.
 - [[digest-moonie-2026-07-24]] — phần mới của Mooni: skill QA tái dùng (mọi thứ riêng-app vào 1 config ở root, docs derived + trace REQ), giá trị harness = gate mỗi task chứ không phải mốc phase, root cause chính xác Colima/testcontainers Ryuk + golangci-lint CI, npm lock lệch platform.
 - [[digest-moonie-2026-07-25]] — phần mới của Mooni (UI giai đoạn 3 & 5): held-out Playwright chỉ chắc khi form có `name`/`aria-label` rõ (nhãn nhập nhằng là tín hiệu UX chứ không phải test khó tính), design-evaluator bắt lỗi thật (overflow-hidden cắt cột, font thiếu subset tiếng Việt, hardcode hex), đọc thẳng mockup thay vì phán từ trí nhớ.
