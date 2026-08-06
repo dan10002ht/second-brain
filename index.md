@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-05 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 08-05: 2 digest + 1 resource)_
+_Cập nhật: 2026-08-06 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 10 item ngày 08-06: 2 digest + 2 shipped + 3 decision + 2 feedback + 1 resource)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -41,6 +41,7 @@ _Cập nhật: 2026-08-05 · Trạng thái: đã seed 12 project + notes học t
 - `shopify/` — [[app-development]]: extensions, billing, Polaris, embedded app.
 - `firebase/` — [[firestore-multitenant]]: cô lập dữ liệu theo `shopId`.
 - `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]], [[lich-dinh-ky-neo-theo-ngay-du-kien]] (scheduler định kỳ neo theo mốc *dự kiến* của kỳ trước, không theo ngày xử lý thực tế — chống drift).
+- [[do-layout-shift-bang-browser-automation]] — đo CLS bằng agent-browser/Playwright: phần lớn "0 shift" là harness hỏng, luôn chạy control test, `buffered: true`, đo ≥5 lần, assert trang đã render trước khi tin con số.
 - [[caching-layers]] — caching qua các layer (client→CDN→proxy→app→Redis→DB): 3 pattern lõi + 3 cái khó (invalidation, key, stampede).
 
 **Học tập:**
@@ -101,6 +102,10 @@ _Cập nhật: 2026-08-05 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-pdf-2026-08-03]] — CHỈ phần mới: dựng luồng unsubscribe HMAC không cần DB migration, chuỗi bẫy Firebase Hosting/emulator/koa-bodyparser, và kỷ luật vận hành khi gửi hàng loạt (resume qua progress file, batch ngắn vì tiến trình bị giết).
 - [[shipped-pdf-2026-08-04]] — commit landed 08-03 — master nhận 5 MR: unsubscribe cho email marketing (HMAC stateless, RFC 8058), HS code/country of origin phủ 102 theme + 113 ngôn ngữ + gate theo plan, fix 422 khi Save Settings (yup 0.29 tự dựng default cho nested object), font DM Sans, quickstart; nhánh còn script gửi bulk resume được; không revert. ⚠️ nợ bảo mật: 3 key Google Translate còn trong git history — cần rotate.
 - [[digest-pdf-2026-08-05]] — CHỈ số chốt của chiến dịch email marketing đầu tiên (27.626/27.626 gửi thành công, 1 lỗi, ~0.09% unsubscribe) và ngưỡng batch thực dụng ≈1.000 mail/lượt trong môi trường hay giết tiến trình nền. ⚠️ con số unsubscribe cuối *chưa xác minh*.
+- [[shipped-pdf-2026-08-06]] — commit landed 08-04/08-05: master chỉ nhận 3 MR (2 mockup-app/PRD + `v3.1.71` bump `@avada/app-widget-hook` vá banner appList rỗng làm trắng trang); trên nhánh: bỏ pagination client của preview rồi dựng lại highlight theo marker, Sidekick agent extensions SB-14254, redesign template editor.
+- [[digest-pdf-2026-08-06]] — CHỈ phần mới: feature SB-15301 payment reminder **không có PRD** nên spec dựng từ mockup + đối thoại (field trong mockup chính là Shopify payment terms đã lưu sẵn), verifier bắt off-by-one tham chiếu dòng và default lệch mockup không comment, "gate đỏ là pre-existing" phải chứng minh bằng `git diff --name-only`, cron `/looptasks` dựng trong session không ghi ra đĩa, lock looptasks đọc theo thời gian nên phải gia hạn. ⚠️ có mục "chưa xác minh" (verifier vòng P2).
+- [[shipped-subscriptions-2026-08-06]] — commit landed 08-04/08-05 (v2.34.47→53): giá theo từng line của order, tsTool best-selling, delivery-anchored billing enterprise (+1 migration SQL), 3 lát CLS; revert reservation chiều cao list table vừa ship hôm trước → thay bằng skeleton rows; trên nhánh: bỏ App Bridge v3 + box editor sang max modal, classic portal preview, manual delivery attributes.
+- [[digest-subscriptions-2026-08-06]] — CHỈ phần mới: doc Firestore thiếu hẳn field `product` làm trắng trang (4 chỗ deref không guard), worktree thiếu `.env.local` làm gate đỏ giả rồi bị khai là "pre-existing", loạt bẫy đo layout-shift → khái quát ở [[do-layout-shift-bang-browser-automation]], và luồng auto-merge MR tài liệu của BA.
 - [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
@@ -144,6 +149,9 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-07-07-brain-lay-gi-tu-avader-folder]] — chỉ mượn daily/decisions/skills từ avader-folder, bỏ agent-board & role system (review 2026-10-07).
 - [[2026-07-08-installment-mode-design]] — thiết kế installment 2 mode (partial vs defer-last), giá bám variant product (review 2026-10-08).
 - [[2026-08-04-looptasks-verifier-doc-lap]] — `/looptasks` Bước 5 giao cho agent `verifier` context sạch (không Edit/Write, verdict PASS/FAIL/UNVERIFIED); main agent không tự chấm code do chính nó spawn (review 2026-11-04).
+- [[2026-08-06-appbridge-v3-sang-max-modal]] — Joy Subscription gỡ hẳn App Bridge v3, box editor fullscreen → max modal v4 + iframe route `/box-frame/*`; đổi lại tự dựng bridge 2 chiều, Save/Discard ở TitleBar do host sở hữu, nút X đóng làm mất thay đổi chưa lưu (review 2026-11-06).
+- [[2026-08-06-auto-merge-mr-tai-lieu-ba]] — `subscriptions` + `pdf` tự merge MR khi toàn bộ diff nằm trong `product-team/` và author trong whitelist, chạy bằng job pipeline MR với PAT scope `api` Protected; bỏ phương án scheduled poll 15 phút (review 2026-11-06).
+- [[2026-08-06-bo-pagination-preview-pdf]] — PDF Invoice xoá toàn bộ pagination phía client của preview (~3.9k dòng, cùng ngày viết ra), PDF server là nguồn phân trang duy nhất, công sức dồn vào highlight theo marker liquid inert (review 2026-11-06).
 
 ## 💬 Feedback (feedback/)
 
@@ -152,6 +160,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-follow-conventions]] — research code hiện tại trước khi viết (đúng 4 tầng route→controller→service→repository), và khi sửa lỗi thì grep quét HẾT chỗ dùng cùng pattern.
 - [[feedback-git-branch-discipline]] — repo code project không push thẳng master/main + hỏi trước khi commit; my-brain push thẳng được; nhánh có thể bị đổi ngoài session nên phải kiểm tra lại.
 - [[feedback-commit-style]] — `type - role - scope` ở repo Avada, mô tả trần ở my-brain; không trailer `Co-Authored-By`.
+- [[feedback-comment-chi-khi-code-roi]] — mặc định không comment; chỉ giữ comment cho magic number hoặc ràng buộc bên ngoài mà code không nói được.
+- [[feedback-plan-o-subagent-hoac-ghi-brief]] — plan/tổng hợp giao subagent để session chính chỉ giữ kết luận; nếu làm tại chỗ thì ghi tiến độ + câu hỏi treo vào `BRIEF.md`.
 
 ## 📦 Sources (sources/) — nguồn thô immutable
 
