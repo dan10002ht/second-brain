@@ -21,6 +21,7 @@ _Cập nhật: 2026-08-05 · Trạng thái: đã seed 12 project + notes học t
 - [[crm]] — AVADA CRM marketing automation (monorepo + ML).
 - [[backup]] — Avada Backups & Restore.
 - [[pdf]] — PDF Invoice for Shopify. ⚠️ có secrets hardcode trong RELEASE_NOTE.
+  _Dùng cấu trúc `10-projects/pdf/` — task list `BRIEF.md` (state của `/looptasks`, ngoài graph). Agent `verifier` riêng cho repo pdf ở `agents/pdf/verifier.md` (symlink vào `.claude/agents/` của repo vì `.claude` bị gitignore ở đó)._
 - [[shipping-labels]] — in nhãn vận chuyển Shopify. → [[digest-shipping-labels-2026-07-27]] (2 lỗ auth đã vá).
 
 **Khác:**
