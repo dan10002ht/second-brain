@@ -40,6 +40,43 @@ Mô hình: "compile once, keep current" (Karpathy LLM-wiki) — KHÔNG re-derive
 8. **Mỗi note PHẢI có `summary:`** (1 câu TLDR trong frontmatter). LLM đọc summary để quyết định có mở full note không — rẻ vài giây, tiết kiệm việc đọc file không liên quan. Dòng trong `index.md` nên khớp với `summary:` của note (nguồn để auto-generate index sau này). Daily notes ephemeral — không bắt buộc summary.
 9. **Tag phải nằm trong `tags.md`** (taxonomy). Cần tag mới → khai báo ở `tags.md` TRƯỚC rồi mới dùng. Chống tag sprawl.
 10. **Chạy `bin/brain-lint` trước khi commit** — báo link hỏng, note thiếu summary, note orphan, tag ngoài taxonomy. Sạch rồi mới commit.
+11. **Decision BẮT BUỘC có `review:` (YYYY-MM-DD).** `bin/brain-review` đọc field này mỗi thứ Hai và bắt quyết định quá hạn phải chứng minh mình còn đúng. Quyết định không có ngày review là quyết định không bao giờ bị thách thức — đó là cách giả định cũ đóng băng thành "sự thật".
+12. **`notes/moc-<chủ-đề>.md` là bản đồ theo chủ đề.** `index.md` là bản đồ toàn cục và không được phép phình mãi; khi một chủ đề đủ lớn (xem `bin/brain-graph`), tách nó ra MOC và để index trỏ tới MOC. MOC là danh sách CÓ CHỌN LỌC kèm một dòng "khi nào mở note này", không phải bãi đổ link.
+13. **Wiki-link không được nằm trong code block.** `[[...]]` trong ví dụ code là cú pháp ngôn ngữ khác, không phải link — `brain-lint` bỏ qua code block, nhưng đặt link thật vào đó thì graph mất cạnh.
+
+## Bộ máy tự động (2 nhóm, đừng lẫn)
+
+| Nhóm | Job | Nhịp | Việc |
+|------|-----|------|------|
+| **Sinh** | `brain-gitlog` | 06:00 hằng ngày | git log các repo → proposal `shipped-*` |
+| | `brain-digest` | 19:00 hằng ngày | session transcript của Claude Code → proposal `digest-*` |
+| | `brain-weekly` | 18:00 Chủ nhật | tổng hợp tuần → resource / area / stale project / **knowledge gap** |
+| | `brain-review` | 09:00 thứ Hai | decision quá hạn `review:` → HOLDS / AMEND / REVERSED / MOOT |
+| | `brain-compact` | 10:00 ngày 1 hằng tháng | gộp, nâng cấp lên resource, archive note chết, tách MOC |
+| **Giữ** | `brain-learn` | trong brain-sync | inbox → phân loại + frontmatter + link + index |
+| | `brain-sync` | 20:00 hằng ngày | learn → lint → doctor → index → commit → push |
+
+**Luật bất di bất dịch của nhóm Sinh:** chỉ được ghi vào `00-inbox/`. Không mature,
+không sửa `index.md`, không đụng `sources/`, không commit, không xoá. Thao tác mạnh
+nhất mà `brain-compact` được phép đề xuất là *move sang `40-archive/`* — có thể lùi lại.
+
+**Không có gì đáng ghi thì KHÔNG tạo file.** Digest rỗng là thành công, không phải
+thất bại. Job nào cũng phải chịu được một ngày/tuần/tháng im lặng.
+
+### Prompt sống trong `prompts/`, không nhúng trong bash
+
+Xem `prompts/README.md`. Lý do: heredoc không quote từng làm shell chạy backtick
+trong prompt và gửi đi bản khuyết chữ suốt nhiều tuần mà không ai biết.
+
+### Hai lệnh kiểm tra, hai phạm vi khác nhau
+
+| Lệnh | Kiểm cái gì |
+|------|-------------|
+| `bin/brain-lint` | **tri thức** — link hỏng, thiếu summary, orphan, tag ngoài taxonomy |
+| `bin/brain-doctor` | **bộ máy** — job có chạy không, có lỗi mới không, doc có nói dối không, inbox có kẹt không, decision có quá hạn không |
+
+`bin/brain-graph` không kiểm gì cả — nó ĐẾM (cụm chủ đề, note lạnh, cặp trùng, hub)
+để `brain-compact` có dữ liệu thật thay vì để LLM đoán.
 
 ## Frontmatter schema (giữ nhẹ)
 
@@ -58,6 +95,19 @@ status: active | done    # optional — cho projects
 
 ## Khi nào thêm RAG / vector DB
 
-Chưa cần. Dưới ~100 nguồn: `index.md` + đọc trực tiếp + ripgrep là đủ và tốt hơn.
-Graph tự sinh từ `[[wiki-links]]` — không cần graph DB. Chỉ thêm `sqlite-vec`
-khi corpus vượt ~100 nguồn / hàng trăm trang và search bắt đầu chậm.
+**Hiện tại: KHÔNG dùng.** `index.md` + MOC + ripgrep là đủ. Graph tự sinh từ
+`[[wiki-links]]` — không cần graph DB.
+
+`bin/brain-index` + `bin/brain-search` (sqlite-vec + embeddings chạy local) vẫn
+nằm trong repo nhưng **chưa build index** và `brain-sync` chỉ chạy chúng khi
+`.index/brain.db` đã tồn tại. Đây là lựa chọn, không phải bỏ quên —
+`brain-doctor` báo trạng thái này ở mức INFO mỗi tối.
+
+Ngưỡng cũ ghi "~100 nguồn" đã trôi qua (đang 130 note) mà tra cứu vẫn tốt, nên
+nó là ngưỡng sai. Điều kiện đúng là **đo được**, không phải đếm file:
+
+> Build index khi một truy vấn thường gặp bằng `rg` trả về **>30 file**, hoặc khi
+> `bin/brain-ask-log --stats` cho thấy tỉ lệ MISS **>30%** mà nguyên nhân là
+> *không tìm ra* chứ không phải *chưa có note*.
+
+Trước đó, thêm vector DB chỉ là thêm một daemon nền phải giữ sống.

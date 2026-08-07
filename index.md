@@ -8,6 +8,12 @@ _Cập nhật: 2026-08-06 · Trạng thái: đã seed 12 project + notes học t
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
 
+> **Bộ máy giữ file này đúng:** 5 job sinh proposal vào `00-inbox/` (`brain-gitlog` 06:00 ·
+> `brain-digest` 19:00 · `brain-weekly` CN 18:00 · `brain-review` T2 09:00 · `brain-compact`
+> mùng 1 hằng tháng), `brain-sync` 20:00 mature inbox rồi kiểm tra + commit. Bảng đầy đủ +
+> luật ở `CLAUDE.md`. Hỏng hóc: `bin/brain-doctor` (bộ máy) · `bin/brain-lint` (tri thức) ·
+> `bin/brain-graph` (đếm cụm/note lạnh/trùng lặp).
+
 ## 🎯 Projects (10-projects/) — việc có mục tiêu + deadline
 
 - [[build-my-brain]] — dựng wiki tri thức cá nhân này (status: active, deadline 2026-07-31).

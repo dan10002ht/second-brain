@@ -1,0 +1,352 @@
+#!/usr/bin/env python3
+"""brain-graph — phân tích cấu trúc wiki: cụm chủ đề, note lạnh, note gần trùng.
+
+Vì sao tách riêng: `brain-compact` cần biết note nào đáng gộp/đáng quên, và đó
+là câu hỏi ĐẾM ĐƯỢC (bao nhiêu note cùng chủ đề, bao nhiêu link trỏ vào, bao
+lâu rồi không ai đọc). Giao việc đếm cho LLM là vừa đắt vừa không lặp lại được.
+Script đếm; LLM chỉ làm phần cần phán đoán: gộp thành cái gì, bỏ có tiếc không.
+
+Tín hiệu:
+  CỤM        — >=3 note cùng chủ đề (tag hoặc token trong slug) mà chưa có trang
+               trong 30-resources/. Đây là ứng viên nâng cấp lên resource.
+  NOTE LẠNH  — quá `--cold-days` ngày, không note nào (ngoài index.md/MOC) link
+               tới, và không lượt tra nào trong .state/queries.jsonl chạm vào.
+               Không ai dùng, không ai trỏ tới => ứng viên archive.
+  GẦN TRÙNG  — cặp note có title+summary chồng nhau nhiều => ứng viên gộp.
+  HUB        — note được link tới nhiều nhất; nếu chưa có MOC cho chủ đề đó thì
+               nên có.
+
+Dùng:
+  brain-graph                 # báo cáo markdown cho người đọc
+  brain-graph --for-compact   # đúng báo cáo đó, dạng gọn để nhét vào prompt
+  brain-graph --cold-days 120
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import re
+from collections import defaultdict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+CONTENT_DIRS = ["10-projects", "20-areas", "30-resources", "notes", "feedback", "70-decisions"]
+SKIP_NAMES = {"_template.md", "README.md", "CLAUDE.md"}
+SKIP_PREFIXES = ("BRIEF",)
+
+LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
+DATE_IN_SLUG = re.compile(r"\d{4}-\d{2}-\d{2}")
+FENCE_RE = re.compile(r"```.*?```|~~~.*?~~~", re.S)
+INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
+
+# Token vô nghĩa khi tìm chủ đề: tiền tố loại note, ngày tháng, từ nối.
+STOP_TOKENS = {
+    "digest", "shipped", "note", "decision", "feedback", "resource", "area",
+    "project", "review", "gap", "va", "cua", "cho", "khi", "the", "and", "for",
+    "with", "tren", "trong", "bang", "moi", "mot",
+}
+
+
+def strip_code(text: str) -> str:
+    """Wiki-link trong code block KHÔNG phải link. Đây là gốc của mọi báo lỗi
+    giả kiểu [[0, 0, 0]] hay [["Env"]] — chúng là mảng/chuỗi trong ví dụ code."""
+    return INLINE_CODE_RE.sub("", FENCE_RE.sub("", text))
+
+
+def parse_frontmatter(text: str) -> dict:
+    if not text.startswith("---"):
+        return {}
+    end = text.find("\n---", 3)
+    if end == -1:
+        return {}
+    fm = {}
+    for line in text[3:end].splitlines():
+        if ":" in line:
+            k, _, v = line.partition(":")
+            fm[k.strip()] = v.strip()
+    return fm
+
+
+def norm_link(raw: str) -> str:
+    return raw.split("|")[0].split("#")[0].strip()
+
+
+class Note:
+    __slots__ = ("path", "slug", "fm", "body", "links", "tokens")
+
+    def __init__(self, path: Path) -> None:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        self.path = path
+        self.slug = path.stem
+        self.fm = parse_frontmatter(text)
+        self.body = strip_code(text)
+        self.links = {norm_link(m.group(1)) for m in LINK_RE.finditer(self.body)}
+        self.links.discard("")
+        self.tokens = self._topic_tokens()
+
+    def _topic_tokens(self) -> set[str]:
+        raw = self.slug + " " + self.fm.get("title", "") + " " + self.fm.get("tags", "")
+        raw = raw.lower().replace("[", " ").replace("]", " ").replace(",", " ")
+        parts = re.split(r"[^a-z0-9]+", raw)
+        return {
+            p for p in parts
+            if len(p) >= 3 and p not in STOP_TOKENS and not p.isdigit()
+        }
+
+    @property
+    def rel(self) -> str:
+        return str(self.path.relative_to(ROOT))
+
+    def age_days(self) -> int | None:
+        raw = (self.fm.get("created") or self.fm.get("updated") or "")[:10]
+        try:
+            return (dt.date.today() - dt.date.fromisoformat(raw)).days
+        except ValueError:
+            pass
+        try:
+            return int((dt.datetime.now().timestamp() - self.path.stat().st_mtime) / 86400)
+        except OSError:
+            return None
+
+
+def load_notes() -> list[Note]:
+    notes = []
+    for d in CONTENT_DIRS:
+        for f in (ROOT / d).rglob("*.md"):
+            if f.name in SKIP_NAMES or f.name.startswith(SKIP_PREFIXES):
+                continue
+            notes.append(Note(f))
+    return notes
+
+
+def queried_slugs(days: int = 90) -> set[str]:
+    """Slug từng xuất hiện trong một lượt tra /brain gần đây."""
+    log = ROOT / ".state" / "queries.jsonl"
+    hit: set[str] = set()
+    if not log.exists():
+        return hit
+    cutoff = dt.date.today() - dt.timedelta(days=days)
+    for line in log.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rec = json.loads(line)
+            if dt.date.fromisoformat((rec.get("ts") or "")[:10]) < cutoff:
+                continue
+        except (json.JSONDecodeError, ValueError):
+            continue
+        for f in rec.get("files") or []:
+            hit.add(Path(f).stem)
+    return hit
+
+
+def jaccard(a: set[str], b: set[str]) -> float:
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def analyse(cold_days: int) -> dict:
+    notes = load_notes()
+    by_slug = {n.slug: n for n in notes}
+
+    # inbound: index.md và MOC là điều hướng, không tính là "có người dùng note này"
+    nav_slugs = {"index"} | {n.slug for n in notes if n.slug.startswith("moc-")}
+    inbound: dict[str, set[str]] = defaultdict(set)
+    for n in notes:
+        for tgt in n.links:
+            if n.slug not in nav_slugs:
+                inbound[tgt].add(n.slug)
+    idx = ROOT / "index.md"
+    if idx.exists():
+        pass  # cố ý bỏ qua: index link tới mọi thứ nên không phân biệt được gì
+
+    resource_tokens: set[str] = set()
+    for n in notes:
+        if n.path.parts[len(ROOT.parts)] == "30-resources":
+            resource_tokens |= n.tokens
+
+    # --- cụm chủ đề
+    #
+    # Một token chỉ là CHỦ ĐỀ khi nó nằm trong dải tần vừa phải. Quá phổ biến
+    # ("avada" có mặt ở 52/130 note) thì đó là không gian tên, không phải chủ đề
+    # — gộp chúng lại chẳng ra trang resource nào có nghĩa. Tên project cũng bị
+    # loại vì đã có sẵn note project riêng.
+    project_names: set[str] = set()
+    for n in notes:
+        if n.path.parts[len(ROOT.parts)] == "10-projects":
+            project_names |= set(re.split(r"[^a-z0-9]+", n.slug.lower()))
+        repo = n.fm.get("repo", "")
+        if repo:
+            project_names |= set(re.split(r"[^a-z0-9]+", Path(repo).name.lower()))
+    project_names.discard("")
+
+    token_map: dict[str, list[Note]] = defaultdict(list)
+    for n in notes:
+        for t in n.tokens:
+            token_map[t].append(n)
+
+    upper_band = max(4, int(len(notes) * 0.12))  # >12% số note = quá phổ biến
+    clusters = []
+    for tok, members in sorted(token_map.items(), key=lambda kv: -len(kv[1])):
+        if not (3 <= len(members) <= upper_band):
+            continue
+        if tok in resource_tokens or tok in project_names:
+            continue
+        layers = {m.path.parts[len(ROOT.parts)] for m in members}
+        origins = {m.slug.split("-")[1] if m.slug.startswith(("digest", "shipped")) else m.slug
+                   for m in members}
+        # 3 note cùng một sự cố của cùng một app không phải chủ đề tái sử dụng
+        if len(origins) < 2:
+            continue
+        clusters.append({
+            "topic": tok,
+            "count": len(members),
+            "cross_layer": len(layers) > 1,
+            "members": [m.rel for m in sorted(members, key=lambda x: x.slug)][:12],
+        })
+    clusters.sort(key=lambda c: (-int(c["cross_layer"]), -c["count"]))
+    clusters = clusters[:12]
+
+    # --- note lạnh
+    warm = queried_slugs()
+    cold = []
+    for n in notes:
+        age = n.age_days()
+        if age is None or age < cold_days:
+            continue
+        if inbound.get(n.slug):
+            continue
+        if n.slug in warm:
+            continue
+        # decision và area không bao giờ "lạnh" theo nghĩa vứt được
+        layer = n.path.parts[len(ROOT.parts)]
+        if layer in ("70-decisions", "20-areas"):
+            continue
+        cold.append({"path": n.rel, "age": age,
+                     "summary": n.fm.get("summary", "").strip()[:120]})
+    cold.sort(key=lambda c: -c["age"])
+
+    # --- gần trùng
+    #
+    # So bằng token của slug là sai: note nhật ký theo ngày của cùng một app
+    # (shipped-subscriptions-07-28 vs 08-06) luôn trùng slug gần như hoàn toàn
+    # nhưng nội dung hoàn toàn khác — chúng CỐ Ý là hai file. Chỉ so nội dung
+    # (title + summary), và bỏ qua mọi cặp note-theo-ngày khác ngày.
+    def content_tokens(n: Note) -> set[str]:
+        raw = (n.fm.get("title", "") + " " + n.fm.get("summary", "")).lower()
+        return {t for t in re.split(r"[^a-z0-9]+", raw) if len(t) >= 4 and t not in STOP_TOKENS}
+
+    dupes = []
+    items = [(n, content_tokens(n), DATE_IN_SLUG.search(n.slug)) for n in notes]
+    for i in range(len(items)):
+        for j in range(i + 1, len(items)):
+            (na, ta, da), (nb, tb, db) = items[i], items[j]
+            if da and db and da.group(0) != db.group(0):
+                continue  # hai bản ghi của hai ngày khác nhau — đúng thiết kế
+            if len(ta) < 5 or len(tb) < 5:
+                continue  # summary quá ngắn thì điểm giống nhau không có nghĩa
+            score = jaccard(ta, tb)
+            if score >= 0.55:
+                dupes.append({"a": na.rel, "b": nb.rel, "score": round(score, 2)})
+    dupes.sort(key=lambda d: -d["score"])
+    dupes = dupes[:15]
+
+    # --- loạt note bị đặt tên theo hai kiểu
+    # Cùng một loại nội dung mà hai quy ước tên cùng tồn tại thì tra cứu theo
+    # tên sẽ trượt một nửa. Đây là lỗi findability, không phải lỗi nội dung.
+    series: dict[str, set[str]] = defaultdict(set)
+    for n in notes:
+        m = DATE_IN_SLUG.search(n.slug)
+        if not m:
+            continue
+        stem = n.slug[:m.start()].strip("-")
+        # chuẩn hoá số nhiều: `subscription-shipped` và `shipped-subscriptions`
+        # là cùng một loạt, chỉ khác thứ tự và chữ s
+        parts = [p[:-1] if len(p) > 3 and p.endswith("s") else p for p in stem.split("-") if p]
+        if len(parts) >= 2:
+            series["+".join(sorted(parts))].add(stem)
+    naming_conflicts = [
+        {"subject": key.replace("+", " · "), "variants": sorted(v)}
+        for key, v in sorted(series.items()) if len(v) > 1
+    ]
+
+    # --- hub
+    hubs = sorted(
+        ((slug, len(srcs)) for slug, srcs in inbound.items() if slug in by_slug),
+        key=lambda kv: -kv[1],
+    )[:10]
+
+    return {"total": len(notes), "clusters": clusters, "cold": cold,
+            "dupes": dupes, "hubs": hubs, "cold_days": cold_days,
+            "naming": naming_conflicts, "has_query_log": bool(warm)}
+
+
+def render(a: dict) -> str:
+    out = [f"# brain-graph — {a['total']} note nội dung", ""]
+
+    out.append(f"## Cụm chủ đề chưa có trang resource ({len(a['clusters'])})")
+    if not a["clusters"]:
+        out.append("  (không có)")
+    for c in a["clusters"]:
+        flag = " · nhiều tầng" if c["cross_layer"] else ""
+        out.append(f"  - **{c['topic']}** — {c['count']} note{flag}")
+        for m in c["members"]:
+            out.append(f"      {m}")
+    out.append("")
+
+    out.append(f"## Note lạnh (>{a['cold_days']} ngày, không ai link tới, không ai tra) "
+               f"({len(a['cold'])})")
+    if not a["has_query_log"]:
+        out.append("  (chưa có .state/queries.jsonl — tín hiệu 'không ai tra' chưa dùng được, "
+                   "chỉ dựa trên link)")
+    if not a["cold"]:
+        out.append("  (không có)")
+    for c in a["cold"][:25]:
+        out.append(f"  - {c['path']} — {c['age']} ngày · {c['summary']}")
+    if len(a["cold"]) > 25:
+        out.append(f"  … còn {len(a['cold']) - 25} note nữa (đã cắt bớt)")
+    out.append("")
+
+    out.append(f"## Cặp note gần trùng ({len(a['dupes'])})")
+    if not a["dupes"]:
+        out.append("  (không có)")
+    for d in a["dupes"]:
+        out.append(f"  - {d['score']} — {d['a']}  ↔  {d['b']}")
+    out.append("")
+
+    out.append(f"## Loạt note đặt tên hai kiểu ({len(a['naming'])})")
+    if not a["naming"]:
+        out.append("  (không có)")
+    for n in a["naming"]:
+        out.append(f"  - {n['subject']} → " + " / ".join(f"`{v}-<ngày>`" for v in n["variants"]))
+    out.append("")
+
+    out.append("## Hub (được link tới nhiều nhất)")
+    if not a["hubs"]:
+        out.append("  (không có)")
+    for slug, cnt in a["hubs"]:
+        out.append(f"  - [[{slug}]] — {cnt} link trỏ vào")
+
+    return "\n".join(out) + "\n"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--cold-days", type=int, default=90)
+    ap.add_argument("--for-compact", action="store_true",
+                    help="in dạng gọn để nhét vào prompt (bỏ tiêu đề trang)")
+    args = ap.parse_args()
+
+    a = analyse(args.cold_days)
+    text = render(a)
+    if args.for_compact:
+        text = text.split("\n", 2)[2]  # bỏ dòng tiêu đề + dòng trống
+    print(text, end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

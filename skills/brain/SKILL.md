@@ -37,7 +37,9 @@ rg -i -C3 "<từ khoá>" ~/projects/my-brain --glob '!.git'         # kèm ngữ
 ```
 
 Mẹo thu hẹp theo app — note digest đặt tên theo pattern `digest-<app>-<ngày>` và
-`shipped-<app>-<ngày>`:
+`shipped-<app>-<ngày>`. **Lưu ý:** note subscriptions cũ còn tồn tại lối đặt tên
+ngược (`subscription-digest-<ngày>`, `subscription-shipped-<ngày>`), nên đừng lọc
+theo một pattern duy nhất — lọc theo tên app:
 
 ```bash
 ls ~/projects/my-brain/notes/ | rg -i "<tên app>"
@@ -64,6 +66,28 @@ Hai điều bắt buộc khi báo cáo:
 
 Không tìm thấy gì thì nói thẳng "brain chưa ghi gì về việc này" — **đừng bịa** và
 đừng suy từ tên file ra nội dung.
+
+## Bước 4 — Ghi lại lượt tra (BẮT BUỘC, cả khi trúng lẫn khi trượt)
+
+```bash
+# tìm được: liệt kê đúng những file đã dùng để trả lời
+~/projects/my-brain/bin/brain-ask-log --q "<câu user hỏi>" \
+  --files notes/a.md,notes/b.md
+
+# không tìm được:
+~/projects/my-brain/bin/brain-ask-log --q "<câu user hỏi>" --miss
+```
+
+Đây không phải telemetry cho vui. Brain có 4 job tự động ghi VÀO nhưng không đo
+được gì ở chiều ĐỌC, nên nó chỉ lớn lên chứ không khôn lên. Log này đóng vòng:
+
+- `brain-weekly` đọc các lượt **MISS** → đề xuất chính xác cần viết note gì.
+- `brain-graph`/`brain-compact` đọc file đã mở → biết note nào lạnh **thật**
+  (không ai link *và* không ai tra), thay vì lạnh giả vì chưa kịp wire link.
+
+Lượt **MISS** giá trị hơn lượt trúng — đó là chỗ brain đang thủng. Đừng bỏ ghi
+vì ngại "làm bẩn log". Lệnh này không bao giờ làm hỏng lượt tra: mọi lỗi ghi đều
+bị nuốt và exit 0.
 
 ## Ghi ngược về brain (chỉ khi user yêu cầu)
 

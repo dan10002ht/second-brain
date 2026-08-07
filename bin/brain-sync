@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# brain-sync — chạy tự động (theo lịch): sắp xếp inbox → index → git backup.
+# brain-sync — chạy tự động 20:00 mỗi tối: sắp xếp inbox → kiểm tra → git backup.
 # KHÔNG capture (đó là việc thủ công của con người).
+#
 # Dùng: brain-sync            # chạy đầy đủ
-#       brain-sync --no-ai    # bỏ qua bước brain-learn (chỉ index + commit)
+#       brain-sync --no-ai    # bỏ qua brain-learn (chỉ kiểm tra + index + commit)
+#
+# Thứ tự có lý do: learn TRƯỚC (inbox thành note), rồi mới lint/doctor (kiểm cái
+# vừa sinh ra), rồi index, rồi commit. Kiểm trước khi learn thì báo cáo nói về
+# trạng thái đã cũ 5 phút.
 set -uo pipefail
 
 BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
@@ -24,13 +29,42 @@ if [[ $RUN_AI -eq 1 ]]; then
   fi
 fi
 
-# 2) Cập nhật index semantic (chỉ khi backend embeddings có sẵn)
-if command -v brain-index >/dev/null 2>&1; then
-  log "Cập nhật index semantic..."
-  brain-index >/dev/null 2>&1 && log "Index xong." || log "Bỏ qua index (chưa cài deps embeddings)."
+# 2) Kiểm tra sức khoẻ — tri thức (lint) và bộ máy (doctor)
+#
+# Đây là bước từng KHÔNG tồn tại, và đó là lý do index semantic chết cả tháng,
+# prompt của brain-digest bị hỏng nhiều tuần, brain-weekly cài xong không chạy —
+# tất cả đều im lặng. Báo cáo được ghi ra .state/health.md để lần sau tra lại
+# được, và in ra log ngay khi có vấn đề.
+if command -v brain-lint >/dev/null 2>&1; then
+  log "Lint tri thức..."
+  brain-lint | tail -40
 fi
 
-# 3) Git backup nếu có thay đổi
+DOCTOR_STATUS=0
+if command -v brain-doctor >/dev/null 2>&1; then
+  log "Kiểm tra bộ máy..."
+  brain-doctor --write --strict || DOCTOR_STATUS=$?
+  if [[ $DOCTOR_STATUS -ne 0 ]]; then
+    log "⚠️  brain-doctor báo FAIL — xem .state/health.md. Vẫn tiếp tục backup."
+  fi
+fi
+
+# 3) Cập nhật index semantic — TUỲ CHỌN, nhưng không được im lặng.
+#
+# Trước đây bước này là `brain-index >/dev/null 2>&1` nên khi backend embeddings
+# không có, nó thất bại mỗi tối suốt hàng tháng mà không để lại dấu vết nào.
+# Nếu chưa build index thì đó là lựa chọn thiết kế (xem CLAUDE.md), không phải
+# lỗi — nên chỉ chạy khi index ĐÃ tồn tại, và khi đó lỗi phải hiện ra.
+if [[ -f .index/brain.db ]] && command -v brain-index >/dev/null 2>&1; then
+  log "Cập nhật index semantic..."
+  if brain-index; then
+    log "Index xong."
+  else
+    log "❌ brain-index LỖI (exit $?) — semantic search đang cũ dần. Xem output ở trên."
+  fi
+fi
+
+# 4) Git backup nếu có thay đổi
 if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
   log "Commit thay đổi..."
   git add -A
@@ -39,10 +73,11 @@ else
   log "Không có thay đổi để commit."
 fi
 
-# 4) Push backup lên remote (không chặn job nếu mạng/auth lỗi)
+# 5) Push backup lên remote (không chặn job nếu mạng/auth lỗi)
 if [[ -n "$(git log origin/master..master --oneline 2>/dev/null)" ]]; then
   log "Push lên origin/master..."
   git push origin master && log "Đã push." || log "Push lỗi (mạng/auth?) — commit vẫn an toàn ở local, sẽ push lần sau."
 fi
 
 log "brain-sync hoàn tất."
+exit 0

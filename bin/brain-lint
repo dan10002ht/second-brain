@@ -28,6 +28,20 @@ SKIP_NAMES = {"_template.md", "README.md", "CLAUDE.md"}
 SKIP_PREFIXES = ("BRIEF",)
 
 LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
+FENCE_RE = re.compile(r"```.*?```|~~~.*?~~~", re.S)
+INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
+# Slug hợp lệ: chữ thường/số/gạch, cho phép chữ có dấu tiếng Việt trong tên file.
+SLUG_RE = re.compile(r"^[\w][\w.\-]*$", re.UNICODE)
+
+
+def strip_code(text):
+    """Bỏ code block + inline code TRƯỚC khi tìm [[link]].
+
+    `[[0, 0, 0]]` trong một đoạn code Python không phải wiki-link hỏng — nó là
+    một mảng. Trước khi có hàm này, lint báo 13 link hỏng mà quá nửa là ví dụ
+    code, nên báo cáo bị coi là nhiễu và không ai sửa link hỏng THẬT.
+    """
+    return INLINE_CODE_RE.sub("", FENCE_RE.sub("", text))
 
 
 def slug_of(path):
@@ -53,9 +67,11 @@ def all_md_files():
     for f in ROOT.rglob("*.md"):
         if is_skipped(f):
             continue
-        # bỏ file trong bin/, docs/ (không phải note)
+        # bỏ file không phải note: script, tài liệu kỹ thuật, prompt của job,
+        # skill. prompts/ đặc biệt dễ nhầm — chúng CHỨA chữ [[wiki-links]] như
+        # một chỉ dẫn cho LLM, không phải link thật tới note nào.
         rel = f.relative_to(ROOT)
-        if rel.parts[0] in ("bin", "docs", ".claude", "sources"):
+        if rel.parts[0] in ("bin", "docs", ".claude", "sources", "prompts", "skills", "agents"):
             continue
         files[slug_of(f)] = f
     return files
@@ -95,7 +111,7 @@ def main():
     known = set(slug_map)
     taxonomy = load_taxonomy()
 
-    broken, missing_summary, orphan, bad_tags = [], [], [], []
+    broken, missing_summary, orphan, bad_tags, malformed = [], [], [], [], []
     linked_to = set()  # slug được ai đó link tới
 
     # pass 1: gom link toàn wiki (index.md nằm sẵn trong slug_map)
@@ -103,13 +119,19 @@ def main():
     for f in scan:
         if not f.exists():
             continue
-        text = f.read_text(errors="ignore")
+        text = strip_code(f.read_text(errors="ignore"))
         for m in LINK_RE.finditer(text):
             tgt = norm_link(m.group(1))
-            if tgt:
-                linked_to.add(tgt)
-                if tgt not in known:
-                    broken.append((f.relative_to(ROOT), tgt))
+            if not tgt:
+                continue
+            if not SLUG_RE.match(tgt):
+                # Không phải slug được: dấu phẩy, khoảng trắng, ngoặc kép…
+                # Gần như luôn là cú pháp ngôn ngữ khác bị hiểu nhầm thành link.
+                malformed.append((f.relative_to(ROOT), tgt))
+                continue
+            linked_to.add(tgt)
+            if tgt not in known:
+                broken.append((f.relative_to(ROOT), tgt))
 
     # pass 2: mỗi note nội dung — summary, orphan, tags
     for f in content_files():
@@ -133,8 +155,10 @@ def main():
         for it in items:
             print("  - " + fmt(it))
 
-    total = len(broken) + len(missing_summary) + len(orphan) + len(bad_tags)
+    total = len(broken) + len(missing_summary) + len(orphan) + len(bad_tags) + len(malformed)
     print(f"# brain-lint — {len(content_files())} note nội dung · {total} vấn đề")
+    section("🔴 Link dị dạng (không phải slug — nhiều khả năng là cú pháp code lọt ra ngoài code block)",
+            malformed, lambda x: f"{x[0]} → [[{x[1]}]]")
     section("🔴 Broken/pending wiki-link (có thể là note chưa viết — OK theo rule 3)", broken, lambda x: f"{x[0]} → [[{x[1]}]]")
     section("🟡 Thiếu summary", missing_summary, str)
     section("🟠 Orphan (không ai link tới)", orphan, str)

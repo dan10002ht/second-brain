@@ -1,0 +1,460 @@
+#!/usr/bin/env python3
+"""brain-doctor — kiểm tra sức khoẻ BỘ MÁY của my-brain (không phải nội dung).
+
+Phân vai rõ ràng:
+  brain-lint   -> sức khoẻ TRI THỨC (link, summary, orphan, tag)
+  brain-doctor -> sức khoẻ BỘ MÁY  (job có chạy không, có lỗi không, doc có đúng
+                  thực tế không)
+
+Vì sao cần: mọi hỏng hóc trước đây đều IM LẶNG. Index semantic chết hàng tháng
+vì brain-sync nuốt lỗi bằng `2>&1`; prompt của brain-digest bị shell ăn mất chữ
+và chỉ để lại một dòng trong .err.log không ai đọc; brain-weekly cài xong nhưng
+chưa từng chạy. Không cái nào lộ ra từ output bình thường. Doctor tồn tại để
+lần sau có hỏng thì nó KÊU.
+
+Kiểm:
+  1. Job    — launchd đã nạp chưa, lần chạy cuối exit code mấy, watermark có
+              tiến theo đúng nhịp không, .err.log có dòng LỖI MỚI không.
+  2. Hợp đồng — mọi skill/script/template mà CLAUDE.md, brain-core.md và các
+              script nhắc tới phải TỒN TẠI thật. Doc nói dối là bug.
+  3. Tồn đọng — file nằm lì trong 00-inbox/ quá lâu = brain-learn đang hỏng.
+  4. Quyết định — decision quá hạn `review:` mà chưa ai xem lại.
+  5. Semantic index — tuỳ chọn; báo trạng thái thật thay vì im lặng.
+
+Dùng:
+  brain-doctor              # in báo cáo
+  brain-doctor --strict     # exit 1 nếu có FAIL (dùng trong brain-sync/pre-commit)
+  brain-doctor --quiet      # chỉ in khi có FAIL/WARN
+  brain-doctor --write      # ghi thêm báo cáo ra .state/health.md
+
+Không sửa gì — chỉ báo cáo.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+STATE = ROOT / ".state"
+DOCTOR_STATE = STATE / "doctor.state.json"
+
+OK, WARN, FAIL, INFO = "OK", "WARN", "FAIL", "INFO"
+ICON = {OK: "✅", WARN: "🟡", FAIL: "🔴", INFO: "ℹ️ "}
+
+
+class Report:
+    def __init__(self) -> None:
+        self.rows: list[tuple[str, str, str]] = []
+
+    def add(self, level: str, area: str, msg: str) -> None:
+        self.rows.append((level, area, msg))
+
+    def count(self, level: str) -> int:
+        return sum(1 for lv, _, _ in self.rows if lv == level)
+
+
+# --------------------------------------------------------------------------- #
+# 1. Job
+# --------------------------------------------------------------------------- #
+# cadence_hours: nhịp mong đợi. Watermark cũ hơn 2x nhịp = job không tiến.
+JOBS = [
+    {
+        "label": "com.avada.brain-gitlog",
+        "script": "bin/brain-gitlog",
+        "watermark": "brain-gitlog.watermark",
+        "out": STATE / "brain-gitlog.out.log",
+        "err": STATE / "brain-gitlog.err.log",
+        "cadence_hours": 24,
+        "when": "06:00 hằng ngày",
+    },
+    {
+        "label": "com.avada.brain-digest",
+        "script": "bin/brain-digest",
+        "watermark": "brain-digest.watermark",
+        "out": STATE / "brain-digest.out.log",
+        "err": STATE / "brain-digest.err.log",
+        "cadence_hours": 24,
+        "when": "19:00 hằng ngày",
+    },
+    {
+        "label": "com.dantt.brain-sync",
+        "script": "bin/brain-sync",
+        "watermark": None,  # sync không có watermark — nhịp đo bằng commit
+        "out": Path.home() / "Library/Logs/brain-sync.log",
+        "err": None,
+        "cadence_hours": 24,
+        "when": "20:00 hằng ngày",
+    },
+    {
+        "label": "com.avada.brain-weekly",
+        "script": "bin/brain-weekly",
+        "watermark": "brain-weekly.watermark",
+        "out": STATE / "brain-weekly.out.log",
+        "err": STATE / "brain-weekly.err.log",
+        "cadence_hours": 24 * 7,
+        "when": "18:00 Chủ nhật",
+    },
+    {
+        "label": "com.avada.brain-review",
+        "script": "bin/brain-review",
+        "watermark": "brain-review.watermark",
+        "out": STATE / "brain-review.out.log",
+        "err": STATE / "brain-review.err.log",
+        "cadence_hours": 24 * 7,
+        "when": "09:00 thứ Hai",
+    },
+    {
+        "label": "com.avada.brain-compact",
+        "script": "bin/brain-compact",
+        "watermark": "brain-compact.watermark",
+        "out": STATE / "brain-compact.out.log",
+        "err": STATE / "brain-compact.err.log",
+        "cadence_hours": 24 * 31,
+        "when": "10:00 ngày 1 hằng tháng",
+    },
+]
+
+
+def launchctl_table() -> dict[str, tuple[str, str]]:
+    """label -> (pid, last_exit_status). Rỗng nếu launchctl không dùng được."""
+    try:
+        raw = subprocess.run(
+            ["launchctl", "list"], capture_output=True, text=True, timeout=10
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return {}
+    table = {}
+    for line in raw.splitlines()[1:]:
+        parts = line.split("\t")
+        if len(parts) >= 3:
+            table[parts[2].strip()] = (parts[0].strip(), parts[1].strip())
+    return table
+
+
+MAX_LOG_BYTES = 1_000_000
+
+
+def rotate_if_big(path: Path) -> None:
+    """Log của launchd là append-only vô hạn. Giữ 1 đời trước, bỏ phần cũ hơn."""
+    try:
+        if path.stat().st_size <= MAX_LOG_BYTES:
+            return
+        path.replace(path.with_suffix(path.suffix + ".1"))
+        path.touch()
+    except OSError:
+        pass  # không xoay được log thì cũng không đáng làm chết doctor
+
+
+def age_hours(path: Path) -> float | None:
+    try:
+        return (dt.datetime.now().timestamp() - path.stat().st_mtime) / 3600
+    except OSError:
+        return None
+
+
+def fmt_age(hours: float) -> str:
+    if hours < 48:
+        return f"{hours:.0f} giờ trước"
+    return f"{hours / 24:.0f} ngày trước"
+
+
+def check_jobs(rep: Report, state: dict) -> None:
+    table = launchctl_table()
+    offsets = state.setdefault("err_offsets", {})
+
+    for job in JOBS:
+        label = job["label"]
+        area = label.rsplit(".", 1)[-1]
+        script = ROOT / job["script"]
+
+        if not script.exists():
+            rep.add(FAIL, area, f"script không tồn tại: {job['script']}")
+            continue
+
+        # -- đã nạp vào launchd chưa
+        if not table:
+            rep.add(INFO, area, "không đọc được launchctl (không phải macOS?) — bỏ qua kiểm lịch")
+        elif label not in table:
+            rep.add(FAIL, area, f"chưa nạp vào launchd — sẽ KHÔNG bao giờ chạy ({job['when']}). "
+                                f"Nạp: launchctl load ~/Library/LaunchAgents/{label}.plist")
+        else:
+            _, exit_status = table[label]
+            if exit_status not in ("0", "-"):
+                rep.add(FAIL, area, f"lần chạy cuối exit {exit_status} — xem {job['out']}")
+
+        # -- có thật sự chạy không (heartbeat = mtime của out.log)
+        out_age = age_hours(job["out"]) if job["out"] else None
+        if out_age is None:
+            # Chạy tay KHÔNG xoá được cảnh báo này: out.log chỉ được ghi khi
+            # launchd gọi job. Đó là chủ ý — thứ cần chứng minh là "lịch có nổ
+            # không", không phải "script có chạy được không".
+            rep.add(WARN, area, f"launchd chưa từng chạy job này (không có {job['out'].name}) — "
+                                f"lịch: {job['when']}. Kiểm ngay: "
+                                f"launchctl start {label}")
+        elif out_age > job["cadence_hours"] * 2:
+            rep.add(FAIL, area, f"không chạy từ {fmt_age(out_age)} "
+                                f"(nhịp mong đợi: mỗi {job['cadence_hours']}h, {job['when']})")
+
+        # -- có tiến không (watermark chỉ được touch khi job chạy TRỌN VẸN)
+        if job["watermark"]:
+            wm_age = age_hours(STATE / job["watermark"])
+            if wm_age is None:
+                if out_age is not None:
+                    rep.add(FAIL, area, "đã chạy nhưng watermark chưa từng được tạo — "
+                                        "job chết giữa chừng?")
+            elif wm_age > job["cadence_hours"] * 2:
+                rep.add(FAIL, area, f"watermark đứng im từ {fmt_age(wm_age)} — "
+                                    f"job chạy nhưng không hoàn tất")
+
+        # -- dòng lỗi MỚI trong .err.log kể từ lần doctor trước
+        #
+        # Lần chạy đầu chưa có mốc: .err.log là log tích luỹ từ đầu đời, phần lớn
+        # là lỗi đã cũ hoặc đã sửa (repo bị đổi tên từ tháng trước, v.v.). Báo
+        # nguyên đống đó thành FAIL là báo động giả và làm người ta quen với việc
+        # bỏ qua doctor. Nên lần đầu chỉ LẬP MỐC + trích vài dòng cuối làm ngữ
+        # cảnh; từ lần sau mọi dòng mới đều là FAIL thật.
+        err = job["err"]
+        if err and err.exists():
+            rotate_if_big(err)
+            size = err.stat().st_size
+            key = str(err)
+            first_time = key not in offsets
+            prev = offsets.get(key, 0)
+            if size < prev:      # log vừa bị xoay vòng
+                prev = 0
+            if size > prev:
+                with err.open("r", encoding="utf-8", errors="ignore") as fh:
+                    fh.seek(prev)
+                    new_lines = [ln.rstrip() for ln in fh if ln.strip()]
+                if new_lines:
+                    head = new_lines[-1][:150]
+                    extra = f" (+{len(new_lines) - 1} dòng nữa)" if len(new_lines) > 1 else ""
+                    if first_time:
+                        rep.add(INFO, area, f"lập mốc stderr ({len(new_lines)} dòng lịch sử, "
+                                            f"gần nhất: {head}) — từ lần sau chỉ báo lỗi mới")
+                    else:
+                        rep.add(FAIL, area, f"stderr có lỗi MỚI: {head}{extra} — {err}")
+            offsets[key] = size
+
+        if job["out"] and job["out"].exists():
+            rotate_if_big(job["out"])
+
+
+# --------------------------------------------------------------------------- #
+# 2. Hợp đồng: doc nói gì thì phải có thật
+# --------------------------------------------------------------------------- #
+# `/tên` là skill CHỈ khi đứng riêng: đầu dòng hoặc sau khoảng trắng/dấu mở, và
+# không phải một đoạn đường dẫn (`~/projects/my-brain` không phải skill /projects).
+SKILL_RE = re.compile(r"(?:^|(?<=[\s(\[\"'*]))/([a-z][a-z0-9-]{2,})(?![\w/-])", re.M)
+# Chỉ soi các file điều hướng — nơi doc HỨA với LLM là thứ đó tồn tại.
+CONTRACT_DOCS = ["CLAUDE.md", "brain-core.md", "index.md", "README.md"]
+# Slash-command có sẵn của Claude Code, không phải skill của brain.
+BUILTIN_SLASH = {
+    "help", "clear", "config", "model", "init", "review", "compact", "cost",
+    "doctor", "login", "logout", "memory", "resume", "status", "vim", "agents",
+    "context", "export", "hooks", "mcp", "permissions", "terminal-setup",
+    "loop", "workflows", "fast", "code-review", "ultrareview", "telegram",
+}
+
+
+def known_skills() -> set[str]:
+    names = set()
+    for base in (ROOT / "skills", Path.home() / ".claude/skills"):
+        if base.is_dir():
+            names.update(p.name for p in base.iterdir() if (p / "SKILL.md").exists() or p.is_dir())
+    return names
+
+
+def check_contracts(rep: Report) -> None:
+    skills = known_skills()
+
+    for doc_name in CONTRACT_DOCS:
+        doc = ROOT / doc_name
+        if not doc.exists():
+            rep.add(FAIL, "contract", f"{doc_name} được nhắc tới nhưng không tồn tại")
+            continue
+        text = strip_code(doc.read_text(encoding="utf-8", errors="ignore"))
+
+        # skill được quảng cáo phải tồn tại
+        for m in SKILL_RE.finditer(text):
+            name = m.group(1)
+            if name in BUILTIN_SLASH or name in skills:
+                continue
+            rep.add(FAIL, "contract",
+                    f"{doc_name} nhắc skill /{name} nhưng không có skills/{name}/ — "
+                    f"doc đang nói dối LLM")
+
+        # đường dẫn bin/ được nhắc phải tồn tại
+        for m in re.finditer(r"\bbin/([a-z][a-z0-9-]+)\b", text):
+            if not (ROOT / "bin" / m.group(1)).exists():
+                rep.add(FAIL, "contract", f"{doc_name} nhắc bin/{m.group(1)} nhưng file không tồn tại")
+
+    # mọi template mà script gọi phải tồn tại (và ngược lại, template mồ côi)
+    used: set[str] = set()
+    for script in (ROOT / "bin").glob("brain-*"):
+        try:
+            body = script.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        for m in re.finditer(r"render_prompt\s+([a-z0-9_-]+\.md)", body):
+            tpl = m.group(1)
+            used.add(tpl)
+            if not (ROOT / "prompts" / tpl).exists():
+                rep.add(FAIL, "contract", f"{script.name} gọi prompts/{tpl} nhưng template không tồn tại")
+    prompts_dir = ROOT / "prompts"
+    if prompts_dir.is_dir():
+        for tpl in prompts_dir.glob("*.md"):
+            if tpl.name != "README.md" and tpl.name not in used:
+                rep.add(WARN, "contract", f"prompts/{tpl.name} không script nào dùng — template mồ côi")
+            else:
+                body = tpl.read_text(encoding="utf-8", errors="ignore")
+                if tpl.name != "README.md" and "{{DRY_RUN_NOTE}}" not in body:
+                    rep.add(WARN, "contract", f"prompts/{tpl.name} thiếu {{{{DRY_RUN_NOTE}}}} (luật 4 trong prompts/README.md)")
+
+
+def strip_code(text: str) -> str:
+    """Bỏ fenced code block + inline code. Ví dụ trong code không phải lời hứa."""
+    text = re.sub(r"```.*?```", "", text, flags=re.S)
+    text = re.sub(r"~~~.*?~~~", "", text, flags=re.S)
+    return re.sub(r"`[^`\n]*`", "", text)
+
+
+# --------------------------------------------------------------------------- #
+# 3. Tồn đọng inbox
+# --------------------------------------------------------------------------- #
+def check_inbox(rep: Report) -> None:
+    inbox = ROOT / "00-inbox"
+    if not inbox.is_dir():
+        return
+    stuck = []
+    for f in inbox.glob("*.md"):
+        a = age_hours(f)
+        # brain-sync chạy 20:00 mỗi tối, nên file quá 48h là đã trượt >=2 lượt
+        if a is not None and a > 48:
+            stuck.append((f.name, a))
+    if stuck:
+        worst = max(a for _, a in stuck)
+        rep.add(FAIL, "inbox",
+                f"{len(stuck)} file kẹt trong 00-inbox/ quá 48h (cũ nhất: {fmt_age(worst)}) — "
+                f"brain-learn không nuốt được: " + ", ".join(n for n, _ in stuck[:3]))
+
+
+# --------------------------------------------------------------------------- #
+# 4. Decision quá hạn review
+# --------------------------------------------------------------------------- #
+def frontmatter(text: str) -> dict:
+    if not text.startswith("---"):
+        return {}
+    end = text.find("\n---", 3)
+    if end == -1:
+        return {}
+    fm = {}
+    for line in text[3:end].splitlines():
+        if ":" in line:
+            k, _, v = line.partition(":")
+            fm[k.strip()] = v.strip()
+    return fm
+
+
+def check_reviews(rep: Report) -> None:
+    d = ROOT / "70-decisions"
+    if not d.is_dir():
+        return
+    today = dt.date.today()
+    overdue, missing = [], []
+    for f in d.glob("*.md"):
+        if f.name in ("README.md", "_template.md"):
+            continue
+        fm = frontmatter(f.read_text(encoding="utf-8", errors="ignore"))
+        raw = fm.get("review", "").strip().strip("[]")
+        if not raw:
+            missing.append(f.name)
+            continue
+        try:
+            if dt.date.fromisoformat(raw[:10]) < today:
+                overdue.append(f.name)
+        except ValueError:
+            missing.append(f.name)
+    if overdue:
+        rep.add(WARN, "decisions",
+                f"{len(overdue)} quyết định quá hạn review: " + ", ".join(overdue[:5]) +
+                " — brain-review sẽ đề xuất xem lại")
+    if missing:
+        rep.add(INFO, "decisions",
+                f"{len(missing)} quyết định không có field review: — sẽ không bao giờ được xem lại")
+
+
+# --------------------------------------------------------------------------- #
+# 5. Semantic index (tuỳ chọn — báo trạng thái thật, không im lặng)
+# --------------------------------------------------------------------------- #
+def check_index(rep: Report) -> None:
+    db = ROOT / ".index" / "brain.db"
+    if not db.exists():
+        rep.add(INFO, "search",
+                "chưa build index semantic (.index/brain.db) — /brain đang dùng ripgrep. "
+                "Đúng thiết kế ở quy mô hiện tại; xem CLAUDE.md để biết khi nào nên build.")
+        return
+    age = age_hours(db)
+    if age is not None and age > 24 * 7:
+        rep.add(WARN, "search", f"index semantic cũ {fmt_age(age)} — chạy bin/brain-index")
+
+
+# --------------------------------------------------------------------------- #
+def main() -> int:
+    ap = argparse.ArgumentParser(add_help=True, description=__doc__)
+    ap.add_argument("--strict", action="store_true", help="exit 1 nếu có FAIL")
+    ap.add_argument("--quiet", action="store_true", help="chỉ in khi có FAIL/WARN")
+    ap.add_argument("--write", action="store_true", help="ghi báo cáo ra .state/health.md")
+    args = ap.parse_args()
+
+    STATE.mkdir(parents=True, exist_ok=True)
+    try:
+        state = json.loads(DOCTOR_STATE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        state = {}
+
+    rep = Report()
+    check_jobs(rep, state)
+    check_contracts(rep)
+    check_inbox(rep)
+    check_reviews(rep)
+    check_index(rep)
+
+    fails, warns = rep.count(FAIL), rep.count(WARN)
+
+    lines = [f"# brain-doctor — {dt.datetime.now():%Y-%m-%d %H:%M}",
+             "",
+             f"**{fails} FAIL · {warns} WARN · {rep.count(INFO)} INFO**", ""]
+    if not rep.rows:
+        lines.append("✅ Bộ máy sạch.")
+    for level in (FAIL, WARN, INFO, OK):
+        rows = [r for r in rep.rows if r[0] == level]
+        if not rows:
+            continue
+        for _, area, msg in rows:
+            lines.append(f"{ICON[level]} **{area}** — {msg}")
+    report = "\n".join(lines) + "\n"
+
+    if args.write:
+        (STATE / "health.md").write_text(report, encoding="utf-8")
+    if not args.quiet or fails or warns:
+        sys.stdout.write(report)
+
+    # Lưu offset stderr SAU khi đã báo cáo — job chết giữa chừng thì lần sau
+    # vẫn báo lại đúng những dòng đó thay vì nuốt mất.
+    try:
+        DOCTOR_STATE.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    except OSError as exc:
+        sys.stderr.write(f"brain-doctor: không ghi được {DOCTOR_STATE}: {exc}\n")
+
+    return 1 if (args.strict and fails) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

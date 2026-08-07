@@ -16,6 +16,9 @@
 #
 set -euo pipefail
 
+# shellcheck source=./_brain.sh
+. "$(dirname "$0")/_brain.sh"
+
 # ---- config ---------------------------------------------------------------
 BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
 DRY_RUN=0
@@ -75,58 +78,17 @@ if [ "$DRY_RUN" -eq 1 ]; then
 fi
 
 # ---- build the prompt -----------------------------------------------------
-read -r -d '' PROMPT <<'PROMPT_EOF' || true
-You are the maintainer of this markdown knowledge brain ("my-brain"). Follow
-the conventions in CLAUDE.md exactly. First read index.md, then CLAUDE.md, to
-understand the structure, the frontmatter schema, and the maintenance rules.
-
-Your task: process EVERY file currently in the 00-inbox/ directory. For each
-file:
-
-1. Read the file's content.
-2. Decide its `type`. If the file already declares a `type:` in its frontmatter,
-   TRUST IT — the producing script chose it deliberately. Only override when the
-   declared type is clearly wrong for the content. Valid types:
-   - project  -> 10-projects/   (goal + deadline)
-   - area     -> 20-areas/      (long-lived responsibility)
-   - resource -> 30-resources/  (topic / study material; learns/ lives here)
-   - note     -> notes/         (atomic Zettelkasten idea, 1 idea per file)
-   - feedback -> feedback/      (include Why + How to apply)
-   - decision -> 70-decisions/  (include Why + Tradeoff — BOTH are mandatory)
-3. Add proper YAML frontmatter matching the CLAUDE.md schema (type, title,
-   tags, created, updated, and optional source/status). Keep it light — do
-   not over-engineer frontmatter.
-4. Move the file into the correct layer folder (rename to a clean kebab-case
-   slug filename if helpful).
-5. Suggest and insert relevant [[wiki-links]] to related notes (links to
-   not-yet-existing notes are fine — they mark work to do later). Use [[slug]]
-   without the .md extension.
-6. Mark the item processed (it should no longer live in 00-inbox/).
-7. After processing all items, update index.md so it accurately reflects the
-   new/moved notes. index.md is the map and must stay correct.
-
-Rules:
-- NEVER modify anything under sources/ (immutable layer 1).
-- Prefer flat notes + links over deep nested folders.
-- Keep notes atomic; split long notes and link them.
-- Provenance: synthesized knowledge should point to its source via the
-  `source:` field; if unsure, note it as unverified.
-
-When finished, print a concise summary: for each inbox item, the chosen type,
-its new path, and the wiki-links you added; then note the index.md updates.
-PROMPT_EOF
-
-DRY_RUN_PROMPT='
-
+DRY_NOTE=""
+if [ "$DRY_RUN" -eq 1 ]; then
+  DRY_NOTE="
 IMPORTANT — DRY RUN MODE: Do NOT create, edit, move, or delete any files.
 Do not modify index.md. Only READ files and print a detailed report of what
 you WOULD do for each inbox item (chosen type, destination path, frontmatter
 you would add, wiki-links you would suggest, and index.md changes you would
-make).'
-
-if [ "$DRY_RUN" -eq 1 ]; then
-  PROMPT="$PROMPT$DRY_RUN_PROMPT"
+make)."
 fi
+
+PROMPT="$(render_prompt learn.md "DRY_RUN_NOTE=$DRY_NOTE")" || exit 1
 
 # ---- run claude headless --------------------------------------------------
 # --print          : headless / non-interactive print mode

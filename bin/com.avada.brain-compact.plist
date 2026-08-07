@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd job: chạy brain-compact ngày 1 hằng tháng, 10:00 — tầng chưng cất & quên.
+
+  Vì sao hằng tháng chứ không hằng tuần: gộp/archive là thao tác mất mát. Chạy
+  dày thì mỗi lần chỉ có tín hiệu yếu, mà LLM lại chịu áp lực phải tìm ra thứ gì
+  đó để làm. Một tháng đủ để cụm chủ đề thật sự hình thành.
+
+  launchd bỏ qua lượt chạy nếu máy ngủ đúng lúc đó (không có Persistent), nên
+  nếu lỡ một tháng thì chạy tay: bin/brain-compact --dry-run
+  Cài:
+    cp bin/com.avada.brain-compact.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.avada.brain-compact.plist
+  Chạy thử ngay:
+    launchctl start com.avada.brain-compact
+  Gỡ:
+    launchctl unload ~/Library/LaunchAgents/com.avada.brain-compact.plist
+  Log: .state/brain-compact.out.log / .err.log trong brain.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.avada.brain-compact</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/dantt1002/projects/my-brain/bin/brain-compact</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/dantt1002/projects/my-brain</string>
+
+  <!-- launchd có env tối thiểu; nạp PATH đủ để tìm claude + node -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/dantt1002/.nvm/versions/node/v20.19.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>BRAIN_DIR</key>
+    <string>/Users/dantt1002/projects/my-brain</string>
+  </dict>
+
+  <!-- Ngày 1 hằng tháng, 10:00 -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Day</key><integer>1</integer>
+    <key>Hour</key><integer>10</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-compact.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/dantt1002/projects/my-brain/.state/brain-compact.err.log</string>
+</dict>
+</plist>

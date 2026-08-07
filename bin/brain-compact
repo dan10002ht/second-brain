@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+#
+# brain-compact — tầng CHƯNG CẤT & QUÊN của my-brain (chạy hằng tháng)
+#
+# Các job kia chỉ biết THÊM. digest/gitlog đẻ note mỗi ngày, weekly đẻ resource
+# mỗi tuần — không job nào có quyền gộp hay bỏ. Một second brain chỉ tăng thì
+# cuối cùng bản đồ (index.md) to hơn thứ nó chỉ đường, và tra cứu chậm dần đều.
+# Trong mô hình CODE (Capture-Organize-Distill-Express) thì đây đúng là tầng
+# Distill: nâng cái lặp lại thành tri thức, hạ cái chết xuống archive.
+#
+# Đầu vào KHÔNG do LLM đoán: `bin/brain-graph` đếm ra cụm chủ đề, note lạnh,
+# cặp gần trùng, loạt note đặt tên lệch. LLM chỉ làm phần cần phán đoán.
+#
+# Nó không mature, không commit, KHÔNG tự xoá gì. brain-learn xử lý inbox sau.
+#
+# Quality filter: brain gọn gàng -> KHÔNG tạo file. Đó là thành công.
+#
+# Dùng:
+#   brain-compact              # phân tích -> proposal gộp/archive/MOC
+#   brain-compact --dry-run    # chỉ báo cáo, không ghi file
+#   brain-compact --cold-days N  # ngưỡng "lạnh" (mặc định 90)
+#
+# Env:
+#   BRAIN_DIR   đường dẫn brain (mặc định: $HOME/projects/my-brain)
+#
+set -euo pipefail
+
+# shellcheck source=./_brain.sh
+. "$(dirname "$0")/_brain.sh"
+
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+STATE_DIR="$BRAIN_DIR/.state"
+WATERMARK="$STATE_DIR/brain-compact.watermark"
+INBOX="$BRAIN_DIR/00-inbox"
+TODAY="$(date +%F)"
+
+DRY_RUN=0
+COLD_DAYS=90
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1 ;;
+    --cold-days) shift; COLD_DAYS="${1:-90}" ;;
+    -h|--help) grep '^#' "$0" | sed 's/^# \{0,1\}//' | sed '1d'; exit 0 ;;
+    *) brain_die "brain-compact: tham số lạ: $1" ;;
+  esac
+  shift
+done
+
+command -v claude >/dev/null 2>&1 || brain_die "brain-compact: không thấy 'claude' trên PATH."
+[ -d "$BRAIN_DIR" ] || brain_die "brain-compact: BRAIN_DIR không tồn tại: $BRAIN_DIR"
+[ -x "$BRAIN_DIR/bin/brain-graph" ] || brain_die "brain-compact: thiếu bin/brain-graph"
+mkdir -p "$STATE_DIR" "$INBOX"
+cd "$BRAIN_DIR"
+
+ANALYSIS="$("$BRAIN_DIR/bin/brain-graph" --for-compact --cold-days "$COLD_DAYS")"
+
+# Không có tín hiệu nào => không gọi LLM. Gọi LLM để nó trả lời "không có gì"
+# là đốt tiền và tạo áp lực phải tìm ra thứ gì đó.
+if ! printf '%s' "$ANALYSIS" | grep -qE '^  - '; then
+  echo "brain-compact: brain đang gọn — không có cụm, note lạnh hay trùng lặp nào. Bỏ qua."
+  [ "$DRY_RUN" -eq 0 ] && touch "$WATERMARK"
+  exit 0
+fi
+
+NOTE_COUNT="$(find notes -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
+INDEX_KB="$(( $(wc -c < index.md 2>/dev/null || echo 0) / 1024 ))"
+echo "brain-compact: notes/=${NOTE_COUNT} file · index.md=${INDEX_KB}KB — phân tích xong, giao cho Claude."
+
+DRY_NOTE=""
+if [ "$DRY_RUN" -eq 1 ]; then
+  DRY_NOTE="
+IMPORTANT — DRY RUN: do NOT create or edit any file. Only READ and print what
+you WOULD propose."
+fi
+
+PROMPT="$(render_prompt compact.md \
+  "ANALYSIS=$ANALYSIS" \
+  "NOTE_COUNT=$NOTE_COUNT" \
+  "INDEX_KB=$INDEX_KB" \
+  "COLD_DAYS=$COLD_DAYS" \
+  "TODAY=$TODAY" \
+  "DRY_RUN_NOTE=$DRY_NOTE")" || exit 1
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  claude --print "$PROMPT" --add-dir "$BRAIN_DIR"
+else
+  claude --print "$PROMPT" --permission-mode acceptEdits --add-dir "$BRAIN_DIR"
+  touch "$WATERMARK"
+fi
+
+echo "brain-compact: done. Review 00-inbox/, brain-learn sẽ mature."

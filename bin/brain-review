@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+#
+# brain-review — tầng xem lại quyết định của my-brain
+#
+# CLAUDE.md bắt mọi decision phải có Why + Tradeoff, và các job đều gắn cho
+# decision một `review:` +3 tháng. Nhưng trước script này KHÔNG job nào đọc
+# field đó: ngày review tới rồi trôi qua trong im lặng, và brain dần đầy những
+# quyết định không ai biết còn đúng hay không. Một second brain mà không rà lại
+# quyết định cũ thì nó đang đóng băng giả định, không phải giữ tri thức.
+#
+# Mỗi tuần script này gom các decision QUÁ HẠN review, đưa cho Claude đối chiếu
+# với thực tế hiện tại (note mới, git log của repo liên quan), rồi đẻ PROPOSAL
+# vào 00-inbox/: giữ nguyên / sửa / lật ngược / khai tử.
+#
+# Nó không mature, không commit. brain-learn xử lý inbox sau.
+#
+# Quality filter: không có decision nào quá hạn -> KHÔNG tạo file. Đó là thành công.
+#
+# Dùng:
+#   brain-review            # rà decision quá hạn -> proposal
+#   brain-review --dry-run  # chỉ báo cáo, không ghi file, không đụng watermark
+#   brain-review --all      # rà TẤT CẢ decision, kể cả chưa tới hạn
+#
+# Env:
+#   BRAIN_DIR   đường dẫn brain (mặc định: $HOME/projects/my-brain)
+#
+set -euo pipefail
+
+# shellcheck source=./_brain.sh
+. "$(dirname "$0")/_brain.sh"
+
+BRAIN_DIR="${BRAIN_DIR:-$HOME/projects/my-brain}"
+STATE_DIR="$BRAIN_DIR/.state"
+WATERMARK="$STATE_DIR/brain-review.watermark"
+INBOX="$BRAIN_DIR/00-inbox"
+TODAY="$(date +%F)"
+
+DRY_RUN=0
+ALL=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1 ;;
+    --all) ALL=1 ;;
+    -h|--help) grep '^#' "$0" | sed 's/^# \{0,1\}//' | sed '1d'; exit 0 ;;
+    *) brain_die "brain-review: tham số lạ: $1" ;;
+  esac
+  shift
+done
+
+command -v claude >/dev/null 2>&1 || brain_die "brain-review: không thấy 'claude' trên PATH."
+[ -d "$BRAIN_DIR" ] || brain_die "brain-review: BRAIN_DIR không tồn tại: $BRAIN_DIR"
+mkdir -p "$STATE_DIR" "$INBOX"
+cd "$BRAIN_DIR"
+
+# ---- gom decision quá hạn --------------------------------------------------
+# Quyết định "quá hạn" là dữ liệu xác định được bằng code — không cần hỏi LLM.
+# LLM chỉ làm phần nó giỏi: đọc xem quyết định còn đúng không.
+DUE_BLOCK="$(BRAIN_ALL="$ALL" python3 - <<'PY'
+import datetime, os, pathlib, re
+
+root = pathlib.Path.cwd()
+today = datetime.date.today()
+show_all = os.environ.get("BRAIN_ALL") == "1"
+rows = []
+
+for f in sorted((root / "70-decisions").glob("*.md")):
+    if f.name in ("README.md", "_template.md"):
+        continue
+    text = f.read_text(encoding="utf-8", errors="ignore")
+    fm = {}
+    if text.startswith("---"):
+        end = text.find("\n---", 3)
+        if end != -1:
+            for line in text[3:end].splitlines():
+                if ":" in line:
+                    k, _, v = line.partition(":")
+                    fm[k.strip()] = v.strip()
+
+    raw = fm.get("review", "").strip().strip("[]")
+    status = ""
+    try:
+        due = datetime.date.fromisoformat(raw[:10])
+        overdue = (today - due).days
+        if overdue >= 0:
+            status = f"QUÁ HẠN {overdue} ngày (review: {due})"
+        elif show_all:
+            status = f"còn hạn tới {due}"
+    except ValueError:
+        status = "KHÔNG CÓ review: hợp lệ — chưa bao giờ được lên lịch xem lại"
+
+    if not status:
+        continue
+    summary = fm.get("summary", "").strip() or "(thiếu summary)"
+    rows.append(f'  - 70-decisions/{f.name} — [{status}]\n    {summary}')
+
+print("\n".join(rows))
+PY
+)"
+
+if [ -z "$DUE_BLOCK" ]; then
+  echo "brain-review: không có quyết định nào tới hạn xem lại — không cần làm gì."
+  [ "$DRY_RUN" -eq 0 ] && touch "$WATERMARK"
+  exit 0
+fi
+
+echo "brain-review: $(printf '%s\n' "$DUE_BLOCK" | grep -c '^  - ') quyết định cần rà lại."
+
+DRY_NOTE=""
+if [ "$DRY_RUN" -eq 1 ]; then
+  DRY_NOTE="
+IMPORTANT — DRY RUN: do NOT create or edit any file. Only READ and print, per
+decision, what verdict and proposal you WOULD write."
+fi
+
+PROMPT="$(render_prompt review.md \
+  "DUE_BLOCK=$DUE_BLOCK" \
+  "TODAY=$TODAY" \
+  "DRY_RUN_NOTE=$DRY_NOTE")" || exit 1
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  claude --print "$PROMPT" --add-dir "$BRAIN_DIR"
+else
+  claude --print "$PROMPT" --permission-mode acceptEdits --add-dir "$BRAIN_DIR"
+  touch "$WATERMARK"
+fi
+
+echo "brain-review: done. Review 00-inbox/, brain-learn sẽ mature."

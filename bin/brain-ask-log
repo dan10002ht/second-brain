@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""brain-ask-log — ghi lại một lượt tra brain vào .state/queries.jsonl.
+
+Vì sao tồn tại: brain này viết vào rất nhiều (4 job tự động) nhưng KHÔNG ĐO
+được gì ở chiều đọc. Không ai biết note nào thật sự được dùng, và quan trọng
+hơn — không ai biết đã hỏi gì mà brain KHÔNG trả lời được. Thiếu tín hiệu đó
+thì brain chỉ lớn lên, không khôn lên.
+
+Skill `/brain` gọi lệnh này sau mỗi lượt tra. brain-weekly đọc các lượt MISS để
+đề xuất "cần viết note gì"; brain-graph đọc các file đã mở để biết note nào
+lạnh thật sự (không ai link VÀ không ai tra) thay vì chỉ lạnh trên graph.
+
+Dùng:
+  brain-ask-log --q "joy subscription lỗi webhook" --files notes/a.md,notes/b.md
+  brain-ask-log --q "cách rollback firestore index" --miss
+  brain-ask-log --tail 20        # xem lượt gần đây
+  brain-ask-log --stats          # tỉ lệ trúng/trượt 30 ngày
+
+Ghi thất bại KHÔNG BAO GIỜ được làm hỏng lượt tra: mọi lỗi đều nuốt và exit 0.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+LOG = ROOT / ".state" / "queries.jsonl"
+MAX_LINES = 5000  # đủ cho nhiều năm; cắt để file không phình vô hạn
+
+
+def append(q: str, files: list[str], hit: bool, source: str) -> None:
+    LOG.parent.mkdir(parents=True, exist_ok=True)
+    rec = {
+        "ts": dt.datetime.now().isoformat(timespec="seconds"),
+        "q": q.strip(),
+        "hit": hit,
+        "files": files,
+        "from": source,
+    }
+    with LOG.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+    lines = LOG.read_text(encoding="utf-8", errors="ignore").splitlines()
+    if len(lines) > MAX_LINES:
+        LOG.write_text("\n".join(lines[-MAX_LINES:]) + "\n", encoding="utf-8")
+
+
+def read_records() -> list[dict]:
+    if not LOG.exists():
+        return []
+    out = []
+    for line in LOG.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--q", help="câu hỏi đã tra")
+    ap.add_argument("--files", default="", help="các file đã dùng để trả lời, ngăn bằng dấu phẩy")
+    ap.add_argument("--miss", action="store_true", help="brain KHÔNG trả lời được")
+    ap.add_argument("--from", dest="source", default="brain-skill", help="nguồn gọi")
+    ap.add_argument("--tail", type=int, metavar="N", help="in N lượt gần nhất rồi thoát")
+    ap.add_argument("--stats", action="store_true", help="thống kê 30 ngày rồi thoát")
+    args = ap.parse_args()
+
+    if args.tail:
+        for rec in read_records()[-args.tail:]:
+            mark = "MISS" if not rec.get("hit") else "hit "
+            print(f"[{mark}] {rec.get('ts','')[:16]}  {rec.get('q','')[:90]}")
+            for f in rec.get("files") or []:
+                print(f"           {f}")
+        return 0
+
+    if args.stats:
+        cutoff = dt.date.today() - dt.timedelta(days=30)
+        recs = []
+        for r in read_records():
+            try:
+                if dt.date.fromisoformat((r.get("ts") or "")[:10]) >= cutoff:
+                    recs.append(r)
+            except ValueError:
+                continue
+        if not recs:
+            print("Chưa có lượt tra nào trong 30 ngày.")
+            return 0
+        miss = [r for r in recs if not r.get("hit")]
+        print(f"30 ngày: {len(recs)} lượt tra · {len(recs) - len(miss)} trúng · {len(miss)} trượt "
+              f"({len(miss) * 100 // len(recs)}%)")
+        if miss:
+            print("\nCâu brain KHÔNG trả lời được:")
+            for r in miss[-15:]:
+                print(f"  - {r.get('ts','')[:10]}  {r.get('q','')[:100]}")
+        return 0
+
+    if not args.q:
+        ap.error("cần --q (hoặc --tail/--stats)")
+
+    files = [f.strip() for f in args.files.split(",") if f.strip()]
+    try:
+        append(args.q, files, hit=(not args.miss and bool(files)), source=args.source)
+    except OSError as exc:
+        # Ghi log KHÔNG được phép làm hỏng lượt tra của người dùng.
+        sys.stderr.write(f"brain-ask-log: bỏ qua lỗi ghi log: {exc}\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
