@@ -61,6 +61,7 @@ Tách context là cách duy nhất làm nó thành gate thật chứ không ph�
   vẫn lọt. Chỉ dẫn trong prose là lời khuyên model có thể lướt qua; tách context là ràng buộc kiến trúc.
 
 ## Liên quan
+- [[2026-08-07-phan-tang-verifier]] — bổ sung 2026-08-07: giữ nguyên vai trò độc lập, nhưng *phạm vi soi* chia 3 hạng theo độ rộng diff.
 - [[graph-engineering]] — node/edge/shared-state; lý do gọi verify là một "edge yếu".
 - [[looptasks-vs-workflow]] — vì sao không chuyển hẳn sang workflow.
 - [[digest-aws-2026-07-27]] — "không tin report của agent, dùng ground truth"; agent chết âm thầm làm pass gate.

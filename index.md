@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-06 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 10 item ngày 08-06: 2 digest + 2 shipped + 3 decision + 2 feedback + 1 resource)_
+_Cập nhật: 2026-08-07 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 item ngày 08-07: 2 digest + 2 shipped + 1 decision + 2 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -112,6 +112,10 @@ _Cập nhật: 2026-08-06 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-pdf-2026-08-06]] — CHỈ phần mới: feature SB-15301 payment reminder **không có PRD** nên spec dựng từ mockup + đối thoại (field trong mockup chính là Shopify payment terms đã lưu sẵn), verifier bắt off-by-one tham chiếu dòng và default lệch mockup không comment, "gate đỏ là pre-existing" phải chứng minh bằng `git diff --name-only`, cron `/looptasks` dựng trong session không ghi ra đĩa, lock looptasks đọc theo thời gian nên phải gia hạn. ⚠️ có mục "chưa xác minh" (verifier vòng P2).
 - [[shipped-subscriptions-2026-08-06]] — commit landed 08-04/08-05 (v2.34.47→53): giá theo từng line của order, tsTool best-selling, delivery-anchored billing enterprise (+1 migration SQL), 3 lát CLS; revert reservation chiều cao list table vừa ship hôm trước → thay bằng skeleton rows; trên nhánh: bỏ App Bridge v3 + box editor sang max modal, classic portal preview, manual delivery attributes.
 - [[digest-subscriptions-2026-08-06]] — CHỈ phần mới: doc Firestore thiếu hẳn field `product` làm trắng trang (4 chỗ deref không guard), worktree thiếu `.env.local` làm gate đỏ giả rồi bị khai là "pre-existing", loạt bẫy đo layout-shift → khái quát ở [[do-layout-shift-bang-browser-automation]], và luồng auto-merge MR tài liệu của BA.
+- [[shipped-pdf-2026-08-07]] — commit landed 08-06 — master nhận 4 MR: Email Sender & Custom SMTP (Professional+) lên `v3.1.72` sau một loạt fix QA SMTP, job CI auto-merge MR tài liệu (+ hotfix whitelist username), và 1 MR mockup/PRD; trên nhánh: SB-15301 payment reminder chạy tới P4 (data model + cron flag-off + test, kèm 52 dòng firestore.indexes.json), SB-14329 customer card actions kèm tách `.gitlab-ci.yml` thành `.gitlab/ci/*`, Sidekick SB-14254; không revert, không cờ deploy.
+- [[digest-pdf-2026-08-07]] — Save trả 200 mà Firestore rỗng do koa-yup-validator ghi đè body bằng object toàn `undefined` (yup 0.29), editor tự chế chỉ commit onBlur, mail gửi không bọc theme, cron không bao giờ chọn được đơn vì cờ chỉ seed ở nhánh `.add()`.
+- [[shipped-subscriptions-2026-08-07]] — commit landed 08-06 — master nhận 3 tag (Delivery provider app + custom attribute cards kèm chuỗi strip `_joy_*` khỏi mọi surface đọc customAttributes, guard field `product` thiếu làm trắng trang, mock analytics data bật bằng DevZone toggle) cộng 1 MR chore nâng Jest 24→30 và job auto-merge MR tài liệu; trên nhánh: box editor max modal giữ draft qua reload + hỏi save khi bấm X, 139 test e2e Playwright, ghi mọi source của CLS lớn nhất; không revert, không cờ deploy.
+- [[digest-subscriptions-2026-08-07]] — vắng log không chứng minh được gì khi flow không log `shopId`; `updatedAt` không đổi mới là bằng chứng save không xuống DB; field `widgets` bị bỏ có chủ đích vì tốn 0.6–1.4s trên critical path.
 - [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
@@ -158,6 +162,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-06-appbridge-v3-sang-max-modal]] — Joy Subscription gỡ hẳn App Bridge v3, box editor fullscreen → max modal v4 + iframe route `/box-frame/*`; đổi lại tự dựng bridge 2 chiều, Save/Discard ở TitleBar do host sở hữu, nút X đóng làm mất thay đổi chưa lưu (review 2026-11-06).
 - [[2026-08-06-auto-merge-mr-tai-lieu-ba]] — `subscriptions` + `pdf` tự merge MR khi toàn bộ diff nằm trong `product-team/` và author trong whitelist, chạy bằng job pipeline MR với PAT scope `api` Protected; bỏ phương án scheduled poll 15 phút (review 2026-11-06).
 - [[2026-08-06-bo-pagination-preview-pdf]] — PDF Invoice xoá toàn bộ pagination phía client của preview (~3.9k dòng, cùng ngày viết ra), PDF server là nguồn phân trang duy nhất, công sức dồn vào highlight theo marker liquid inert (review 2026-11-06).
+- [[2026-08-07-phan-tang-verifier]] — `/looptasks` chọn hạng verify (surgical / trung / cao) theo độ rộng diff và mức rủi ro, thay vì chạy verifier đầy đủ cho mọi task như trước (review 2026-11-07).
 
 ## 💬 Feedback (feedback/)
 
@@ -168,6 +173,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-commit-style]] — `type - role - scope` ở repo Avada, mô tả trần ở my-brain; không trailer `Co-Authored-By`.
 - [[feedback-comment-chi-khi-code-roi]] — mặc định không comment; chỉ giữ comment cho magic number hoặc ràng buộc bên ngoài mà code không nói được.
 - [[feedback-plan-o-subagent-hoac-ghi-brief]] — plan/tổng hợp giao subagent để session chính chỉ giữ kết luận; nếu làm tại chỗ thì ghi tiến độ + câu hỏi treo vào `BRIEF.md`.
+- [[feedback-ten-nhanh-ngan]] — đặt tên nhánh `feature/payment-reminder`, không nhét `SB-xxxx` và không quá 3 từ sau dấu `/`.
+- [[feedback-feature-moi-mac-dinh-opt-in]] — default của một feature mới là `enabled: false`; khách cũ không bao giờ được tự nhiên bật một hành vi gửi mail ra ngoài mà họ chưa đồng ý.
 
 ## 📦 Sources (sources/) — nguồn thô immutable
 
