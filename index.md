@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-07 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 item ngày 08-07: 2 digest + 2 shipped + 1 decision + 2 feedback)_
+_Cập nhật: 2026-08-08 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 08-08: 2 shipped + 1 decision)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -116,6 +116,8 @@ _Cập nhật: 2026-08-07 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-pdf-2026-08-07]] — Save trả 200 mà Firestore rỗng do koa-yup-validator ghi đè body bằng object toàn `undefined` (yup 0.29), editor tự chế chỉ commit onBlur, mail gửi không bọc theme, cron không bao giờ chọn được đơn vì cờ chỉ seed ở nhánh `.add()`.
 - [[shipped-subscriptions-2026-08-07]] — commit landed 08-06 — master nhận 3 tag (Delivery provider app + custom attribute cards kèm chuỗi strip `_joy_*` khỏi mọi surface đọc customAttributes, guard field `product` thiếu làm trắng trang, mock analytics data bật bằng DevZone toggle) cộng 1 MR chore nâng Jest 24→30 và job auto-merge MR tài liệu; trên nhánh: box editor max modal giữ draft qua reload + hỏi save khi bấm X, 139 test e2e Playwright, ghi mọi source của CLS lớn nhất; không revert, không cờ deploy.
 - [[digest-subscriptions-2026-08-07]] — vắng log không chứng minh được gì khi flow không log `shopId`; `updatedAt` không đổi mới là bằng chứng save không xuống DB; field `widgets` bị bỏ có chủ đích vì tốn 0.6–1.4s trên critical path.
+- [[shipped-pdf-2026-08-08]] — commit landed 08-07 — master chỉ nhận 3 MR nhỏ (2 lần đổi go-live date SMTP `v3.1.73`/`v3.1.74` + 1 MR mockup/PRD); khối lượng thật trên nhánh `feature/payment-reminder` (SB-15301 chạy trọn P0→P4 rồi 5 fix + 2 refactor tách section) và nhánh templates import (guard 5MB phía server, size hint, Crisp standalone); không revert, không cờ deploy. ⚠️ có mục "cần xác nhận" (backfill cờ đơn cũ: command đã có vs digest ghi là hoãn).
+- [[shipped-subscriptions-2026-08-08]] — commit landed 08-07 — master chỉ nhận 1 MR (`v2.34.58`, endpoint clientApi công khai tạo CRM lead cho demo site); trên nhánh: bịt rò rỉ tên plan/số usage/lời mời nâng gói khi Sidekick bị pricing-gate, và khôi phục `shop.widgets` trên `/shops` — undo có chủ đích một tối ưu perf 0.6–1.4s; không revert trên master. ⚠️ có mục "cần xác nhận" (endpoint public mới vs hướng xoá `publicApi`).
 - [[digest-moonie-2026-07-17]] — build website Mooni bằng harness AI (generator→evaluator độc lập→held-out test mù→screenshot loop) + loạt gotcha Go/testcontainers/Colima/golangci-lint/CI (greenfield, ngoài Avada).
 - [[digest-moonie-2026-07-18]] — security hardening Mooni (JWT/auth alg=none + dummy-bcrypt, trusted-proxy XFF rightmost, CSRF Origin fallback + segment-aware prefix, upload magic-byte, int truncation tài chính), root cause package-lock lệch platform (Tailwind v4 native), failure mode "held-out quá khắt khe".
 - [[digest-moonie-2026-07-20]] — phần mới của Mooni: bỏ giỏ hàng để né đăng ký TMĐT, bộ artifact QA 5 file mỗi file 1 owner, bug `ORDER BY` không tất định + rate-limit thiết kế sai, kỹ thuật viết held-out chống gian lận.
@@ -163,6 +165,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-06-auto-merge-mr-tai-lieu-ba]] — `subscriptions` + `pdf` tự merge MR khi toàn bộ diff nằm trong `product-team/` và author trong whitelist, chạy bằng job pipeline MR với PAT scope `api` Protected; bỏ phương án scheduled poll 15 phút (review 2026-11-06).
 - [[2026-08-06-bo-pagination-preview-pdf]] — PDF Invoice xoá toàn bộ pagination phía client của preview (~3.9k dòng, cùng ngày viết ra), PDF server là nguồn phân trang duy nhất, công sức dồn vào highlight theo marker liquid inert (review 2026-11-06).
 - [[2026-08-07-phan-tang-verifier]] — `/looptasks` chọn hạng verify (surgical / trung / cao) theo độ rộng diff và mức rủi ro, thay vì chạy verifier đầy đủ cho mọi task như trước (review 2026-11-07).
+- [[2026-08-08-khoi-phuc-shop-widgets]] — Joy Subscription đưa `getCrmWidgets` trở lại payload `/shops` (undo nửa perf của `03322bf58`) để `shop.widgets` có mặt ngay frame đầu; đổi lại critical path mọi lần load app gánh thêm 0.6–1.4s và `public.avada.io` bị gọi 2 lần mỗi lượt. ⚠️ CHƯA MERGE — mới ở nhánh (review 2026-11-08).
 
 ## 💬 Feedback (feedback/)
 
