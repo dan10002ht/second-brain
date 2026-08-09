@@ -35,4 +35,5 @@ export TFLite → nhúng vào Flutter app.
   chạy offline trên mobile.
 
 ## Liên quan
+- [[2026-08-09-archive-detect]] — đề xuất archive (chưa thực hiện: `status` vẫn `active`).
 - [[index]]

@@ -29,4 +29,5 @@ Yarn workspaces, chạy song song bằng `concurrently` + `cross-env`. Hai packa
 - **Tích hợp WhatsApp qua Baileys** là điểm đặc biệt — có route `whatsappRoutes.js` riêng để gửi thông báo cho khách. Analytics có route riêng nhưng phần revenue/expense từng bị ẩn (commit "hide revenue" / "hide expense").
 
 ## Liên quan
+- [[2026-08-09-archive-customer-manager-mono]] — đề xuất archive (hoặc chuyển sang area nếu app còn chạy production); chưa thực hiện.
 - [[index]]

@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-08-09
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -16,6 +16,9 @@ updated: 2026-07-06
 
 - [[atomic-notes-principle]] — mỗi note một ý, liên kết bằng wiki-link.
 - [[learning-in-public]] — vì sao viết ra giúp học nhanh hơn.
+- [[bang-chung-phan-biet-duoc]] — mở khi một kết luận cho phép *dừng* điều tra ("gate đỏ là
+  pre-existing", "không thấy log", "verifier PASS"): bằng chứng vắng mặt và báo cáo tự chấm
+  không phân biệt được "ổn" với "phép đo hỏng".
 
 ## Rust
 
