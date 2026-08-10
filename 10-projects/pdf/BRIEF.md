@@ -31,6 +31,98 @@
     → LUÔN sửa file nguồn TRƯỚC. Đã vấp: P1, P3, task 10.
 -->
 
+## Cách test feature Payment Reminder (SB-15301)
+
+_Viết 10/08. Đi từ nhanh nhất tới tốn công nhất. Mỗi bước ghi rõ **thứ nó chứng minh được** và
+**thứ nó KHÔNG chứng minh** — vì phần lớn feature này tới giờ mới chỉ verify tĩnh, chưa chạy thật._
+
+### Điều kiện cần (thiếu là mọi bước dưới đều vô nghĩa)
+
+| Thứ | Giá trị đúng | Kiểm bằng cách nào |
+|---|---|---|
+| Shop test | `dantt-pdf-dev.myshopify.com` (`AYctc8Mrxl664GaFbRUj`) | Firestore `avada-staging` |
+| `shop.plan` | `wholesale` | thiếu là FE ẩn card, BE trả 403 |
+| `shop.useChattySmtp` | `true` | **đã bật 07/08.** Không bật → `ECONNREFUSED ::1:465` vì nhóm `SMTP_*` trong `.env.local` rỗng |
+| Chạy app | `emudev` (= `GOOGLE_APPLICATION_CREDENTIALS=serviceAccount.development.json yarn emulators`) | cwd của function = `packages/functions` nên path tương đối resolve đúng |
+
+### Bước 1 — Lưu settings (nhanh nhất, ~1 phút)
+
+Vào `/automation_email` → bật toggle "Payment due reminder" → **Save** ở top bar → **F5**.
+
+- ✅ Đúng: toggle vẫn bật sau khi F5.
+- ❌ Sai: về lại tắt → ghi Firestore hỏng. Đây là bug đã sửa ở commit `b2f2038c6`; tái phát thì
+  kiểm collection `paymentReminders` trên `avada-staging` xem có doc của shop không.
+- 💡 Mẹo kiểm nhanh không cần Firestore: gọi `GET /apiSa/payment-reminders`, **response có field `id`**
+  nghĩa là doc tồn tại thật; **thiếu `id`** nghĩa là đang trả default, tức chưa từng ghi được
+  (`paymentReminderRepository.js:21-23` vs `27-34`).
+
+**Chứng minh được**: đường ghi settings.  **KHÔNG chứng minh**: gửi mail, cron, template.
+
+### Bước 2 — Nút "Send test" (~2 phút, đường end-to-end khả thi duy nhất hiện nay)
+
+Trang settings chi tiết → **Send test** → nhập email của bạn.
+
+Đi qua **đúng** `renderReminderMergeTags` + `getPDFAttachment` mà cron dùng, nên chứng minh được:
+merge tag, sinh PDF, cấu hình SMTP, gửi thật. **Không** bị chặn bởi `ENABLE_PAYMENT_REMINDER_SEND`
+(cố ý — merchant tự gửi cho mình phải chạy kể cả khi tắt gửi hàng loạt).
+
+- ❌ `ECONNREFUSED ::1:465` → SMTP. Xem bảng điều kiện cần.
+- ⚠️ Dùng **đơn mẫu** `storage/order.json`, không phải đơn thật → **không** chứng minh được phần
+  chọn đơn, cờ idempotency, hay số học ngày tháng.
+- ✅ **Từ commit `6c162f4ec` (task 17) mail đã bọc theme** — logo, màu nền, card, nút CTA, footer.
+  Preview và mail thật giờ gọi **chung một hàm** `helpers/email/buildReminderEmailHtml.js` nên
+  không thể lệch nhau. **Nhưng chưa ai mở mail thật để nhìn** — bước này chính là lúc kiểm điều đó.
+  Đáng soi: logo có hiện không · màu có đúng cái đã chọn không · nút "View invoice online" có link
+  thật không · footer có đủ không.
+- ⚠️ Nhiều email client (Outlook desktop cũ) **bỏ qua `<head><style>`** → có thể thấy mail trơ dù
+  code đúng. Thử ở **2 client khác nhau** (vd Gmail web + Outlook), đừng kết luận từ một chỗ.
+
+### Bước 3 — Cron thật (tốn công nhất, và là thứ DUY NHẤT chứng minh feature hoạt động)
+
+**Chưa ai chạy bước này lần nào.** Cần đủ 5 thứ:
+
+1. `ENABLE_PAYMENT_REMINDER_SEND=true` trong `packages/functions/.env.local` — **mặc định TẮT**.
+   Muốn xem thử mà chưa gửi thật thì **cứ để tắt rồi đọc log**: cron chạy hết logic chọn đơn +
+   render, log ra thứ *sẽ* gửi, không gọi `sendMail`, không ghi cờ (`wholeSale.service.js:241-247`).
+   Đây là cách test an toàn nhất, nên làm **trước** khi bật.
+2. Shop đã có doc `paymentReminders` (làm xong bước 1) — `getAllShopIds()` chỉ quét shop đã lưu.
+3. **Đơn phải là đơn TẠO MỚI** sau commit `a0fbaf4fa`. ⚠️ Đơn cũ **vĩnh viễn không lọt query** vì
+   thiếu `isSendDueReminder`/`overdueReminderCount` — đã **chốt không backfill** phase này (xem task 11).
+4. Đơn cần: `isUnpaid: true`, `isCanceled: false`, `dueAt != null`.
+5. Ngày phải khớp: `timing: 'on_due'` cần `dueAt <= hôm nay`; `'before'` thì mốc là `dueAt - timingDays`.
+   Overdue lần 1 cần `getDiffDays(dueAt) >= timingDays`; lần 2 cần `getDiffDays(lastOverdueReminderAt) >= resendDays`.
+   → Muốn test nhanh thì **sửa tay `dueAt` lùi về quá khứ** trong Firestore, đừng ngồi đợi.
+
+**Kích cron thủ công** — nó là `onSchedule('0 * * * *')` (`index.js:136-139`), emulator không tự chạy.
+Hai cách, ⚠️ **chưa cách nào được kiểm chứng trên máy này**:
+- `yarn shell` (`firebase functions:shell`) rồi gọi `updatePaymentTermSchedule()`
+- publish vào topic `firebase-schedule-updatePaymentTermSchedule` mà emulator tạo sẵn
+  (đang chạy `--only functions,hosting,pubsub` nên có pubsub)
+
+**Kiểm kết quả** — đọc doc đơn trong `wholesaleOrders`:
+
+| Sau khi | Trường phải thành |
+|---|---|
+| email DUE | `isSendDueReminder: true` |
+| email OVERDUE 1 | `overdueReminderCount: 1` + `lastOverdueReminderAt` |
+| email OVERDUE 2 | `overdueReminderCount: 2` → đơn rơi khỏi mọi query, dừng hẳn |
+
+**Kiểm idempotency**: kích cron **2-3 lần liên tiếp** → chỉ được gửi **một** email. Đây là thứ đáng
+kiểm nhất, vì cron thật chạy **24 lần/ngày**.
+
+### Ba thứ HIỆN KHÔNG test được, đừng mất công
+
+- **Đơn cũ**: không backfill nên không bao giờ được nhắc (task 11, có chủ ý).
+- **Giao diện mail**: theme chưa được áp (task 17, đang sửa).
+- **Overdue lần 2 trong cùng ngày**: cần `lastOverdueReminderAt` cách đủ `resendDays` — phải sửa tay
+  field đó lùi lại, không thì đợi thật.
+
+### Ca biên đáng thử nếu có thời gian (đều CHƯA có test tự động)
+
+`resendDays` để `0` hoặc rỗng → gửi lần 2 **gần như ngay lượt cron kế**. Để `abc` → **không bao giờ
+gửi**, im lặng. Nguyên nhân: `Number(config.resendDays || 0)` (`wholeSale.service.js:266-268`),
+không có validate min/numeric. Chi tiết ở task 14.
+
 ## Tasks
 
 > **Quy ước tên nhánh (dantt, 07/08):** KHÔNG nhét mã ticket vào tên nhánh,
@@ -47,99 +139,6 @@
 > 6 nhánh cũ (`-api`/`-fe`/`-cron`/`-tests`/`-sendtest`/`docs/…`) giữ tạm làm backup, xoá được.
 
 _(trống — thêm task ở đây)_
-
-1.  [✅ 2026-08-06] https://space.avada.net/browse/SB-15301 hiện tại tôi đang có tính năng thế này, và MR này https://gitlab.com/avada/pdf-invoice/pdf-invoice-firebase/-/merge_requests/501 (update/product-20260806-1714) là mockup cũng như PRD của tính năng trên
-    Trước tiên thì giúp tôi làm rõ feature cũng như lên plan feature này nhé
-
-    **XONG 06/08** — deliverable: `product-team/marketing/product/prd/spec-payment-reminder-due-overdue.md` (344 dòng)
-    - nhánh `feature/payment-reminder` · commit `804464917` · **chưa push**
-    - Spec gồm: Context · OPEN QUESTIONS Q1–Q8 (đặt đầu file) · Scope · UI/UX 3 màn · bảng as-is backend
-      kèm file:line · data model (collection `paymentReminders` mới + field thêm vào `wholesaleOrders`) ·
-      3 phương án trigger kèm trade-off (không tự chốt) · pseudo-code logic gửi · plan gate Wholesale
-      FE+BE · rủi ro R1–R6 · 16 acceptance criteria · implementation plan P0–P4
-    - Verify: agent `verifier` chạy 2 vòng. Vòng 1 FAIL (1/~56 tham chiếu sai: `liquid.service.js:27`
-      trỏ vào `export class` thay vì method `parse` ở dòng 28). Sửa + vòng 2 **PASS**, không finding.
-      Verifier đã đọc trực tiếp ~56 tham chiếu file:line, spot-check lại 8 cái sau vòng sửa.
-      `git diff --stat` rỗng — không đụng file code/mockup nào.
-    - KHÔNG cập nhật `CHANGELOG.md`: file đó theo convention release-version của app (v2.0.x + ngày),
-      không phải nơi ghi tài liệu nội bộ.
-
-    **Tiến độ 06/08 17:26–18:0x** — recon (3 Explore agent).
-    - Jira: "[DEV][PDF] Payment reminder due date & overdue (Wholesale plan only)", reporter longlv, sprint 58, assignee field ghi `dantt`.
-    - **KHÔNG có PRD** cho feature này (grep SB-15301 toàn repo = 0; không nằm trong index `prd/README.md`).
-      Nguồn spec thực chất = mockup MR 501 + comment code. Backend chưa có gì (grep "reminder" trong
-      `packages/functions/src` = 0).
-    - Yêu cầu gốc khách 05/08: gửi **ADJUSTED invoice** → PDF phải render TẠI LÚC GỬI (phản ánh order edit,
-      trả một phần, combine), không dùng file cache.
-    - Mockup chạy local: `cd product-team/marketing/product/mockup-app && yarn dev` → localhost:3200.
-      Route: `/automation_email` (card) · `/automation_email/payment-reminders/:type` (due|overdue) ·
-      `/automation_email/customize-template`.
-    - **Hạ tầng đã có sẵn** (không phải build mới): `dueAt` + `overdue` + `paymentBadge` trong collection
-      `wholesaleOrders` (`helpers/company/formatOrder.js:52,100,109`); cron `updatePaymentTermSchedule`
-      (`0 * * * *`) → `handlers/cron/handleOrderDaily.js`; `MailService.sendMail()`; custom SMTP
-      (`emailNotifications`); LiquidJS; gate `isShopWholesale()` (`config/getPlans.js:435`).
-      Pattern gần nhất để clone: `WholeSaleService.#processExpiredOrder` + cờ `isSendExpiredEmail`.
-    - **Cần build mới**: settings schema + API, cron step gửi reminder, cờ idempotency, 2 trang FE.
-
-    **Câu hỏi còn treo (chưa chốt — cần Product/anh dantt quyết):**
-    - [x] **CHỐT 06/08 (dantt): overdue KHÔNG lặp vô hạn.** Hai ô trong Card "Schedule" của mockup
-          (`payment-reminder-settings.jsx:354-371`) = **2 mốc gửi**, không phải vòng lặp:
-          `timingDays` ("Days after the overdue date") → email overdue lần 1;
-          `resendDays` ("Send again after") → email overdue lần 2, **một lần duy nhất**.
-          → Tối đa **3 email/đơn**: 1 due + 2 overdue. Không cần `maxResend`, không cần trần.
-          Rule duy nhất: mỗi lần gửi **kiểm lại đơn còn unpaid** (paid/cancel/refund thì thôi).
-          Field kỹ thuật trong `wholesaleOrders` (merchant không thấy): `lastReminderSentAt` +
-          `reminderSentCount` — cần vì cron chạy `0 * * * *` = 24 lần/ngày, phải biết đã gửi chưa.
-          Giống cờ `isSendExpiredEmail` đang dùng cho email discount hết hạn.
-          ⚠️ Ghi chú: chưa hỏi Philip xác nhận cách đọc "Send again after" = 1 lần (mockup không viết rõ).
-          ✅ Spec đã sửa lại theo quyết định này, verifier PASS vòng 2.
-    - [x] **CHỐT: "Fixed date" CÓ gửi reminder.** Nó có due date thật (merchant tự chọn ngày).
-          ⚠️ Bẫy khi code: `isNetPaymentTerms` (`constants/paymentTermNames.js:13`) = `paymentTermsName !== FIXED`
-          → trả `false` cho Fixed date. Feature early payment discount đang lọc đơn bằng helper này.
-          **KHÔNG tái dùng `isNetPaymentTerms` để lọc order cho reminder** — chỉ cần điều kiện `dueAt != null`.
-          (Vẫn bỏ qua "Due on receipt"/"Due on fulfillment" — `paymentWithoutDate`, không có mốc.)
-    - [x] **CHỐT: scope cấu hình = global theo shop** (đúng mockup, không override theo company).
-    - [x] **CHỐT: reminder thứ 3 (mốc ưu đãi trả sớm) — ĐỂ SAU**, không làm phase này.
-    - [x] **CHỐT: trigger = phương án A (khuyến nghị)** — thêm bước thứ 3 vào cron `handleOrderDaily.js`
-          sẵn có (`0 * * * *`), không dựng cron mới. dantt: "làm theo hướng recommend trước, note vào đây
-          để sau này tôi đổi ý". → **Nếu đổi ý**: điểm phải sửa là query candidates trong
-          `WholeSaleService.sendPaymentReminders()` + chỗ đăng ký scheduled function ở `index.js:136-139`.
-          Hai phương án còn lại (cron riêng theo timezone shop / webhook `payment_schedules/due`) mô tả
-          ở mục 4.4 của spec, giữ nguyên để đối chiếu.
-    - [x] **CHỐT: gate plan / thông điệp upgrade — ĐỂ SAU**, tạm dùng chung `triggerFeature="netTerms"`.
-    - [ ] ~~Reminder thứ 3~~ (giữ lại giải thích để tra cứu) — early payment discount cho
-          khách giảm vd 2% nếu trả trong 10 ngày, trong khi due date thật là Net 30 → **2 mốc khác nhau**.
-          `spec-company-early-payment-discount.md:235` mô tả story "nhắc trả sớm → được giảm → quá hạn
-          thì mất ưu đãi" ngụ ý cần email nhắc mốc ưu đãi. Mockup không có.
-          **Đề xuất: KHÔNG làm phase này, ghi nhận phase sau.** Chờ dantt xác nhận.
-          Reply: để sau nhé
-
-2. [✅ 2026-08-06] **SB-15301 P0** — Data model + API cấu hình payment reminder (chưa gửi mail)
-   - nhánh `feature/payment-reminder` · commit `a4fff6439` · **chưa push**
-   - Tạo: `schemas/paymentReminderSchema.js` (Yup, khớp mockup DEFAULTS + DEFAULT_EMAIL_THEME) ·
-     `repositories/paymentReminderRepository.js` (`getForShop` merge default+saved, `updateOrCreate`) ·
-     `routes/paymentReminder.route.js` (Koa, `GET/POST /payment-reminders`, tách khỏi `/email_notification/*`) ·
-     `controllers/paymentReminder.controller.js` (gate `isShopWholesale` → `ForbiddenError`)
-   - Sửa: `routes/index.routes.js` · `repositories/wholesaleOrdersRepository.js`
-     (`getOrdersForDueReminder` dùng `dueAt != null`, **không** dùng `isNetPaymentTerms`;
-     `getOrdersForOverdueReminder(shopId, step)` với `overdueReminderCount == 0|1`) ·
-     `constants/defaultData.js` (`defaultPaymentReminder`) · `firestore.indexes.json` (2 composite index)
-   - 2 chỗ default cố ý lệch mockup, **có comment giải thích**: `theme.logoImage` dùng `DEFAULT_LOGO`
-     app-wide (đổi theo branding app) thay vì hardcode CDN asset; `theme.buttonUrl` để rỗng theo
-     helpText mockup ("Leave the default to open the invoice link generated for each order").
-   - Verify: verifier 2 vòng. Vòng 1 FAIL (2 default lệch mockup không có comment). Vòng 2 **PASS**.
-     Gate: `cd packages/functions && yarn test` exit 0 (3 suites/22 tests) · eslint 7 file P0 exit 0 ·
-     `yarn workspace @avada/functions run production` exit 0 (418 files) · `firestore.indexes.json` JSON hợp lệ.
-     Diff vs origin/master: 337 insertions, **0 deletions**, `packages/assets` không đụng, không có code gửi mail.
-   - ⚠️ **Chưa xác minh**: 2 composite index có thật sự đủ cho query Firestore Native không (chưa chạy
-     emulator) · API chưa test end-to-end với server thật, mới review tĩnh + đối chiếu convention.
-   - Theo mục 8 của `product-team/marketing/product/prd/spec-payment-reminder-due-overdue.md`
-   - Tạo: `repositories/paymentReminderRepository.js`, `schemas/paymentReminderSchema.js`,
-     `routes/paymentReminder.route.js`, `controllers/paymentReminder.controller.js`
-   - Sửa: `routes/index.routes.js` (gắn route), `repositories/wholesaleOrdersRepository.js`
-     (thêm field `isSendDueReminder`, `overdueReminderCount`, `lastOverdueReminderAt` + query lọc)
-   - Gate `isShopWholesale` ở BE (defense-in-depth, xem `helpers/email/getSenderFrom.js` làm mẫu)
-   - Không phụ thuộc gì, rủi ro thấp nhất → làm trước
 
 3. [✅ 2026-08-07] **SB-15301 P1** — FE settings payment reminder (chưa gửi mail thật)
    - nhánh `feature/payment-reminder` · commit `43eb3f105` · **chưa push**
@@ -170,41 +169,6 @@ _(trống — thêm task ở đây)_
      ngưỡng lock 30 phút → iteration sau tưởng mồ côi và spawn agent thứ hai trên **cùng worktree**.
      Phát hiện kịp, `TaskStop` cái thứ hai trước khi nó sửa gì; verifier đã kiểm riêng dấu vết
      sửa đôi (JSON lỗi, comment lặp) → sạch. **Ngưỡng 30 phút hơi ngắn cho task build nặng.**
-
-4. [✅ 2026-08-06] **SB-15301 P2** — Logic gửi qua cron (phương án A đã chốt)
-   - nhánh `feature/payment-reminder` · commit `7ad035d31` · **chưa push**
-   - nằm cùng nhánh gộp `feature/payment-reminder` (trước ở nhánh riêng, đã cherry-pick gộp 07/08)
-   - Tạo `helpers/email/renderReminderMergeTags.js` (LiquidJS, đủ 8 biến EMAIL_VARIABLES).
-     Sửa `services/wholeSale.service.js` (`sendPaymentReminders()` + private helpers, clone skeleton
-     batch/chunk/idempotency từ `updateDiscountEarlyForOrder`/`#processExpiredOrder`) ·
-     `handlers/cron/handleOrderDaily.js` · `repositories/paymentReminderRepository.js` (thêm
-     `getAllShopIds()`) · `config/app.js` + `.env.example` (flag `ENABLE_PAYMENT_REMINDER_SEND`)
-   - 🚩 **FEATURE FLAG MẶC ĐỊNH TẮT** — `ENABLE_PAYMENT_REMINDER_SEND=true` mới gửi thật.
-     Khi tắt: chạy hết logic chọn candidate + render, log ra thứ *sẽ* gửi, **không** gọi `MailService.sendMail`
-     và **không** ghi cờ trạng thái (verifier xác nhận cả 2 vế) → bật lên không mất đơn nào.
-     Chờ Philip xác nhận cách đọc "Send again after" trước khi bật.
-   - Verify: verifier 2 vòng. **Vòng 1 FAIL — bắt được hồi quy thật ngoài scope**: agent kéo
-     `updateDiscountEarlyForOrder()` xuống chạy SAU `updatePaymentTerm()` (trước đó song song).
-     Mà `updatePaymentTerm()` ghi `isDiscountEarly:false` cho đơn vừa OVERDUE, còn
-     `getOrdersEarlyPaymentDiscount()` lọc `isDiscountEarly==true` và `#processExpiredOrder` không
-     bao giờ set lại → đơn đó **vĩnh viễn** mất nhánh gỡ line-item discount + email "discount expired".
-     Sửa: giữ nguyên `Promise.all` cũ byte-identical, chỉ `await sendPaymentReminders()` sau đó.
-     Vòng 2 **PASS**, diff `handleOrderDaily.js` = 8 insertions / **0 deletions**.
-   - Gate: `packages/functions && yarn test` exit 0 (22 tests) · eslint 5 file exit 0 ·
-     `production` build exit 0 (419 files). `packages/assets` không đụng.
-
-   ❓ **CÂU HỎI MỞ phát sinh khi implement — cần Product/Philip chốt (verifier nêu, chưa ai quyết):**
-   Cron chỉ quét shop **đã có doc `paymentReminders`** trong Firestore (`getAllShopIds()`).
-   Nhưng default trong `constants/defaultData.js` là `due.enabled: true` / `overdue.enabled: true`.
-   → Shop Wholesale **chưa từng mở trang settings** sẽ KHÔNG nhận reminder nào, dù default là bật.
-   Spec không có acceptance criterion nào cho case này (AC1/AC13 đều giả định đã tương tác toggle).
-   Hai hướng: (a) giữ như hiện tại — an toàn, opt-in ngầm; (b) coi default `enabled:true` là thật,
-   phải quét cả shop Wholesale chưa có doc → cần thêm cách list shop Wholesale.
-
-   - `WholeSaleService.sendPaymentReminders()` + hook bước 3 vào `handlers/cron/handleOrderDaily.js`
-   - Render merge tag + `getOrderForPdf` + attachment + `MailService.sendMail`
-   - ⚠️ **Để feature-flag TẮT gửi thật** cho tới khi Philip xác nhận cách đọc "Send again after" = 1 lần
-   - **Phụ thuộc task 2 (P0)**
 
 5. [✅ 2026-08-07] **SB-15301 P3** — Nút "Send test" gọi API thật (`POST /payment-reminders/:type/test`)
    - nhánh `feature/payment-reminder` · commit `a732a6db0` · **chưa push**
@@ -260,33 +224,6 @@ _(trống — thêm task ở đây)_
      dùng `timezone=''` → `getDateText` fallback UTC; verifier đánh giá **chấp nhận được** vì ngày trong
      mail test vốn là mốc tổng hợp ±5/±10 ngày, không mang nghĩa nghiệp vụ · chưa kiểm
      `getShopCountryByShopId` trả giá trị hợp với `sampleOrder.billing_address.country_code` downstream.
-
-6. [✅ 2026-08-06] **SB-15301 P4** — Test: cron logic (chọn candidate, idempotency, dừng đúng ở lần 2 không có lần 3)
-     + API test (schema, gate plan). Mẫu: `__tests__/apiV1/emailAutomation.test.js`
-   - **Bắt buộc xong trước khi bật cron ở production** (rủi ro tiền thật/spam)
-   - nhánh `feature/payment-reminder` · commit `65377f0f6` · **chưa push**
-   - nằm cùng nhánh gộp `feature/payment-reminder`
-   - Tạo `__tests__/wholeSale/sendPaymentReminders.test.js` + `__tests__/wholeSale/wholesaleOrdersRepository.test.js`.
-     **45 tests / 5 suites** (từ 22). Cover đủ 7 invariant: overdue dừng đúng ở lần 2 (fake repo có
-     trạng thái, chạy 5 tick cron) · idempotency · R1 (đơn paid/cancel **giữa lúc query và lúc gửi**) ·
-     feature flag OFF/ON assert cả 2 vế · gate plan (cron + API) · schema partial update · lọc
-     `dueAt != null` (Fixed date VẪN chọn, `paymentWithoutDate` loại) test thẳng vào `.where()` thật.
-   - 🔧 **2 bug hạ tầng test của repo phát hiện & sửa luôn** (ngoài scope nhưng chặn task):
-     1. `jest.config.js` có `rootDir: 'src'` → **cả cây `packages/functions/__tests__/` chưa BAO GIỜ
-        được `yarn test` chạy** (apiV1, campaign, quickstart... đều vô hình). Chỉ mở `roots` cho
-        `__tests__/wholeSale`, không sửa rộng. Verifier xác nhận không kéo suite cũ nào vào (đúng 5 suite).
-        ⚠️ **Nợ kỹ thuật còn đó**: phần còn lại của `__tests__/` vẫn không chạy — đáng mở task riêng.
-     2. `smtpHelper.test.js` mock `{virtual: true}` cho file **giờ đã tồn tại thật** → Jest 24 lúc
-        resolve trúng file thật lúc trúng mock, flake ~50% khi có thêm suite chạy cùng. Bỏ `virtual: true`,
-        giữ nguyên giá trị mock. Verifier chạy riêng 5 lần liên tiếp: xanh cả 5.
-   - **KHÔNG sửa code production** để test dễ hơn (ràng buộc đã giao) — verifier xác nhận
-     `git diff -- packages/functions/src` chỉ có đúng `smtpHelper.test.js`.
-   - Verify: verifier **PASS ngay vòng 1**, tự kiểm độc lập chứ không tin lời agent: fake repo có
-     trạng thái thật · mock R1 trả trạng thái **khác** giữa 2 lần đọc · không có assertion rỗng.
-     Gate: `yarn test` exit 0 **chạy 3 lần liên tiếp** đều 45/45 · eslint 2 file test exit 0 ·
-     `production` build exit 0 (419 files). `packages/assets` không đụng.
-   - ⚠️ **Chưa xác minh**: idempotency chỉ mô phỏng 2 tick cron (không replay đủ 24 tick/ngày) ·
-     số học ngưỡng ngày `overdueReminderCount`/`resendDays` mới đọc code + test xanh, chưa tính lại từ đầu.
 
 7. [✅ 2026-08-07] Kiểm tra tại sao tính năng payment reminder kia chưa toggle được và ko hiển thị save change top bar nhé ?
    - nhánh `feature/payment-reminder` · commit `5291caa65` (save bar trang settings) + `16a48d124`
@@ -948,7 +885,40 @@ _(trống — thêm task ở đây)_
     khiến `"0"`/`""`/số âm → **gửi ngay**, còn `"abc"` → **không bao giờ gửi**. Câu trả lời này
     không đụng tới nó.
 
-17. [ ] **Mail gửi ra là plain text — toàn bộ theme / "Customize email template" KHÔNG có tác dụng**
+17. [✅ 2026-08-10] **Mail gửi ra là plain text — toàn bộ theme / "Customize email template" KHÔNG có tác dụng**
+    - nhánh `feature/payment-reminder` · commit `6c162f4ec` · **ĐÃ PUSH**
+    - 6 files, 376 insertions / 68 deletions. Tạo `helpers/email/buildReminderEmailHtml.js` (98 dòng,
+      **0 import**, hàm thuần) + 2 file test mới. Sửa `wholeSale.service.js` ·
+      `ReminderEmailPreview.js` (58 dòng → bỏ phần tự ghép HTML) · 1 assertion test cũ.
+    - **Test 7 suites/53 → 9 suites/63.**
+    - Verify: verifier **PASS vòng 1**, 0 finding. Kiểm được:
+      · **Purity**: `grep "^import"` trên file mới ra **0 match** — không phải chỉ tin build xanh
+      · **Parity với preview cũ**: so `git show HEAD:ReminderEmailPreview.js:37-77` với
+        `buildReminderEmailHtml.js:56-97` **từng rule CSS** (`*`, `body`, `.card`, `.wrap`, `.logo`,
+        `.logo img`, `h3`, `p`, `.cta`, `.muted`, `.attachment`, `.attachment .name`, `.footer`,
+        `.footer a`) — không rớt rule, không đổi thứ tự làm lệch cascade
+      · **`theme` tới nơi trên CẢ 4 nhánh gửi**: due · overdue step 1 · overdue step 2 · send test.
+        Send test destructure đúng phần tử thứ 4 của `Promise.all`
+      · **Assertion cũ KHÔNG bị làm yếu**: cũ là `html: 'Content'` exact; mới assert `toContain('Content')`
+        **+** `toContain('#123456')` (màu theme) **+** `toContain('Pay now')` (nút theme) → chặt hơn
+      Gate: functions test 9/63 · assets build 2× `✓ built in` · functions build 422 files · eslint sạch.
+    - ⚠️ **Chưa xác minh**: **chưa mở mail thật trong email client.** Verifier chỉ so tĩnh + assert
+      chuỗi HTML. "Mail trông giống preview" mới là suy luận, chưa phải quan sát.
+    - 🔓 **Injection — dantt cần biết, verifier nêu, KHÔNG chặn**: `theme.customCss` append **thô**
+      vào `<style>` (`buildReminderEmailHtml.js:54,76`), `theme.buttonUrl` vào `href` **không escape**.
+      Merchant gõ `</style>` + HTML tuỳ ý là chèn được vào mail gửi cho **khách của họ**.
+      Verifier đánh giá: **không phải lớp rủi ro mới** — `content` (rich text merchant viết) vốn đã
+      raw-embed không escape từ bản preview cũ, các field theme khác (`primaryText`, `buttonColor`,
+      `logoImage`) cũng vậy. Diff này chỉ **mở rộng bề mặt** (`buttonUrl` giờ thành `href` thật thay
+      vì `#` cố định). Cần quyết có sanitize không.
+    - 📌 **Phát hiện phụ, chưa mở task**: có **HAI** field custom CSS trong schema —
+      `theme.enableCustomCss`/`theme.customCss` (trang Customize) và per-type
+      `due.enableCustomCss`/`due.customCss` + `overdue.*` (`paymentReminderSchema.js:36-37`,
+      `PaymentReminderSettings/CustomCssSection.js`). **Cả hai trước giờ đều dead.** Task này chỉ
+      wire cái theme-level; **per-type vẫn dead** — trang settings có ô nhập mà không dùng vào đâu.
+    - ⚠️ Giới hạn kỹ thuật cần nói với Product: nhiều email client (nhất là Outlook desktop cũ)
+      **bỏ qua `<head><style>`** → theme và customCss có thể không hiện. Chưa làm inline CSS
+      (scope lớn hơn nhiều).
 
     **dantt báo 07/08**: "gửi mail thì thấy nó gửi mỗi plain text, ko có background hay style như preview".
     Main agent kiểm code, **xác nhận đúng, và nguyên nhân rộng hơn triệu chứng**.
@@ -984,15 +954,460 @@ _(trống — thêm task ở đây)_
     tới hoá đơn**, còn nội dung thì vẫn nói "attached PDF". Biến `{{invoice_link}}` có tồn tại
     (`constants/paymentReminders.js:33-40`) nhưng merchant phải tự chèn tay.
 
-    ### Hướng sửa — cần chốt trước khi giao
-    Phải dựng HTML có theme **ở backend**. Ba câu hỏi:
-    1. **Dùng lại cơ chế nào?** App đã có LiquidJS + `MailService`. Email hoá đơn hiện có dựng HTML
-       kiểu gì — có template dùng chung nào để bám theo không? (chưa recon)
-    2. **Chống trôi giữa preview và mail thật**: hiện logic HTML nằm ở FE. Nếu viết lại ở BE thì có
-       **hai bản** dễ lệch nhau — cân nhắc để BE là nguồn duy nhất rồi FE gọi API preview, hoặc tách
-       phần dựng HTML ra chỗ dùng chung. **Đây là quyết định kiến trúc, không nên để agent tự chọn.**
-    3. **Custom CSS**: `enableCustomCss` + `customCss` áp thế nào cho mail (nhiều email client bỏ
-       `<style>`, phải inline)?
+    ### ✅ HƯỚNG ĐÃ CHỐT (dantt duyệt sửa 10/08) — MỘT hàm dựng HTML, hai bên cùng import
+
+    **Recon quyết định**: `packages/assets` **import được** từ `packages/functions` — **233 chỗ đang
+    làm vậy** trong 130 file (vd `@functions/helpers/parseString`, `@functions/config/getPlans`),
+    alias khai ở `packages/assets/.babelrc:23` và `packages/assets/vite.config.js:220`.
+
+    ⇒ Không cần dựng API preview, cũng không được viết 2 bản. Đặt **một hàm thuần** ở
+    `packages/functions/src/helpers/email/` (vd `buildReminderEmailHtml({theme, content, ...})`),
+    rồi **cả hai bên cùng import đúng hàm đó**:
+    - BE: `#sendReminderMail` + `sendTestReminderMail` bọc `content` bằng hàm này trước khi
+      `MailService.sendMail`
+    - FE: `ReminderEmailPreview.js` bỏ phần tự ghép chuỗi HTML (dòng 37-51), gọi cùng hàm
+
+    **Vì sao không chọn API preview**: preview cập nhật realtime khi merchant kéo màu / gõ chữ,
+    gọi API mỗi keystroke là sai. Hàm thuần import chung vừa realtime vừa không thể trôi.
+
+    **Ràng buộc cho hàm chung**: phải **thuần** — không đọc Firestore, không `process.env`, không
+    import thứ chỉ chạy được ở Node (`fs`, `firebase-admin`…), vì FE bundle nó vào vite.
+
+    ### Còn phải quyết trong lúc làm (agent nêu, đừng tự chốt im lặng)
+    - **Custom CSS**: `enableCustomCss` + `customCss` áp thế nào — nhiều email client bỏ `<style>`,
+      cần cân nhắc inline. Preview dùng `<style>` được vì nó là iframe.
+    - **`access = viewOnline`**: nút CTA "View invoice online" hiện chỉ có trong preview. Khi bọc
+      template thì nút này vào mail thật — cần `invoiceLink` (BE đã tính sẵn,
+      `wholeSale.service.js:330-338`) truyền vào hàm dựng.
+    - Default content vẫn viết "The attached PDF…" kể cả khi merchant chọn viewOnline — **nêu ra,
+      đừng tự sửa chuỗi**, đó là quyết định nội dung.
 
     ⚠️ Đây **không phải bug nhỏ về giao diện** — nó nghĩa là một trang settings đầy đủ đã build xong
     nhưng chưa nối vào đâu cả.
+
+18. [ ] **Composite index khai trong repo nhưng CHƯA deploy → cron chết, không chỉ reminder hỏng**
+
+    **Phát hiện 10/08** khi dantt tạo đơn #1003/#1004 mà không thấy mail. Chạy đúng query của
+    `getOrdersForDueReminder` trên `avada-staging` → `FAILED_PRECONDITION: The query requires an index`.
+
+    `firestore.indexes.json` **CÓ khai** đủ 2 index (2 dòng cuối của mục `wholesaleOrders`):
+    ```
+    shopId, isUnpaid, isCanceled, isSendDueReminder, dueAt
+    shopId, isUnpaid, isCanceled, paymentBadge, overdueReminderCount
+    ```
+    Nhưng **Firestore chưa có chúng**. Khai trong repo ≠ đã deploy.
+    → Đúng rủi ro task 2 (P0) tự ghi từ 06/08: *"chưa xác minh 2 composite index có đủ không"*.
+    Câu trả lời: **không, vì chưa tồn tại**.
+
+    🔴 **Hệ quả nặng hơn "reminder không gửi"**: `getOrdersForDueReminder` **ném lỗi** →
+    `sendPaymentReminders()` đổ → **cả `handleOrderDaily` chết**. Trên production nghĩa là cron
+    fail **mỗi giờ**, kéo theo `updatePaymentTerm()` (bước cập nhật trạng thái quá hạn) không hoàn tất.
+    Không chỉ mất feature mới, mà **hỏng cả thứ đang chạy tốt**.
+
+    **Việc cần làm:**
+    1. Deploy 2 index lên staging + production (`firebase deploy --only firestore:indexes`, hoặc
+       `gcloud firestore indexes composite create` cho chính xác 2 cái). Build mất vài phút.
+    2. **Bọc `try/catch` quanh `sendPaymentReminders()`** trong `handlers/cron/handleOrderDaily.js`.
+       Hiện `updatePaymentTerm` và reminder dùng chung một lượt cron — reminder lỗi là mất cả hai.
+       Feature mới không được phép kéo sập thứ đã chạy ổn.
+    3. Thêm bước "deploy index" vào quy trình release của feature này (spec/checklist chưa có).
+
+    ✅ **CẬP NHẬT 10/08 11:54 — index đã BUILD XONG, cả 3 query chạy được.**
+    `getOrdersForDueReminder` → 2 đơn · `...OverdueReminder(1)` → 1 đơn · `(2)` → 0 đơn.
+    ⇒ Việc 1 (deploy index) coi như xong **trên staging**. **Production CHƯA kiểm** — vẫn phải làm.
+
+    ### 🎉 LẦN ĐẦU CHẠY END-TO-END THÀNH CÔNG (10/08 11:5x)
+
+    Chạy thẳng `WholeSaleService.sendPaymentReminders()` từ `lib/` trên staging, flag gửi **tắt**.
+    Cố ý **không** gọi `handleOrderDaily()` vì `updatePaymentTerm()` → `getOrdersOverdue()`
+    **KHÔNG lọc theo shopId** (`wholesaleOrdersRepository.js:193-198`) → nó quét đơn của **MỌI shop**
+    trên staging và ghi `paymentBadge` lan sang dữ liệu người khác. Ai chạy sau nhớ điều này.
+
+    Output — đúng 3 dòng, khớp thiết kế:
+    ```
+    flag OFF — would mark isSendDueReminder=true (order already overdue)   orderId 7034955596077 (#1003)
+    flag OFF — would send due reminder      #1004 → dantt@avadagroup.com
+       subject: "Invoice #1004 from dantt-pdf-dev is due on August 11, 2026"
+    flag OFF — would send overdue reminder  #1003 → dantt@avadagroup.com
+       subject: "Overdue: invoice #1003 — $2,629.95 still outstanding"
+    ```
+
+    **Chứng minh được:**
+    - Chọn đơn đúng: #1004 vào nhánh due (timing `before`, còn 1 ngày tới hạn), #1003 vào nhánh overdue
+    - **Race due-vs-overdue xử lý đúng**: #1003 lọt cả 2 query, nhưng nhánh due **bỏ qua** vì đã
+      `paymentBadge=overdue` và chỉ đánh cờ — khách **không** nhận email "sắp tới hạn" cho đơn đã trễ
+    - **Merge tag render đúng** cả 2 loại: tên đơn, tên shop, ngày (`August 11, 2026`), và
+      **số tiền có định dạng tiền tệ** (`$2,629.95`) — không phải số trần
+    - Địa chỉ người nhận resolve đúng
+    - Flag OFF hoạt động đúng cả 2 vế: chỉ log, **không gửi, không ghi cờ**
+
+    ⏭️ **Bước tiếp theo cần dantt duyệt**: bật `ENABLE_PAYMENT_REMINDER_SEND` rồi chạy lại để
+    **nhận mail thật** — lúc đó mới kiểm được giao diện theme (task 17) và cờ idempotency có chặn
+    lần gửi thứ hai không. Mail gửi về `dantt@avadagroup.com` (chính dantt) nên rủi ro thấp.
+
+    ---
+
+    ### 🔧 Công cụ: mô phỏng cron ở local (đã dựng 10/08)
+
+    `/private/tmp/claude-501/.../scratchpad/runCron.js` — **script tạm trong scratchpad, chưa commit.**
+    Nạp **code thật** từ `packages/functions/lib` (bản babel compile), chạy trên Firestore staging thật,
+    env lấy từ `.env.local` + `serviceAccount.development.json`.
+
+    ```
+    node runCron.js          # DRY — chỉ chạy 3 query chọn đơn, KHÔNG ghi gì
+    node runCron.js --run    # chạy thật handleOrderDaily()  ⚠️ CÓ GHI Firestore
+    ```
+
+    In ra: flag gửi thật đang bật/tắt · `getAllShopIds()` có thấy shop không · từng query chọn được
+    mấy đơn (kèm `dueAt`/`badge`/`sentDue`/`overdueCount`) · nếu thiếu index thì in **link tạo index**.
+    Chế độ `--run` in thêm trạng thái đơn sau khi chạy để đối chiếu cờ idempotency.
+
+    ⚠️ `--run` gọi nguyên `handleOrderDaily()` nên chạy cả `updatePaymentTerm()` và
+    `updateDiscountEarlyForOrder()` — **ghi vào `wholesaleOrders` thật**, không chỉ phần reminder.
+
+    ❓ **Nên đưa vào repo thành `packages/functions/src/commands/runOrderDailyCron.js`?**
+    Tài liệu test hiện chỉ nói "kích cron" mà chưa chỉ cách. Chờ dantt quyết.
+
+    ### Dữ liệu test đang có trên `avada-staging` (shop `dantt-pdf-dev`, `AYctc8Mrxl664GaFbRUj`)
+    | Đơn | dueAt | badge | isSendDueReminder | overdueReminderCount |
+    |---|---|---|---|---|
+    | #1003 | 07/08 (quá hạn 3 ngày) | `overdue` | `false` | `0` → sẵn sàng OVERDUE lần 1 |
+    | #1004 | 11/08 (ngày mai) | `pending` | `false` | `0` → sẵn sàng DUE (timing `before`, 1 ngày) |
+
+    Settings shop: `due.enabled=true, timing=before, timingDays=1` · `overdue.enabled=true,
+    timingDays=1, resendDays=1`. ✅ Cả hai đơn **có đủ** 2 cờ → **fix task 11 chạy đúng trên dữ liệu thật.**
+
+    ### ✅ ĐÃ GỬI MAIL THẬT 10/08 12:01 — idempotency VERIFY BẰNG RUNTIME
+    Bật `ENABLE_PAYMENT_REMINDER_SEND=true` trong `.env.local` rồi chạy `sendPaymentReminders()`:
+    - **2 mail thật về `dantt@avadagroup.com`** (#1004 due, #1003 overdue)
+    - Cờ ghi đúng sau khi gửi: #1004 `isSendDueReminder=true` · #1003 `overdueReminderCount=1`
+      + `lastOverdueReminderAt=2026-08-10T05:01:54Z`
+    - **Chạy lại lần 2 → KHÔNG gửi thêm gì.** Query sau đó: due 0 đơn · overdue(1) 0 đơn ·
+      overdue(2) 1 đơn (#1003 chờ đủ `resendDays`). ⇒ **TC-FUNC-018 PASS bằng bằng chứng thật.**
+    - ⚠️ `.env.local` giờ đang BẬT cờ — mỗi lần cron chạy trên máy dantt sẽ gửi mail thật.
+
+23. [✅ 2026-08-10] **Modal Send test đóng ngay khi bấm, không chờ request** — phải hiện loading rồi mới đóng
+    - nhánh `feature/payment-reminder` · commit `1c7384742` · **ĐÃ PUSH**
+    - 2 files, 32 insertions / 6 deletions. Thêm prop `closeOnAction` (mặc định `true` = hành vi cũ);
+      `PaymentReminderSettings` truyền `false` + đóng ở `onSettled`; `handleClose` no-op khi `loading`,
+      Cancel thêm `disabled: loading`.
+    - **`AutomationEmail.js` KHÔNG bị sửa** — `git diff` rỗng, call site không truyền `loading` lẫn
+      `closeOnAction` nên rơi vào default, hành vi cũ y nguyên.
+    - Verify: verifier **PASS vòng 1**. Gate: assets build 2× `✓ built in` · functions test 10/66
+      (không đụng) · eslint 2 file exit 0 · không file `.json` nào bị sửa.
+    - ⚠️ **Chưa xác minh**: không có browser → chỉ khẳng định wiring, **chưa thấy spinner thật**.
+
+    ### 🔴 RỦI RO MỚI DO CHÍNH FIX NÀY TẠO RA — cần dantt quyết
+    Chặn đóng khi `loading` là đúng yêu cầu, nhưng verifier truy ra **không có đường thoát** nếu
+    request treo:
+    - `sendTestPaymentReminderApi` (`api/emailApi.js:49-55`) → `fetchAuthenticatedApi`
+      (`helpers.js:244`). **Nhánh embedded** (app Shopify thật) dùng thẳng
+      `authenticatedFetch(app)` (dòng 252-263) — **KHÔNG có timeout/AbortController**.
+    - Mutation không có `retry`/timeout; `QueryClient` (`App.js:34-41`) cũng không cấu hình timeout.
+    - ⇒ Request treo → `isPending` mãi `true` → Cancel disabled, X + backdrop no-op →
+      **user chỉ còn cách reload trang**.
+    - Nhánh **không-embedded** (`api()`, `helpers.js:215-223`) có `timeout: 60000` nên tự thoát sau 60s.
+    - Lỗi HTTP bình thường **không** dính (có response → reject → `onSettled` chạy). Chỉ treo mới dính.
+
+    **Ba hướng, chưa chọn**: (a) thêm AbortController/timeout cho `fetchAuthenticatedApi` — sửa gốc
+    nhưng đụng helper dùng chung toàn app · (b) chỉ `disabled` nút Cancel, vẫn cho đóng bằng X ·
+    (c) chấp nhận rủi ro edge-case, ghi nhận.
+
+    **dantt yêu cầu 10/08**: "trong khi gửi request thì chưa close modal mà hiển thị loading ở primary
+    action của modal, gửi xong thì tắt → hiện toast".
+
+    ### Nguyên nhân — đã tìm ra, KHÔNG cần điều tra lại
+    `components/SendTestMailModal/SendTestMailModal.js:16-25`:
+    ```js
+    const handleSubmit = useCallback(() => {
+      if (!validateEmail(email)) return setEmailError(...);
+      onAction({...values, email});
+      onClose();          // ← đóng NGAY, không đợi request
+    }, [...]);
+    ```
+    Prop `loading` **đã được truyền đúng** (`PaymentReminderSettings.js:250` →
+    `loading={sendTestMutation.isPending}`) và modal **đã gắn** nó vào `primaryAction.loading`
+    (dòng 42-46). Nhưng không ai thấy vì modal biến mất trước khi request xong.
+
+    ### ⚠️ Component DÙNG CHUNG — 2 nơi
+    `pages/PaymentReminderSettings/PaymentReminderSettings.js:245` và
+    `pages/AutomationEmail/AutomationEmail.js:315`.
+    ⇒ **Đổi thẳng hành vi tự đóng sẽ đụng cả trang AutomationEmail.**
+
+    **Hướng đề xuất (an toàn, chờ agent xác nhận khả thi)**: thêm prop opt-in kiểu
+    `closeOnAction = true` (mặc định **giữ nguyên** hành vi cũ) → `AutomationEmail` không đổi gì;
+    `PaymentReminderSettings` truyền `closeOnAction={false}` và tự đóng khi mutation settle.
+
+    ### Việc cần làm
+    1. Modal: không tự `onClose()` khi `closeOnAction === false`
+    2. Page: đóng modal ở `onSettled` của `sendTestMutation` (đóng cho **cả** thành công lẫn lỗi,
+       kẻo lỗi thì modal kẹt mãi)
+    3. Trong lúc `loading`: **chặn đóng modal** — vô hiệu nút Cancel và `onClose` của backdrop.
+       Nếu không, user đóng giữa chừng rồi toast nhảy ra không rõ từ đâu.
+    4. Toast giữ nguyên chỗ cũ (`onSuccess`/`onError`), không đụng nội dung
+
+    ### Ràng buộc
+    - **KHÔNG đổi hành vi trang `AutomationEmail`** — đó là feature khác, ngoài scope
+    - Không đổi chuỗi hiển thị, không thêm/xoá key i18n
+    - ⚠️ i18n: file **nguồn** là `<TênComponent>.json` cạnh component, không phải `locale/translations/`
+
+22. [✅ 2026-08-10] **Cho ô "📎 tên file" trong thân mail bấm được → LINK TẢI PDF** (dantt chốt 10/08)
+
+    - nhánh `feature/payment-reminder` · commit `177a4489c` (đã push)
+    - Sửa `buildReminderEmailHtml.js` (thêm param optional `downloadLink`, bọc ô attachment trong
+      `<a>` **style inline**), `wholeSale.service.js` (cả `sendReminderMail` cron lẫn
+      `sendTestReminderMail` gọi `generateViewOnlineOrDownloadLink` lần 2 với `isDownload: true`;
+      `invoiceLink` giữ nguyên `isDownload: false` vì còn back merge tag `{{invoice_link}}` + CTA),
+      `ReminderEmailPreview.js`, + test mới trong `buildReminderEmailHtml.test.js`
+    - verifier PASS: `packages/functions && yarn test` exit 0 (**10 suites / 69 tests**) ·
+      eslint riêng 2 file sửa exit 0 · `functions run production` exit 0 (422 files) ·
+      `assets run production` exit 0 (vite ×2)
+    - Verifier tự làm lại thí nghiệm, không tin report: gọi thẳng hàm với `downloadLink`
+      thiếu/`undefined`/`null`/`''` → render plain text, **không có** `href="undefined"`;
+      gỡ fix ra (compile bản ở `177a4489c^`) → 2 assertion mới **FAIL** đúng như mong đợi
+      ⇒ test guard thật; `grep "^import"` = 0 (hàm vẫn thuần); nhánh
+      `sendAttachment`→attachment / `viewOnline`→CTA không lẫn.
+    - Chưa xác minh: gửi mail thật qua SMTP Chatty (không có credential trong môi trường verify).
+
+    ⛔ **PHỤ THUỘC task 20** — cùng sửa `wholeSale.service.js`. Chỉ giao **sau khi task 20 commit xong**,
+    kẻo hai agent đè nhau.
+
+    **Hiện trạng**: `buildReminderEmailHtml.js:78-81` là `<td class="attachment">` chứa `&#128206;`
+    + tên file, **không có thẻ `<a>`** → bấm không ra gì. Port từ mockup, mockup cũng chỉ để nhìn.
+
+    **dantt chốt: link TẢI** (không phải link xem online). Lý do: ô đó hiện tên file kèm kẹp giấy nên
+    người ta bấm là mong tải; link xem online còn **trùng vai với nút CTA**, mà template cố ý chỉ hiện
+    một trong hai.
+
+    ### Việc cần làm
+    1. BE tính thêm **link tải** — cùng helper `MailService.generateViewOnlineOrDownloadLink` nhưng
+       **`isDownload: true`** (hiện `invoiceLink` dùng `isDownload: false`). Xem
+       `wholeSale.service.js:330-338` (cron) và chỗ tương ứng trong `sendTestReminderMail`.
+    2. Truyền xuống `buildReminderEmailHtml` thành tham số mới (vd `downloadLink`).
+    3. Template bọc nội dung ô attachment trong `<a href="${downloadLink}">`, **style inline** (task 19:
+       không dựa vào `<head><style>`, client strip mất).
+
+    ### ⚠️ Ràng buộc
+    - **Tham số mới phải OPTIONAL.** `buildReminderEmailHtml` **dùng chung với FE preview**
+      (`ReminderEmailPreview.js`), mà FE **không có** link tải thật. Thiếu tham số → render **như hiện tại**
+      (không link), đừng để `href="undefined"`.
+    - Giữ nguyên tính **thuần** của hàm (`grep "^import"` = 0) — vite bundle vào FE.
+    - Vẫn **một** hàm dùng chung, **không** tách bản riêng cho preview (task 17).
+    - Không đụng nhánh CTA vs attachment (task 19 đã verify: `sendAttachment` → attachment,
+      `viewOnline` → CTA).
+
+    📌 **Lệch mockup có chủ ý** — mockup vẽ ô đó không có link. Đã lệch mockup một lần rồi (thay editor
+    giả bằng CKEditor), ghi lại lý do là đủ.
+    📌 Đây là **thứ cộng thêm, không phải sửa lỗi**: PDF vốn đã đính kèm thật. Link hữu ích cho người
+    đọc trên điện thoại hoặc khi client chặn file đính kèm.
+
+21. [ ] **Deliverability: mail reminder vào SPAM, người gửi không có tên và không có avatar**
+
+    Tách từ ghi chú rải rác ở task 19. **Không phải bug code reminder** — nhưng nếu không xử thì
+    feature vô dụng: thư đòi nợ nằm trong spam thì khách không đọc.
+
+    ### Dữ kiện đã kiểm (dig thật 10/08, không phải phỏng đoán)
+    ```
+    chattyemail.com          TXT  v=spf1 include:_spf.mx.cloudflare.net include:amazonses.com ~all
+    _dmarc.chattyemail.com   TXT  v=DMARC1; p=quarantine; pct=10; rua=...cloudflare.net
+    default._bimi...         TXT  (KHÔNG có bản ghi)
+    ```
+
+    | Vấn đề | Trạng thái | Ghi chú |
+    |---|---|---|
+    | SPF | có, nhưng `~all` (softfail) | **CHƯA kiểm** host SMTP thật (`CHATTY_SMTP_HOST`) có nằm trong `include:` không — nếu không thì SPF fail |
+    | DKIM | **chưa kiểm** | cần biết selector mới dig được |
+    | DMARC | `p=quarantine` nhưng **`pct=10`** | chỉ 10% thư fail bị xử → đang ở chế độ rollout, chưa siết thật |
+    | BIMI | **không có** | ⇒ avatar hiện dấu **`?`** là **đúng dự kiến**, không sửa từ app được |
+
+    ### 🔧 Sửa được NGAY (env, không cần code)
+    `CHATTY_SMTP_SENDER` trong `.env.local` dài **34 ký tự**, **không có `<>` cũng không có `"`**
+    → là địa chỉ trần `noreply-pdfinvoice@chattyemail.com`. `getSenderFrom.js:28` lấy thẳng làm From
+    khi shop không phải Pro / chưa cấu hình sender riêng ⇒ mail hiện **địa chỉ trần, không tên**.
+    → Đổi thành `"Your Invoice" <noreply-pdfinvoice@chattyemail.com>`.
+    ⚠️ **Kiểm cả biến trên production**, không chỉ local.
+
+    ### 🐛 Bug nhỏ trong code, chưa sửa
+    Giá trị **mặc định** của `fromSubject` ở **cả hai** file config **thiếu dấu `<>`** — sai định dạng RFC 5322:
+    - `config/smtp.js` → `'"Your Invoice" noreply-pdfinvoice@email.avada.net'`
+    - `config/chattySmtp.js` → `'"Your Invoice" noreply-pdfinvoice@chattyemail.com'`
+
+    Đúng phải là `"Your Invoice" <địa-chỉ>`. Hiện env đang có giá trị nên default không được dùng —
+    nhưng shop/môi trường nào thiếu env sẽ rơi vào chuỗi sai này.
+
+    ### Về avatar (dấu `?` trong Gmail)
+    Gmail chỉ hiện logo/ảnh người gửi khi địa chỉ thuộc tài khoản Google có ảnh, **hoặc** domain có
+    **BIMI**. BIMI cần: DMARC `p=quarantine|reject` với **`pct=100`** (hiện là 10) + SPF/DKIM khớp +
+    **VMC** (chứng chỉ nhãn hiệu, **mất phí**) + bản ghi DNS BIMI.
+    ⇒ Là việc **hạ tầng + thương hiệu**, không phải việc của app. Ưu tiên thấp hơn chuyện vào spam.
+
+    ### Thứ tự nên làm
+    1. Sửa `CHATTY_SMTP_SENDER` có tên hiển thị (rẻ nhất, hiệu quả ngay)
+    2. Xác minh host SMTP thật nằm trong SPF, và DKIM có ký không
+    3. Nâng DMARC `pct` dần lên 100 sau khi (2) sạch
+    4. BIMI/avatar — làm sau cùng, nếu thấy đáng tiền
+
+    ⚠️ Bối cảnh làm nó nghiêm trọng hơn bình thường: đây là thư **đòi nợ gửi cho khách của merchant**,
+    tần suất tự động. Vào spam thì merchant mất tiền thật, và uy tín domain gửi càng tụt.
+
+20. [✅ 2026-08-10] **PDF không được đính kèm vào mail reminder** — `attachments` truyền qua tham số hỏng
+    - nhánh `feature/payment-reminder` · commit `153e74913` · **ĐÃ PUSH**
+    - Sửa 2 call site trong `wholeSale.service.js`: đưa `attachments` vào **trong** options.
+      Send test giữ `({...options, attachments}, [], true)` — `true` vẫn ở **vị trí thứ 3**.
+    - Tạo `__tests__/wholeSale/reminderAttachments.test.js`. **Test 9/64 → 10 suites / 66 tests.**
+    - Verify: verifier **PASS vòng 1**, 0 finding. Đáng chú ý cách nó thí nghiệm: bị cấm sửa file repo
+      nên nó **copy service ra scratchpad**, revert đúng 2 hunk về dạng hỏng, rồi chạy **file test THẬT**
+      qua jest config trỏ alias sang bản hỏng → **2/2 test đỏ** (`Received: undefined`). File trong repo
+      **chưa từng bị đụng** (`git diff` không đổi trước/sau). Sạch hơn cách mutate-rồi-khôi-phục.
+    - Verifier **quét chỗ tương tự**: grep mọi `MailService.sendMail(` trong `src` →
+      `processHookedInvoice.js:156` · `mail.service.js:567` · `emailNotification.service.js:187,283` ·
+      `export.service.js:138`. **Tất cả đã đúng shape từ trước**, không còn call site nào ở dạng hỏng.
+    - Gate: functions test 10/66 · eslint 2 file exit 0 · functions build 422 files · `mail.service.js`
+      `git diff` **rỗng** (ràng buộc cứng, đã kiểm 2 lần).
+    - ⚠️ **Chưa xác minh**: không gửi mail thật trong lúc verify → chỉ khẳng định `attachments` nằm đúng
+      chỗ trong options. **dantt cần mở mail xem thẻ đính kèm của Gmail** (cuối thư, cạnh nút Reply).
+    - 📌 **NỢ tách riêng, chưa quyết**: tham số thứ 2 của `sendMail` vẫn hỏng và vẫn nằm trong chữ ký
+      hàm — mời gọi người sau truyền vào đó, mà nó **im lặng tuyệt đối**. Nên gỡ hẳn hoặc merge vào
+      options. Không sửa trong task này vì đụng code dùng chung của mọi email trong app.
+
+    **dantt phát hiện 10/08** khi mở mail thật: nền/card/logo đã lên đúng (task 19 OK), nhưng
+    **không có thẻ đính kèm nào** trong Gmail. Khối `📎 Invoice_1003.pdf` trong thân mail chỉ là
+    **chỉ dấu trực quan** (`buildReminderEmailHtml.js:78-81`, `<td class="attachment">`, không có
+    thẻ `<a>`) — port từ mockup, đúng thiết kế. PDF thật phải là attachment của email.
+
+    ### Nguyên nhân — đã chứng minh
+    `MailService.sendMail(options, attachments = [], sendTest = false)` — **tham số thứ hai HỎNG**.
+    `services/mail.service.js:66-87`:
+    ```js
+    const transportOptions = {host, port, secure, attachments, ...SMTP_TIMEOUTS};
+    const transporter = nodemailer.createTransport(transportOptions);  // attachments Ở ĐÂY
+    await transporter.sendMail(options);                                // message KHÔNG có
+    ```
+    `attachments` bị nhét vào **cấu hình transport** thay vì **message** → nodemailer bỏ qua,
+    **không báo lỗi**. Mail vẫn gửi thành công, cờ idempotency vẫn ghi, chỉ là thiếu file.
+
+    **Hai luồng đang chạy tốt làm ĐÚNG cách** — đặt `attachments` **bên trong options**:
+    · `handlers/processHookedInvoice.js:156-165` · `services/mail.service.js:567-576`
+
+    Payment reminder là chỗ **đầu tiên** dùng tham số thứ hai đó. Nó có sẵn trên `origin/master`
+    từ trước nhưng **chưa ai gọi**, nên chưa lộ. ⇒ Bug của feature này, không phải bug có sẵn.
+
+    Cả 2 call site đều dính: `wholeSale.service.js:396` (cron) và `:500` (send test).
+
+    ### Cách sửa (tối thiểu, không đụng code dùng chung)
+    Đưa `attachments` vào trong options ở cả 2 chỗ, y như 2 luồng kia.
+    ⚠️ Call site `:500` có **tham số thứ ba `true`** (`sendTest` — bỏ qua `InsightTracker`).
+    **Không được làm mất nó** khi đổi.
+
+    ### 📌 Nợ tách riêng, cần dantt quyết (chạm code dùng chung)
+    Tham số `attachments` thứ hai của `sendMail` nên **gỡ hẳn** hoặc merge vào options. Để nguyên là
+    một cái bẫy nằm chờ người tiếp theo — chữ ký hàm mời gọi truyền vào đó, mà nó **im lặng tuyệt đối**:
+    không lỗi, không cảnh báo, chỉ là mail thiếu file.
+
+19. [✅ 2026-08-10] **Email HTML dựng theo kiểu web, không sống được trong email client** (theme mất nền/card)
+    - nhánh `feature/payment-reminder` · commit `933e741c8` · **ĐÃ PUSH**
+    - 2 files, 103 insertions / 48 deletions. Viết lại `helpers/email/buildReminderEmailHtml.js`
+      theo **HTML chuẩn email**: `<table>` bọc ngoài, `<td>` mang màu ở **CẢ** `bgcolor="..."`
+      **VÀ** inline `style="background-color:..."`; style inline trên từng element thay vì class
+      selector. Thứ tự khối + nhánh CTA/attachment **không đổi**.
+    - **Test 63 → 64.** Test mới: cắt bỏ mọi thứ tới hết `</style>` (mô phỏng client strip
+      `<head><style>`) rồi assert màu vẫn còn qua `bgcolor` + inline. Đưa màu về lại `<style>` là test đỏ.
+    - Verify: verifier **PASS vòng 1**, 0 finding. Tự làm 5 thí nghiệm thay vì tin lời agent:
+      · `git diff` file test = **20 insertions / 0 deletions** → 7 test cũ thật sự nguyên vẹn
+      · **tự ghi đè bản pre-fix** (màu chỉ trong `<style>`) → đúng test mới FAIL
+        (`Expected pattern: /<td[^>]*bgcolor="#abc123"/`), 8 test kia vẫn xanh; khôi phục → md5 khớp lại
+      · `grep "^import"` = 0 · `grep "isPreview\|isEmail"` = 0 · `ReminderEmailPreview.js` diff **rỗng**
+      · `grep -rln buildReminderEmailHtml` toàn repo = đúng 3 file → **không có bản dựng HTML thứ hai**
+      · tự sinh HTML với màu **khác** màu test của agent (`#ff0000`/`#00ff00`), strip `<style>`,
+        grep lại → outer + inner còn đủ ở cả `bgcolor` lẫn inline
+      Gate: functions test 9 suites/64 · assets build 2× `✓ built in` · functions build 422 files · eslint 2 file exit 0.
+    - ⚠️ **Chưa xác minh**: **không có email client thật** → chỉ khẳng định được về cấu trúc HTML.
+      **Chưa ai mở mail sau khi sửa.** dantt cần gửi lại và xem nền xám + card có lên không.
+    - 📌 **Giới hạn còn lại, đã ghi trong doc comment của file**: `theme.customCss` vẫn phải nằm trong
+      **một** `<style>` block duy nhất (không có chỗ nào khác để đặt) → client nào strip `<head><style>`
+      (Gmail mobile, Outlook desktop cũ) vẫn mất custom CSS. Muốn dứt điểm phải thêm **CSS inliner** —
+      scope lớn hơn, chưa làm.
+    - 📌 Nhắc lại 2 thứ **KHÔNG phải bug**: logo mất là do mail vào **spam** → Gmail chặn ảnh
+      (URL logo curl HTTP 200) · không có nút CTA khi `access = sendAttachment` là **đúng thiết kế**.
+
+    **dantt phát hiện 10/08** khi so mail thật với preview. Cấu trúc **giống hệt** (nội dung, khung
+    attachment, footer đều khớp) nhưng lệch đúng 2 chỗ:
+
+    | | Preview | Mail thật | Nguyên nhân |
+    |---|---|---|---|
+    | Logo | ✅ | ❌ | mail vào **spam** → Gmail chặn ảnh từ xa. URL logo **vẫn sống** (curl HTTP 200, PNG 34KB) — không phải lỗi code |
+    | Nền xám + card trắng | ✅ | ❌ | **Gmail bỏ style cấp `body`** |
+
+    🔴 **Lỗi thật là cái thứ 2.** `buildReminderEmailHtml.js` dựng theo kiểu web:
+    ```css
+    body  { background:#f5f5f5 }   /* Gmail vứt style cấp body */
+    .card { background:#ffffff }    /* → card trắng trên nền trắng của Gmail = vô hình */
+    ```
+    Preview trông đẹp vì chạy trong **iframe**, nơi `body` là của riêng nó. Mail thật thì client bọc
+    nội dung vào DOM của nó → mất nền → nhìn như text trơn.
+
+    ⚠️ CSS **có ăn** (khung viền `.attachment` và `.footer` căn giữa vẫn hiện) — nên **đừng** đi tìm
+    bug "theme không được áp". Theme được áp, chỉ là cách dựng HTML không hợp email client.
+
+    **Cách sửa (chuẩn email HTML):** bỏ `body background`, dùng **`<table>` bọc ngoài với `bgcolor`**
+    và **style inline** thay cho `<head><style>`. Đây đúng là phần "inline CSS" đã đánh dấu ở task 17
+    là *scope lớn hơn, chưa làm* — giờ có bằng chứng nó **bắt buộc**, không phải tuỳ chọn.
+    ⚠️ Sửa xong phải giữ nguyên tính chất **một hàm dùng chung cho cả preview và mail** (task 17),
+    đừng tách lại thành 2 bản.
+
+    **Không phải bug, đừng sửa:**
+    - **Không có nút CTA** khi `access = sendAttachment` — template chọn *một trong hai*: đính kèm PDF
+      **hoặc** nút "View invoice online". Verify: `sendAttachment` → cta ❌/attachment ✅;
+      `viewOnline` → cta ✅/attachment ❌. Preview cũng vậy.
+
+    📌 **Đáng đề xuất Product**: màu mặc định `outerBackground #f5f5f5` vs `innerBackground #ffffff`
+    chênh nhau quá ít, kể cả sửa xong cũng gần như không phân biệt được.
+
+    📌 **Vấn đề riêng, không thuộc task này**: mail vào **spam**. Gửi từ
+    `noreply-pdfinvoice@chattyemail.com`, nội dung đòi nợ, không có SPF/DKIM khớp domain shop.
+    Là chuyện deliverability, cần xử riêng — nhưng ảnh hưởng trực tiếp tới việc khách có đọc được không.
+
+20. [✅ 2026-08-10] feature/payment-reminder ở nhánh này thì khi click nút mũi tên ở góc phải màn hình thì bị hiển thị save change top bar?
+
+    - nhánh `feature/payment-reminder` · commit `f2c6921ea` (đã push)
+    - **Root cause** (không phải thiếu dirty-guard như đoán ban đầu): nút mũi tên là
+      `Page.pagination` ở `PaymentReminderSettings.js:180-187`, `history.push` đổi route param
+      `:type` mà `routes.js:82-83` dùng **cùng một component** ⇒ KHÔNG remount. Effect
+      `PaymentReminderSettings.js:58-63` set `values` và `initial` bằng **cùng một object
+      reference** nên lúc đó chưa dirty. Nhưng prop `value` của `<CKEditor>` đã đổi →
+      `@ckeditor/ckeditor5-react` v6.3.0 gọi `editor.data.set()`
+      (`_shouldUpdateEditor(t){return this.props.data!==t.data && this.editor.data.get()!==t.data}`)
+      → bắn ra **cùng event `change:data`** như user gõ thật, nhưng chuỗi HTML là bản CKEditor
+      **tự serialize lại** → `onChange` forward lên → `setField('content', …)` ghi đè
+      `values.content` trong khi `initial.content` giữ chuỗi thô ⇒ `showSaveBar` (dòng 90) true
+      dù không ai chạm gì.
+    - **Fix**: `echoGuard.js` (mới, state machine **thuần**, tách khỏi JSX để test được) +
+      `CkeditorInput.js` lấy editor sống qua `onReady` rồi arm guard đúng **cả hai vế** predicate
+      của thư viện (`editorData !== undefined && value !== lastPropData && editorData !== value`).
+      Nuốt đúng một echo. Sửa ngay chỗ đẻ ra dirty giả, **không** che bằng confirm-guard khi
+      điều hướng.
+    - ⚠️ **Vòng sửa 1 bị verifier bắt FAIL** — bản đầu arm cờ trong render body theo
+      `lastEmittedRef`, disarm chỉ khi có `change:data`: hai điều kiện không đồng bộ nên cờ kẹt
+      `true` sau một re-render không liên quan (vd bấm "Insert variable", `ContentSection.js:60-64`)
+      → **nuốt ký tự user gõ thật**. Bài học: guard kiểu one-shot flag phải arm theo **đúng**
+      điều kiện mà bên kia dùng để bắn event, nếu không sẽ lệch.
+    - verifier PASS (vòng 2, tự viết script riêng load `echoGuard.js` thật, không dùng lại sim
+      của agent): repro vòng 1 hết bug với N = 1/2/5 re-render · double-render StrictMode không
+      arm hai lần · dựng lại logic hỏng của vòng 1 → **4/7 test mới FAIL** ⇒ test guard thật ·
+      `npx jest packages/assets/__tests__/` 12/12 · eslint 3 file exit 0 · assets lint đúng
+      baseline 180 errors/41 warnings, không thêm lỗi · `assets run production` exit 0 (vite ×2) ·
+      `packages/functions yarn test` 10 suites/69 tests.
+    - Chưa xác minh: chưa repro tay trên browser thật (package không có DOM harness).
+
+24. [ ] **Không có stage nào trong CI chạy test** (finding của verifier khi làm task 20, ngoài scope)
+
+    Nguyên văn: *"grepping `.gitlab/ci/*.yml` and `.gitlab-ci.yml` for `jest`/`test`/`lint` found no
+    matches — this repo currently has no CI stage that runs `jest` at all (only
+    `.gitlab/ci/auto-merge.yml`). This is a pre-existing repo-wide gap … it means these 7 new tests
+    currently only run when a human/agent invokes `npx jest` manually."*
+
+    ⇒ Toàn bộ test đang có (`packages/functions` 10 suites/69 tests, `packages/assets/__tests__`
+    12 tests) **không ai chạy tự động**. Mọi verdict PASS từ trước tới giờ đều là do agent chạy tay.
+
+    Cần chốt trước khi làm: thêm stage test vào `.gitlab/ci/` có đụng gì tới quota runner
+    on-premise (`git.avada.net`) không, và có muốn chặn merge khi test đỏ không.

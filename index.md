@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-09 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 11 item ngày 08-09: 2 digest + 4 decision + 3 resource + 1 feedback + 1 bản cập nhật area)_
+_Cập nhật: 2026-08-10 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 5 item ngày 08-10: 2 digest + 1 decision + 1 resource + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -51,6 +51,7 @@ _Cập nhật: 2026-08-09 · Trạng thái: đã seed 12 project + notes học t
 - [[do-layout-shift-bang-browser-automation]] — đo CLS bằng agent-browser/Playwright: phần lớn "0 shift" là harness hỏng, luôn chạy control test, `buffered: true`, đo ≥5 lần, assert trang đã render trước khi tin con số.
 - [[caching-layers]] — caching qua các layer (client→CDN→proxy→app→Redis→DB): 3 pattern lõi + 3 cái khó (invalidation, key, stampede).
 - [[bang-chung-phan-biet-duoc]] — mọi kết luận miễn trừ công việc ("gate đỏ là pre-existing", "không thấy log", "đo ra 0", "verifier PASS") đều là bằng chứng vắng mặt hoặc tự chấm; chỉ bằng chứng phân biệt được hai giả thuyết mới kết luận được — và nó luôn rẻ hơn hậu quả.
+- [[migrate-repo-gitlab-on-prem]] — đổi `origin` là phần dễ; phần dễ hỏng là nhánh vẫn track remote cũ, push branch trigger deploy staging và push tag trigger deploy production — kèm cách xử lý nhánh diverged và tạo MR bằng push option.
 - [[koa-yup-validator-yup029]] — middleware validate không chỉ kiểm tra mà còn GHI ĐÈ `ctx.request.body` bằng giá trị yup đã cast; với yup 0.29 điều đó sinh nested object toàn `undefined` (hỏng ồn ào 422 hoặc hỏng im lặng 200-mà-không-ghi) và `stripUnknown` âm thầm vứt field mới.
 
 **Học tập:**
@@ -154,6 +155,8 @@ _Cập nhật: 2026-08-09 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-shipping-labels-2026-07-27]] — Shipping Labels: `verifyExtensionToken` không verify chữ ký session token + webhook thiếu HMAC → fix fail-closed, phải bơm `SHOPIFY_API_KEY`/`SECRET` qua `PROD_ENV_FILE` của GitLab CI và bỏ dòng echo secret. *(digest đầu tiên cho [[shipping-labels]])*
 - [[digest-pdf-2026-08-09]] — `/looptasks` CÓ cơ chế tự lặp bằng cron của chính skill (không cần `/loop` bọc ngoài); merge dở dang trong working copy chặn commit và `git add` của agent làm bẩn index của merge đó; agent điều tra kết luận sai một ca vì đọc lướt `Number(x || 0)`.
 - [[digest-subscriptions-2026-08-09]] — giá add-on one-time bake vào metafield theo currency presentment nên ra $3.741 thay vì $2.779; `_joy_installment_discount` là cart attribute client-settable nên bỏ hẳn nhánh frozen; ATC chết ở reformlabs là do storefront báo `available:false` trong khi Admin API nói ngược lại, rồi tự khỏi.
+- [[digest-pdf-2026-08-10]] — mail reminder ra plain text vì cả hai đường gửi chỉ `html: content` không bọc theme, và PDF không đính kèm vì `attachments` nằm trong cấu hình transport thay vì options của `sendMail`; kèm trọn cách dựng webhook local (funnel + DevZone register) để test feature end-to-end.
+- [[digest-subscriptions-2026-08-10]] — deploy prod chạy theo git TAG nên timeline CLS phải đọc theo build hash; create selling plan group chết vì mirror `shopifyProducts` giữ sản phẩm đã xoá (webhook `products/delete` early-return) và lý do thật bị `console.log` rồi vứt; `node_modules` symlink trỏ vào chính nó làm vite ELOOP.
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
@@ -176,6 +179,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-09-gia-onetime-addon-merchant-nhap]] — Joy Subscription bỏ việc copy `variant.price` của add-on vào metafield; merchant gõ một field "add-on price" (base currency) trong setup product fixed bundle, còn giá parent luôn lấy live từ variant đang chọn (review 2026-11-09).
 - [[2026-08-09-hoan-backfill-co-don-cu-pdf]] — PDF Invoice không backfill cờ eligibility cho đơn wholesale đã tồn tại — cờ chỉ seed ở nhánh `.add()` nên đơn cũ vĩnh viễn nằm ngoài cron, và đó là lựa chọn có chủ ý chứ không phải quên (review 2026-11-09).
 
+- [[2026-08-10-remote-gitlab-on-premise]] — `origin` trỏ về `git.avada.net` (on-prem), gitlab.com giữ lại dưới tên `saas` để đối chiếu trong lúc chuyển; repo artifacts KHÔNG sync lịch sử vì hai bên rời nhau hoàn toàn (review 2026-11-10).
+
 ## 💬 Feedback (feedback/)
 
 - [[write-shorter-notes]] — viết note ngắn, atomic hơn.
@@ -188,6 +193,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-ten-nhanh-ngan]] — đặt tên nhánh `feature/payment-reminder`, không nhét `SB-xxxx` và không quá 3 từ sau dấu `/`.
 - [[feedback-doc-nguyen-van-tai-lieu]] — user dẫn tài liệu thì lấy nguyên văn phần liên quan trước khi khẳng định tài liệu nói gì; bản tóm tắt fetch đã lược mất câu quyết định và làm trả lời sai hai lượt liên tiếp.
 - [[feedback-feature-moi-mac-dinh-opt-in]] — default của một feature mới là `enabled: false`; khách cũ không bao giờ được tự nhiên bật một hành vi gửi mail ra ngoài mà họ chưa đồng ý.
+- [[feedback-git-guard-chi-chan-master]] — hook chặn `git push` của repo được nới lại: chỉ chặn khi đích là `master`/`main`, còn push nhánh feature thì agent làm thẳng, không phải nhờ người dán lệnh.
 
 ## 📦 Sources (sources/) — nguồn thô immutable
 
