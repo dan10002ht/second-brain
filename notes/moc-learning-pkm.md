@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-09
+updated: 2026-08-11
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -34,6 +34,13 @@ updated: 2026-08-09
 
 - [[python-asyncio-blocking]] — đừng chặn event loop.
 - [[asyncio-gotchas]] — các bẫy asyncio thường gặp.
+
+## Hệ thống phân tán & chịu tải (tự học, ngoài Avada)
+
+- [[digest-ticket-mcrsv-2026-08-11]] — mở khi cần khảo sát một repo microservice lạ: doc của repo
+  có thể mô tả sai hiện trạng, và bước 0 bắt buộc (generate proto) không nằm trong README.
+- [[2026-08-11-ban-do-tai-k3d-k6]] — mở khi định chọn công cụ để *học* chịu tải: vì sao LocalStack
+  không giải bài toán này, và vì sao phải đo mốc gốc trước khi dựng hạ tầng.
 
 ## Bối cảnh
 

@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-10 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 5 item ngày 08-10: 2 digest + 1 decision + 1 resource + 1 feedback)_
+_Cập nhật: 2026-08-11 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 10 item ngày 08-11: 3 digest + 2 shipped + 4 decision + 1 resource)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -20,7 +20,7 @@ _Cập nhật: 2026-08-10 · Trạng thái: đã seed 12 project + notes học t
 - [[ai-eng-guide]] — bộ guide 5 layer (Prompt → Context → Harness → Loop → Graph) cho team dev Avada dùng Claude Code. → [[ai-eng-thuat-ngu]] · [[ai-eng-01-prompt]] · [[ai-eng-02-context]] · [[ai-eng-03-harness]] · [[ai-eng-04-loop]] · [[ai-eng-05-graph]] · [[ai-eng-cho-tester]] (cho QA)
 
 **AVADA / Shopify apps (work):**
-- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops).
+- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops) · [[functions-cost-audit-2026-08-11]] (chi phí Functions: v2 hoà vốn với v1, đóng chủ đề migrate).
   _Project đầu tiên dùng cấu trúc thư mục `10-projects/<project>/` — project nào phình thêm file thì gom vào folder, project nhỏ giữ note phẳng. Task list là `BRIEF.md` trong folder đó (state của `/looptasks`, cố ý nằm ngoài graph)._
 - [[joy]] — Joy Loyalty & Rewards SaaS (deep).
 - [[joy-subscription-artifacts]] — kho artifact/CDN build của Joy Subscription.
@@ -45,8 +45,10 @@ _Cập nhật: 2026-08-10 · Trạng thái: đã seed 12 project + notes học t
 
 **Tech stack dùng hằng ngày (tham chiếu xuyên project):**
 - `shopify/` — [[app-development]]: extensions, billing, Polaris, embedded app.
+  - [[shopify-token-exchange-migrate-offline-token]] — token exchange cần session token nên chỉ chạy khi merchant mở app trong admin — không có command/cron nào migrate hộ; shop chưa vào lại vẫn chạy bình thường bằng token cũ, nên "bật cờ" không phải là mốc rủi ro, "shop không bao giờ vào lại" mới là.
   - [[storefront-vs-admin-availability]] — khi ATC chết vì `available:false` mà Admin API báo còn hàng, loại trừ theo thứ tự sold-out → cache → market/publication → selling plan, và chấp nhận khả năng index storefront lệch tạm thời rồi tự khỏi — đừng sửa code theo một triệu chứng sắp biến mất.
 - `firebase/` — [[firestore-multitenant]]: cô lập dữ liệu theo `shopId`.
+  - [[functions-pricing-v1-v2]]: v1 và v2 có đơn giá CPU/RAM/request y hệt nhau; tiền tiết kiệm ở v2 đến từ concurrency và tách rời CPU/RAM, không đến từ đơn giá.
 - `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]], [[lich-dinh-ky-neo-theo-ngay-du-kien]] (scheduler định kỳ neo theo mốc *dự kiến* của kỳ trước, không theo ngày xử lý thực tế — chống drift).
 - [[do-layout-shift-bang-browser-automation]] — đo CLS bằng agent-browser/Playwright: phần lớn "0 shift" là harness hỏng, luôn chạy control test, `buffered: true`, đo ≥5 lần, assert trang đã render trước khi tin con số.
 - [[caching-layers]] — caching qua các layer (client→CDN→proxy→app→Redis→DB): 3 pattern lõi + 3 cái khó (invalidation, key, stampede).
@@ -157,6 +159,11 @@ _Cập nhật: 2026-08-10 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-09]] — giá add-on one-time bake vào metafield theo currency presentment nên ra $3.741 thay vì $2.779; `_joy_installment_discount` là cart attribute client-settable nên bỏ hẳn nhánh frozen; ATC chết ở reformlabs là do storefront báo `available:false` trong khi Admin API nói ngược lại, rồi tự khỏi.
 - [[digest-pdf-2026-08-10]] — mail reminder ra plain text vì cả hai đường gửi chỉ `html: content` không bọc theme, và PDF không đính kèm vì `attachments` nằm trong cấu hình transport thay vì options của `sendMail`; kèm trọn cách dựng webhook local (funnel + DevZone register) để test feature end-to-end.
 - [[digest-subscriptions-2026-08-10]] — deploy prod chạy theo git TAG nên timeline CLS phải đọc theo build hash; create selling plan group chết vì mirror `shopifyProducts` giữ sản phẩm đã xoá (webhook `products/delete` early-return) và lý do thật bị `console.log` rồi vứt; `node_modules` symlink trỏ vào chính nó làm vite ELOOP.
+- [[digest-pdf-2026-08-11]] — root cause "editor nuốt/echo ký tự" là hành vi của `@ckeditor/ckeditor5-react` chứ không phải thiếu dirty-guard, và attachment kiểu `href` khiến nodemailer đi tải file qua URL nên hỏng ngay khi `APP_BASE_URL` sai.
+- [[shipped-pdf-2026-08-11]] — commit landed 08-10 — master CHỈ nhận 4 MR mockup/PRD của BA (!506–!509, không code app, không version bump); khối lượng thật trên hai nhánh — SB-15301 payment reminder 6 fix (theme email, attachment, modal, CKEditor echo guard) và feature B2B early payment discount P1–P5 mới tinh (7 commit, +1 dòng `firestore.indexes.json`, topic Pub/Sub + cron mới); không revert, không cờ deploy. ⚠️ có mục "cần xác nhận" (whitelist auto-merge `longlv3` — brain ghi là bản đã sửa, log 08-10 nói là bản sai).
+- [[digest-subscriptions-2026-08-11]] — dựng dòng `@avada/core` riêng (`5.0.0-joysub.N`) rẽ từ nhánh CTO để vá đường token hết hạn, kèm chuỗi bẫy khi làm việc trên 2 repo cùng lúc (gate soi nhầm repo, nhánh track nhầm remote, master local chậm 26 commit).
+- [[shipped-subscriptions-2026-08-11]] — commit landed 08-10 — master nhận 3 tag: `v2.34.60` một MR `[deploy-all]` không tiêu đề (release mù), `v2.34.61` banner rebuild widget SB-15248, `v2.34.62` surface lý do Shopify khi tạo selling plan group hỏng + action DevZone dọn sản phẩm đã xoá; trên nhánh: hai vòng sửa thông điệp gate của Sidekick (vòng sau gỡ chính chỉ thị vòng trước vừa thêm) và nới hook chặn git push; không revert, không migration.
+- [[digest-ticket-mcrsv-2026-08-11]] — repo đặt vé đã là microservice thật (DB riêng theo service, outbox, Kafka) khác với điều CLAUDE.md của nó mô tả; phiên này dựng spec bàn đo tải và lộ ra repo không build được vì proto generated code cố ý không commit. *(project mới `~/projects/ticket-mcrsv`, ngoài Avada — chưa có note project riêng)*
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
@@ -180,6 +187,10 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-09-hoan-backfill-co-don-cu-pdf]] — PDF Invoice không backfill cờ eligibility cho đơn wholesale đã tồn tại — cờ chỉ seed ở nhánh `.add()` nên đơn cũ vĩnh viễn nằm ngoài cron, và đó là lựa chọn có chủ ý chứ không phải quên (review 2026-11-09).
 
 - [[2026-08-10-remote-gitlab-on-premise]] — `origin` trỏ về `git.avada.net` (on-prem), gitlab.com giữ lại dưới tên `saas` để đối chiếu trong lúc chuyển; repo artifacts KHÔNG sync lịch sử vì hai bên rời nhau hoàn toàn (review 2026-11-10).
+- [[2026-08-11-dong-core-rieng-joysub]] — Joy Subscription lên đường token của CTO (`5.0.0-alpha.7`) rồi rẽ nhánh riêng publish `5.0.0-joysub.N` với npm dist-tag `joysub`; bỏ hẳn dòng `4.8.0-alpha.18` tự làm trước đó (review 2026-11-11).
+- [[2026-08-11-sidekick-gate-message-khong-mang-chi-thi]] — Joy Subscription gỡ chỉ thị agent-facing khỏi `AGENT_TOOL_GATE_MESSAGE`; tool response chỉ còn một câu trần thuật, lệnh cấm suy đoán/upsell chuyển sang `instructions.md` của từng extension vì content policy Shopify cấm "embedded directives" và kiểm ở runtime. ⚠️ CHƯA MERGE — mới ở nhánh (review 2026-11-11).
+- [[2026-08-11-bo-feature-flag-payment-reminder]] — PDF Invoice bỏ biến env gate việc gửi payment reminder vì nó không được set ở đâu trong repo (chỉ ở CI variable + máy local) nên prod sẽ im lặng không gửi, trong khi merchant đã có công tắc opt-in riêng (review 2026-11-11).
+- [[2026-08-11-ban-do-tai-k3d-k6]] — `ticket-mcrsv` dựng "bàn đo" thật trên máy (k3d 3 node + Prometheus + k6, Kafka KRaft) trong ngân sách Docker 12GB thay vì mô phỏng AWS bằng LocalStack hay lên cloud (review 2026-11-11).
 
 ## 💬 Feedback (feedback/)
 
@@ -201,7 +212,7 @@ _(chưa có)_
 
 ## 🗄️ Archive (40-archive/)
 
-- [[avada-core]] — thư viện lõi auth Shopify + Firebase (Koa/TS). Archived 2026-08-04: repo không còn trên máy.
+- [[avada-core]] — thư viện lõi auth Shopify + Firebase (Koa/TS). Archived 2026-08-04: repo không còn trên máy. ⚠️ 2026-08-11: repo đã có mặt lại trên máy và đang được làm việc thật (dòng `5.0.0-joysub.N`, xem [[2026-08-11-dong-core-rieng-joysub]]) — lý do archive không còn đúng, cần quyết định đưa về `10-projects/` hay `20-areas/`.
 - [[headless-demo]] — demo store Shopify headless (Next.js 15). Archived 2026-08-04: repo không còn trên máy.
 
 ---
