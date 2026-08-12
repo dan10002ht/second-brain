@@ -140,221 +140,223 @@ không có validate min/numeric. Chi tiết ở task 14.
 
 _(trống — thêm task ở đây)_
 
-12. [ ] **Mass assignment ở route legacy `PUT /order/:id`** — client set được MỌI field của `wholesaleOrders`
+25. [✅ 2026-08-12] Tôi muốn bạn check ON_PREMISE_GITLAB_TOKEN ở .env.local và tạo giúp tôi 2 staging mới là staging 3 và staging 4 được ko?
 
-    **Verifier phát hiện 07/08 khi verify task 11.** PRE-EXISTING, không do task 11 tạo ra.
-    Không chặn task 11 nên tách ra đây thay vì sửa lén (quy tắc "finding ngoài scope" của skill).
+    - nhánh `feature/staging-3-4` · commit `78c4bbcf8` (đã push, **chưa tạo MR**)
+    - **Token OK**: `GET /user` 200 · user `dantt` (id 35) · scope `api, read_api, read_user,
+      read_repository, write_repository` · hết hạn **2027-08-10**. Đủ quyền ghi CI variables.
+    - **Firebase project đã có sẵn từ trước**, không phải tạo mới:
+      `avada-pdf-invoice-staging-3` (438809529375) · `avada-pdf-invoice-staging-4` (87812729728).
+      Hosting default site đã có. Nhưng **chưa có Web app nào** → đã `firebase apps:create WEB`
+      cho cả hai (dantt duyệt) để lấy `VITE_FIREBASE_*`.
+    - **Sửa code (2 file, +72 dòng):**
+      - `.firebaserc`: thêm alias `staging3` / `staging4`
+      - `.gitlab-ci.yml`: thêm job `deploy_staging_3` / `deploy_staging_4`, copy pattern của
+        `deploy_staging_2` (environment + url + build assets + ghi `.env.<projectId>` + `firebase use` + deploy)
+    - **16 biến CI đã tạo trên `git.avada.net`** qua API (`STAGING3_*` / `STAGING4_*`).
+      6 biến `FIREBASE_*` mỗi bên lấy thẳng từ `firebase apps:sdkconfig`, giá trị thật.
+    - Verify: `POST /ci/lint` của chính project → **`valid: true`, 0 error, 0 warning** ·
+      YAML parse OK, 9 job nhận diện đúng · `.firebaserc` JSON hợp lệ ·
+      `GET /variables` xác nhận đủ 16 biến.
 
-    `routes/order.route.js:34` → `controllers/order.controller.js:330-336`
-    `OrderController.updateOrderWholesale` → `services/wholeSale.service.js:58-64`:
+    ### FUNCTIONS_ENV đã dựng xong 12/08 (copy từ `STAGING2_FUNCTIONS_ENV`, 35 key)
+
+    `PUT` lên GitLab, đọc lại xác nhận khớp byte-for-byte, đủ 35 key cả hai bên.
+
+    **8 key đổi theo môi trường:**
+    | Key | staging 3 / 4 |
+    |---|---|
+    | `APP_BASE_URL` | `avada-pdf-invoice-staging-{3,4}.firebaseapp.com` (viết trần, **không** có `https://` — theo đúng staging 1/2) |
+    | `SHOPIFY_FIREBASE_API_KEY` | web API key thật, lấy từ `firebase apps:sdkconfig` |
+    | `SHOPIFY_ACCESS_TOKEN_KEY` | **sinh mới ngẫu nhiên 23 ký tự mỗi bên** — cố ý KHÔNG copy của staging 2. Đây là khoá mã hoá access token của shop (`config/shopify.js:29` → `shopifyBase.service.js:9`), dùng chung khoá giữa các môi trường là sai nguyên tắc. Chưa có shop nào cài nên sinh mới không mất gì. |
+    | `SHOPIFY_HAS_READ_ALL_ORDERS` | `false` (staging 2 để `true`) — app mới chưa được Shopify duyệt `read_all_orders`; `config/shopify.js:20` tự bỏ scope đó ra khi `false` |
+    | `STORAGE_EXPORT_BUCKET_NAME` | `avada-pdf-invoice-staging-{3,4}-export-orders` |
+    | `APP_HANDLE`, `SHOPIFY_API_KEY`, `SHOPIFY_SECRET` | **để `TODO-...`** — chỉ có sau khi tạo app trên Shopify Partner |
+
+    27 key còn lại (Google, SMTP, Chatty SMTP, avada.io, SendGrid, Sentry, Customer.io,
+    Mixpanel, Translate) **copy nguyên** của staging 2 — dùng chung hạ tầng staging.
+
+    - `APP_KEY` copy nguyên nhưng **là key chết**: chỉ có trong `.env.example:5`, không chỗ nào
+      trong `packages/functions/src` đọc nó.
+    - **Không** thêm `ENABLE_PAYMENT_REMINDER_SEND` — giữ parity với staging 2; code mặc định tắt
+      khi thiếu biến.
+
+    ⚠️ **CÒN LẠI — job sẽ FAIL nếu merge vào master mà chưa xong:**
+    1. Tạo 2 app trên **Shopify Partner** → điền `STAGING3_SHOPIFY_API_KEY` /
+       `STAGING4_SHOPIFY_API_KEY` (biến CI riêng cho VITE) và 3 key `TODO` trong `FUNCTIONS_ENV`.
+       Scope + app URL + redirect + app proxy + GDPR webhook: xem `PROD_APP_TOML` trên GitLab làm chuẩn.
+    2. ✅ **Đã provision hạ tầng GCP xong 12/08** — xem mục dưới.
+    3. Nhánh feature chưa đụng master nên **chưa job nào chạy** — an toàn cho tới lúc merge.
+
+    ### 🐛 500 `Cannot read properties of undefined (reading 'shopID')` trên staging 3 (12/08)
+
+    Store `dantt-test-stag3`. **Không phải lỗi cấu hình env** — đã loại trừ bằng kiểm tra thật:
+    Cloud Run service `app` có `SHOPIFY_API_KEY=a86b6a1e…` + `APP_HANDLE=avada-pdf-invoice-staging-3`
+    (đúng app staging 3, không phải app dev), và HTML `/embed` trên hosting cũng nhúng đúng key đó.
+
+    **Cơ chế** — `@avada/core` `build/helpers/verifyEmbedRequest/verifyToken.js`:
     ```js
-    static async updateOrderById({body, shopId, orderId}) {
-      ...
-      return updateOrder({...body, orderId, shopId});   // body = ctx.req.body, RAW
-    }
+    shopData = await getShopByShopifyDomain(shopifyDomain);
+    if (shopData) { ctx.state.user = {shopID: shopData.id, ...}; }
+    await executeAfterLogin(ctx, givenOptions);
+    await next();          // ← vẫn next() kể cả khi shopData rỗng
     ```
-    Route này **không có schema validation, không whitelist/blacklist field nào**. Mà
-    `updateOrder` (`wholesaleOrdersRepository.js:37-44`) làm
-    `ref.update({...data, id: data.orderId})` → Firestore nhận verbatim.
+    Không có doc shop ⇒ `ctx.state.user` undefined nhưng request **vẫn vào route** ⇒
+    `helpers/auth.js:25` `ctx.state.user.shopID` nổ. Log Cloud Run chỉ có đúng các 500 của
+    `/api/whoami`, không có exception nào khác.
 
-    ⇒ Ai gọi được route này set thẳng được `isSendDueReminder` / `overdueReminderCount`
-    (**phá đúng invariant idempotency mà task 11 vừa dựng** — reset cờ = gửi lại, set count = 2 =
-    câm vĩnh viễn), và cả `isUnpaid` / `dueAt` / `paymentBadge` / `isCanceled`.
+    **Trạng thái Firestore staging-3**: đúng **1 collection `shopifySession`**, không có `shops`.
+    Doc `offline_dantt-test-stag3.myshopify.com` **đã có `accessTokenHash` + `scope`**
+    ⇒ token exchange THÀNH CÔNG, nhưng shop record không được tạo.
 
-    **Cần làm**: thêm whitelist field cho route này (hoặc Yup schema như các route mới), **KHÔNG**
-    dùng blacklist — field mới thêm sau sẽ tự lọt. Quét luôn các route khác spread `ctx.req.body`
-    thẳng vào repository.
+    🔴 **Vì sao kẹt vĩnh viễn**: session đã có access token nên mọi request sau
+    `checkIfActiveAccessToken` trả true ⇒ nhánh `requestAndUpdateShopAccessToken` +
+    `handleAfterInstall` **không bao giờ chạy lại**. Tự nó không thoát ra được.
+    → Cách gỡ: **xoá doc `shopifySession/offline_<domain>`** (hoặc gỡ cài rồi cài lại app) để ép
+    chạy lại nhánh install.
 
-    ### ✅ RECON XONG 07/08 16:5x (Explore agent, read-only) — đã gỡ ẩn số "ai đang gọi"
-
-    - **KHÔNG có call site FE nào** gọi `PUT /order/:id`. Grep toàn `packages/assets/src` mọi
-      `method: 'PUT'` + mọi literal `/order`: chỉ có đúng một, `pages/OrderPage/OrderPage.js:167`
-      → `/order/${id}/discount`, mà đó là **route khác** (`order.route.js:36`
-      → `updateOrderDiscountById`), koa-router không match `/order/:id`.
-    - **Không client nào khác trong repo**: grep `updateOrderWholesale|updateOrderById` toàn repo →
-      chỉ 1 đường duy nhất `order.route.js:35` → `order.controller.js:330-336` → `wholeSale.service.js:58`.
-      Không test, script, webhook, extension nào gọi. `controllers/apiV1*` (API v1 public) không có
-      route order tương ứng.
-    - **KHÔNG lộ public.** Route mount qua `routes/index.routes.js:52`, chỉ được gọi từ
-      `handlers/app.js:46` (`/api`, `verifyEmbedRequest`) và `handlers/appSa.js:38-39`
-      (`/apiSa`, `verifyRequest`). `handlers/proxy.js` (app proxy storefront) **không** import
-      route order → không với tới được từ storefront.
-      ⇒ Hạ mức nghiêm trọng: cần **session merchant đã đăng nhập**, và `shopId` lấy từ session
-      nên không sửa được đơn shop khác. Vẫn là mass assignment (merchant tự set field mà UI không
-      cho phép, gồm field chỉ server được ghi), nhưng **không phải lỗ hổng cho người ngoài**.
-    - **Whitelist ứng viên = RỖNG** — không có call site thật nào để suy ra field hợp lệ.
-    - `routes/order.route.js` **không import `middleware/validator` ở BẤT KỲ route nào** — không
-      phải ngoại lệ của một route, mà là thói quen của **cả file**. Các route file khác
-      (`paymentReminder`, `email`, `template`, `settings`, `delivery`, `featureRequest`) đều có dùng.
-
-    **⇒ Hướng nên cân nhắc trước khi viết whitelist**: route này có vẻ là **dead code**. Xoá hẳn
-    hoặc khoá cứng sẽ dứt điểm hơn là dựng whitelist cho một endpoint không ai gọi. Nhưng
-    "không ai gọi **trong repo này**" ≠ "không ai gọi" — có thể còn client ngoài repo (script nội
-    bộ, Postman cũ, merchant tự gọi bằng token của họ). **Nên xem access log/APM trước khi xoá.**
-
-    Pattern spread `{...body}` không validate ở chỗ khác (chỉ liệt kê, chưa xử):
-    `wholeSale.service.js:63` · `wholesaleOrdersRepository.js:37,58` · `customer.service.js:16` ·
-    `productTranslationRepository.js:24` · `downgradeReasonRepository.js:18`
-
-18. [ ] **Composite index khai trong repo nhưng CHƯA deploy → cron chết, không chỉ reminder hỏng**
-
-    **Phát hiện 10/08** khi dantt tạo đơn #1003/#1004 mà không thấy mail. Chạy đúng query của
-    `getOrdersForDueReminder` trên `avada-staging` → `FAILED_PRECONDITION: The query requires an index`.
-
-    `firestore.indexes.json` **CÓ khai** đủ 2 index (2 dòng cuối của mục `wholesaleOrders`):
-    ```
-    shopId, isUnpaid, isCanceled, isSendDueReminder, dueAt
-    shopId, isUnpaid, isCanceled, paymentBadge, overdueReminderCount
-    ```
-    Nhưng **Firestore chưa có chúng**. Khai trong repo ≠ đã deploy.
-    → Đúng rủi ro task 2 (P0) tự ghi từ 06/08: *"chưa xác minh 2 composite index có đủ không"*.
-    Câu trả lời: **không, vì chưa tồn tại**.
-
-    🔴 **Hệ quả nặng hơn "reminder không gửi"**: `getOrdersForDueReminder` **ném lỗi** →
-    `sendPaymentReminders()` đổ → **cả `handleOrderDaily` chết**. Trên production nghĩa là cron
-    fail **mỗi giờ**, kéo theo `updatePaymentTerm()` (bước cập nhật trạng thái quá hạn) không hoàn tất.
-    Không chỉ mất feature mới, mà **hỏng cả thứ đang chạy tốt**.
-
-    **Việc cần làm:**
-    1. Deploy 2 index lên staging + production (`firebase deploy --only firestore:indexes`, hoặc
-       `gcloud firestore indexes composite create` cho chính xác 2 cái). Build mất vài phút.
-    2. **Bọc `try/catch` quanh `sendPaymentReminders()`** trong `handlers/cron/handleOrderDaily.js`.
-       Hiện `updatePaymentTerm` và reminder dùng chung một lượt cron — reminder lỗi là mất cả hai.
-       Feature mới không được phép kéo sập thứ đã chạy ổn.
-    3. Thêm bước "deploy index" vào quy trình release của feature này (spec/checklist chưa có).
-
-    ✅ **CẬP NHẬT 10/08 11:54 — index đã BUILD XONG, cả 3 query chạy được.**
-    `getOrdersForDueReminder` → 2 đơn · `...OverdueReminder(1)` → 1 đơn · `(2)` → 0 đơn.
-    ⇒ Việc 1 (deploy index) coi như xong **trên staging**. **Production CHƯA kiểm** — vẫn phải làm.
-
-    ### 🎉 LẦN ĐẦU CHẠY END-TO-END THÀNH CÔNG (10/08 11:5x)
-
-    Chạy thẳng `WholeSaleService.sendPaymentReminders()` từ `lib/` trên staging, flag gửi **tắt**.
-    Cố ý **không** gọi `handleOrderDaily()` vì `updatePaymentTerm()` → `getOrdersOverdue()`
-    **KHÔNG lọc theo shopId** (`wholesaleOrdersRepository.js:193-198`) → nó quét đơn của **MỌI shop**
-    trên staging và ghi `paymentBadge` lan sang dữ liệu người khác. Ai chạy sau nhớ điều này.
-
-    Output — đúng 3 dòng, khớp thiết kế:
-    ```
-    flag OFF — would mark isSendDueReminder=true (order already overdue)   orderId 7034955596077 (#1003)
-    flag OFF — would send due reminder      #1004 → dantt@avadagroup.com
-       subject: "Invoice #1004 from dantt-pdf-dev is due on August 11, 2026"
-    flag OFF — would send overdue reminder  #1003 → dantt@avadagroup.com
-       subject: "Overdue: invoice #1003 — $2,629.95 still outstanding"
-    ```
-
-    **Chứng minh được:**
-    - Chọn đơn đúng: #1004 vào nhánh due (timing `before`, còn 1 ngày tới hạn), #1003 vào nhánh overdue
-    - **Race due-vs-overdue xử lý đúng**: #1003 lọt cả 2 query, nhưng nhánh due **bỏ qua** vì đã
-      `paymentBadge=overdue` và chỉ đánh cờ — khách **không** nhận email "sắp tới hạn" cho đơn đã trễ
-    - **Merge tag render đúng** cả 2 loại: tên đơn, tên shop, ngày (`August 11, 2026`), và
-      **số tiền có định dạng tiền tệ** (`$2,629.95`) — không phải số trần
-    - Địa chỉ người nhận resolve đúng
-    - Flag OFF hoạt động đúng cả 2 vế: chỉ log, **không gửi, không ghi cờ**
-
-    ⏭️ **Bước tiếp theo cần dantt duyệt**: bật `ENABLE_PAYMENT_REMINDER_SEND` rồi chạy lại để
-    **nhận mail thật** — lúc đó mới kiểm được giao diện theme (task 17) và cờ idempotency có chặn
-    lần gửi thứ hai không. Mail gửi về `dantt@avadagroup.com` (chính dantt) nên rủi ro thấp.
-
-    ---
-
-    ### 🔧 Công cụ: mô phỏng cron ở local (đã dựng 10/08)
-
-    `/private/tmp/claude-501/.../scratchpad/runCron.js` — **script tạm trong scratchpad, chưa commit.**
-    Nạp **code thật** từ `packages/functions/lib` (bản babel compile), chạy trên Firestore staging thật,
-    env lấy từ `.env.local` + `serviceAccount.development.json`.
+    ### ✅ ROOT CAUSE (12/08, xác minh bằng API chứ không đoán): **Firebase Authentication chưa bật**
 
     ```
-    node runCron.js          # DRY — chỉ chạy 3 query chọn đơn, KHÔNG ghi gì
-    node runCron.js --run    # chạy thật handleOrderDaily()  ⚠️ CÓ GHI Firestore
+    GET https://identitytoolkit.googleapis.com/admin/v2/projects/<p>/config
+      avada-pdf-staging-2            → ✅ signIn.email.enabled = true
+      avada-pdf-invoice-staging-3/4  → ❌ NOT_FOUND / CONFIGURATION_NOT_FOUND
     ```
 
-    In ra: flag gửi thật đang bật/tắt · `getAllShopIds()` có thấy shop không · từng query chọn được
-    mấy đơn (kèm `dueAt`/`badge`/`sentDue`/`overdueCount`) · nếu thiếu index thì in **link tạo index**.
-    Chế độ `--run` in thêm trạng thái đơn sau khi chạy để đối chiếu cờ idempotency.
+    Tạo project Firebase bằng API **không** tự khởi tạo Authentication. `updateOrCreateUser`
+    (`@avada/core/build/services/authService.js`) khi không thấy shop doc sẽ đi nhánh
+    `admin.auth().createUser(...)` → ném `configuration-not-found` ⇒ **shop không bao giờ được tạo**.
+    Log xác nhận `Start of updateOrCreateUser` chạy 3 lần mà `shops` vẫn 0 doc.
 
-    ⚠️ `--run` gọi nguyên `handleOrderDaily()` nên chạy cả `updatePaymentTerm()` và
-    `updateDiscountEarlyForOrder()` — **ghi vào `wholesaleOrders` thật**, không chỉ phần reminder.
+    🔴 **Deadlock làm nó không tự thoát ra được** — `authController.js:checkIfActiveShop` kết luận
+    `installed: true` **chỉ dựa vào việc có `shopifySession` với access token dùng được**, KHÔNG hề
+    nhìn collection `shops`. Nên vòng lặp là:
+    1. Mở `/embed` → `app` → token exchange thành công → ghi session **có** accessToken
+    2. `updateOrCreateUser` chết ở `createUser` → không có shop doc
+    3. Vào lại `/auth/shopify` → `checkIfActiveShop` thấy session hợp lệ → `hasSession=true,
+       installed=true, scopesChanged=false` → **bỏ qua OAuth**, redirect thẳng về `/embed`
+    4. `/embed` → `verifyToken` → không có shop → `ctx.state.user` undefined → **500**
+    ⇒ Cài lại app bao nhiêu lần cũng vô ích nếu session cũ còn đó.
 
-    ❓ **Nên đưa vào repo thành `packages/functions/src/commands/runOrderDailyCron.js`?**
-    Tài liệu test hiện chỉ nói "kích cron" mà chưa chỉ cách. Chờ dantt quyết.
+    **Đã xử 12/08:** `POST identityPlatform:initializeAuth` + `PATCH config` bật email/password cho
+    cả hai project (khớp staging-2), rồi xoá lại doc `shopifySession/offline_<domain>`.
 
-    ### Dữ liệu test đang có trên `avada-staging` (shop `dantt-pdf-dev`, `AYctc8Mrxl664GaFbRUj`)
-    | Đơn | dueAt | badge | isSendDueReminder | overdueReminderCount |
-    |---|---|---|---|---|
-    | #1003 | 07/08 (quá hạn 3 ngày) | `overdue` | `false` | `0` → sẵn sàng OVERDUE lần 1 |
-    | #1004 | 11/08 (ngày mai) | `pending` | `false` | `0` → sẵn sàng DUE (timing `before`, 1 ngày) |
+    💡 **Bài học cho lần dựng staging mới**: sau khi tạo project phải bật **Firebase Authentication**
+    — nó không nằm trong danh sách API của `gcloud services enable`, phải gọi Identity Toolkit
+    admin API (hoặc bấm trong Console). Thiếu nó thì app cài xong vẫn 500 và **log không hề báo
+    lỗi auth**, rất dễ đi lạc hướng sang env/Shopify key.
 
-    Settings shop: `due.enabled=true, timing=before, timingDays=1` · `overdue.enabled=true,
-    timingDays=1, resendDays=1`. ✅ Cả hai đơn **có đủ** 2 cờ → **fix task 11 chạy đúng trên dữ liệu thật.**
+    ⚠️ `AppLifecycleService.afterInstall` (`appLifecycle.service.js:15-19`) cũng **giả định shop đã
+    tồn tại** (`getShopByField(...)` rồi dùng ngay `shop.id`). Không phải nguyên nhân ở đây nhưng là
+    quả mìn cùng loại.
 
-    ### ✅ ĐÃ GỬI MAIL THẬT 10/08 12:01 — idempotency VERIFY BẰNG RUNTIME
-    Bật `ENABLE_PAYMENT_REMINDER_SEND=true` trong `.env.local` rồi chạy `sendPaymentReminders()`:
-    - **2 mail thật về `dantt@avadagroup.com`** (#1004 due, #1003 overdue)
-    - Cờ ghi đúng sau khi gửi: #1004 `isSendDueReminder=true` · #1003 `overdueReminderCount=1`
-      + `lastOverdueReminderAt=2026-08-10T05:01:54Z`
-    - **Chạy lại lần 2 → KHÔNG gửi thêm gì.** Query sau đó: due 0 đơn · overdue(1) 0 đơn ·
-      overdue(2) 1 đơn (#1003 chờ đủ `resendDays`). ⇒ **TC-FUNC-018 PASS bằng bằng chứng thật.**
-    - ⚠️ `.env.local` giờ đang BẬT cờ — mỗi lần cron chạy trên máy dantt sẽ gửi mail thật.
+    ⚠️ staging-4 chưa cài được: `/auth/**` trả **404** (hàm `auth`/`admin` chưa deploy xong).
 
-21. [ ] **Deliverability: mail reminder vào SPAM, người gửi không có tên và không có avatar**
+    ### Test CI/CD deploy staging 3/4 (12/08) — CHƯA THÔNG, 2 blocker khác nhau
 
-    Tách từ ghi chú rải rác ở task 19. **Không phải bug code reminder** — nhưng nếu không xử thì
-    feature vô dụng: thư đòi nợ nằm trong spam thì khách không đọc.
+    Nhánh `feat/test-staging-3` / `feat/test-staging-4` (base `origin/master`, mỗi nhánh 1 commit
+    đổi `only:` từ `master` sang chính nó) + commit `d44908abb` trên `feature/staging-3-4`.
+    Nhân tiện khôi phục dòng `except: /Merge branch/` — bỏ nó chỉ đúng khi pin `master`.
 
-    ### Dữ kiện đã kiểm (dig thật 10/08, không phải phỏng đoán)
-    ```
-    chattyemail.com          TXT  v=spf1 include:_spf.mx.cloudflare.net include:amazonses.com ~all
-    _dmarc.chattyemail.com   TXT  v=DMARC1; p=quarantine; pct=10; rua=...cloudflare.net
-    default._bimi...         TXT  (KHÔNG có bản ghi)
-    ```
+    ⚠️ **dantt đã merge `feature/staging-3-4` vào master lúc 17:00** (`880fb1b0f`), nên pipeline
+    master `206718` tự kích cả 2 job khi biến còn `TODO` — đúng rủi ro "mỗi push master chạy 2
+    deploy". Commit `d44908abb` gỡ chuyện đó nhưng **chỉ có tác dụng sau khi merge tiếp vào master**.
 
-    | Vấn đề | Trạng thái | Ghi chú |
+    **Blocker 1 — CI không truy cập được project mới.** Pipeline `206737`/`206738` chạy qua được
+    `yarn install` + 2 vite build, chết ở dòng cuối:
+    `firebase use --token $FIREBASE_DEPLOY_KEY staging3` →
+    *"Invalid project selection, please verify project staging3 exists and you have access."*
+    Alias `staging3` CÓ trong `.firebaserc` trên nhánh → nghi identity của `FIREBASE_DEPLOY_KEY`
+    chưa có quyền trên 2 project mới. IAM `user:` của staging-2 là `binhntt`, `damhv`; của
+    staging-3/4 là `dantt`, `kenny` — **không giao nhau**. Chưa xác minh dứt điểm token thuộc ai.
+
+    **Blocker 2 — first-time Gen2 trên project trắng.** dantt chạy deploy tay:
+    `HTTP 500 Could not create Cloud Run service` (admin/app/pos/auth) + `HTTP 400 ... Permission
+    denied while using the Eventarc Service Agent` cho mọi Firestore trigger. Firebase tự nói
+    *"Since this is your first time using 2nd gen functions… Retry the deployment in a few minutes."*
+    → Đúng: staging-3/4 **thiếu hẳn Eventarc service agent**, staging-2 thì compute SA có
+    `roles/eventarc.eventReceiver`. Đã chạy
+    `gcloud beta services identity create --service=eventarc.googleapis.com|pubsub.googleapis.com --quiet`
+    cho cả hai ⇒ giờ đã có `gcp-sa-eventarc … roles/eventarc.serviceAgent` +
+    compute SA `roles/eventarc.eventReceiver` + pubsub SA `roles/iam.serviceAccountTokenCreator`.
+    Sau khi cấp agent, deploy tay **chạy tiến dần chứ không đứng**: staging-3 **18/25 function
+    ACTIVE**, staging-4 **14/25**. Lỗi còn lại đổi thành `HTTP 409 Could not create bucket
+    gcf-v2-sources-<num>-us-central1` — bucket **đã tồn tại** (do chính lần deploy trước tạo);
+    đây là race của lần deploy Gen2 đầu tiên: nhiều function cùng tạo bucket nguồn, một cái thắng,
+    số còn lại nhận 409. **Cách xử: chạy lại `firebase deploy --only functions` vài lần, mỗi lần
+    lên thêm một mẻ cho tới khi đủ.** Không phải lỗi cấu hình.
+    Còn thiếu — staging-3: `admin app auth pos onCreateUser onCreateCouponUsages onUpdateShop` ·
+    staging-4: thêm `authSa customer google syncCompanies exportOrdersToMailSubscriber
+    updatePaymentTermSchedule`.
+
+    🔴 **Deploy tay từ máy local dùng `packages/functions/.env.local` của dantt (env DEV), KHÔNG
+    phải `STAGING3_FUNCTIONS_ENV`.** Job CI cố ý `cp .env.avada-pdf-invoice-staging-3 .env.local`
+    trước khi deploy chính vì vậy. ⇒ Function đang chạy trên staging 3/4 nhiều khả năng đang mang
+    Shopify key/secret + SMTP của app dev. Phải deploy lại qua CI (hoặc tự thay `.env.local`) trước
+    khi tin bất kỳ kết quả test nào trên 2 môi trường này.
+
+    ❗ Còn lệch so với staging-2, chưa cấp được (bị chặn quyền, dantt tự chạy):
+    `roles/pubsub.serviceAgent` cho pubsub SA của staging-3, và `roles/iam.serviceAccountTokenCreator`
+    cho compute SA + appspot SA của cả hai.
+
+    💡 Lỗi `sharp`/`vips/vips8` ở pipeline master `206718` là **tạm thời** — pipeline sau cùng image
+    đã build qua. Đừng đi sửa Dockerfile vì nó.
+
+    ### ✅ Deploy extensions lên app Shopify staging 3/4 (12/08)
+
+    - `shopify.app.staging-3.toml` / `-4.toml` sinh từ `PROD_APP_TOML`, đổi `client_id` + URL.
+      `.gitignore:86` (`shopify.app.*.toml`) che sẵn nên **không vào git** — bản gốc lưu ở CI var
+      **`STAGING3_APP_TOML` / `STAGING4_APP_TOML`** (mới tạo, đúng như `PROD_APP_TOML`).
+    - Bỏ `read_all_orders` khỏi scopes so với production (app staging chưa được duyệt), khớp
+      `SHOPIFY_HAS_READ_ALL_ORDERS=false`.
+    - Kết quả: **version tạo xong nhưng CHƯA release** ở cả hai app —
+      `avada-pdf-invoice-staging-3-2` · `avada-pdf-invoice-staging-4-2`.
+      Lý do Shopify trả về: *"Network access must be requested and approved in order for the
+      `customer-account-ui` / `download-historical` extension to be published"*.
+      → Phải xin **Network access** cho 2 ui_extension đó trong dashboard rồi release lại.
+
+    🔴 **`SHOPIFY_APP_CLI_PARTNERS_TOKEN` KHÔNG dùng được cho staging 3/4** — token đó thuộc
+    partner org của **production**; app dev (`dantt-pdf-dev`) và staging 3/4 đều nằm ở org
+    **Avada Development**. Dùng nhầm token → 403 *"You are not a member of the requested
+    organization"* (từng tưởng token hỏng, không phải). Deploy chạy được bằng **phiên
+    `shopify auth login` local của dantt**. ⇒ Muốn thêm job CI deploy extension cho staging thì
+    cần một token riêng của org Avada Development, chưa có.
+
+    🔴 **CLI 3.91 đã BỎ `include_config_on_deploy`** — trường này bị xoá thẳng khỏi file toml khi
+    deploy, và **config LUÔN được đẩy lên**. Nghĩa là scopes / application_url / redirect_urls /
+    app_proxy / webhook trên app staging 3/4 giờ **lấy theo file toml**, ghi đè thứ cấu hình tay
+    trước đó. Không phải ý định ban đầu (đặt `false` đúng như production) nhưng kết quả đúng
+    hướng, vì toml vốn dựng từ `PROD_APP_TOML`. ⚠️ Job CI `deploy-shopify-extension:production`
+    vẫn dựa vào `include_config_on_deploy = false` trong `PROD_APP_TOML` → **lần chạy tới sẽ đẩy
+    cả config lên app production**. Cần rà lại trước khi ai đó push commit `[deploy-extensions]`.
+
+    ### ✅ Provision GCP cho staging 3/4 (12/08, dantt duyệt "full, khớp staging 2")
+
+    Hai project lúc nhận **gần như trống**: chưa có Firestore, chỉ bật mỗi `bigquerystorage`.
+    Chỉ tạo bucket export thì `firebase deploy` vẫn đổ, vì `firebase.json:110` khai `storage.rules`
+    (cần default bucket) và `firestore.indexes.json` cần Firestore.
+
+    | Việc | Giá trị | Đối chiếu staging 2 |
     |---|---|---|
-    | SPF | có, nhưng `~all` (softfail) | **CHƯA kiểm** host SMTP thật (`CHATTY_SMTP_HOST`) có nằm trong `include:` không — nếu không thì SPF fail |
-    | DKIM | **chưa kiểm** | cần biết selector mới dig được |
-    | DMARC | `p=quarantine` nhưng **`pct=10`** | chỉ 10% thư fail bị xử → đang ở chế độ rollout, chưa siết thật |
-    | BIMI | **không có** | ⇒ avatar hiện dấu **`?`** là **đúng dự kiến**, không sửa từ app được |
+    | Bật API | `firestore`, `storage`, `firebasestorage`, `cloudfunctions`, `cloudbuild`, `artifactregistry`, `eventarc`, `pubsub`, `run` | staging 2 chỉ bật lẻ tẻ, nhưng đây là bộ tối thiểu cho Gen2 |
+    | Firestore | `(default)`, **`nam5`**, `FIRESTORE_NATIVE` | ✅ khớp |
+    | Default Storage bucket | `<project>.firebasestorage.app`, **US** | khớp (staging 2 là `<project>.appspot.com` — tên cũ, cùng vùng US) |
+    | Bucket export | `avada-pdf-invoice-staging-{3,4}-export-orders`, **US** | ⚠️ **cố ý lệch**: staging 2 để `ASIA-EAST2` trong khi Firestore `nam5` + functions `us-central1` đều ở Mỹ — di sản từ staging 1. dantt chốt dùng US để khỏi tốn egress xuyên vùng. |
+    | UBLA / public access | UBLA **off**, PAP `inherited` | ✅ khớp — **bắt buộc**, vì `export.service.js:96` gọi `file.makePublic()`, cần ACL theo object. Bucket tạo mới mặc định thường bật UBLA; đã kiểm lại thấy `False`. |
 
-    ### 🔧 Sửa được NGAY (env, không cần code)
-    `CHATTY_SMTP_SENDER` trong `.env.local` dài **34 ký tự**, **không có `<>` cũng không có `"`**
-    → là địa chỉ trần `noreply-pdfinvoice@chattyemail.com`. `getSenderFrom.js:28` lấy thẳng làm From
-    khi shop không phải Pro / chưa cấu hình sender riêng ⇒ mail hiện **địa chỉ trần, không tên**.
-    → Đổi thành `"Your Invoice" <noreply-pdfinvoice@chattyemail.com>`.
-    ⚠️ **Kiểm cả biến trên production**, không chỉ local.
+    💡 Default bucket **không tạo được bằng `gcloud storage buckets create`** (tên
+    `.firebasestorage.app` là domain-named bucket). Đường đúng:
+    `POST https://firebasestorage.googleapis.com/v1beta/projects/<p>/defaultBucket`
+    với body `{"storageClass":"STANDARD","location":"us"}` — **không** có query param `bucketId`
+    (truyền vào là 400 `Cannot bind query parameter`).
 
-    ### 🐛 Bug nhỏ trong code, chưa sửa
-    Giá trị **mặc định** của `fromSubject` ở **cả hai** file config **thiếu dấu `<>`** — sai định dạng RFC 5322:
-    - `config/smtp.js` → `'"Your Invoice" noreply-pdfinvoice@email.avada.net'`
-    - `config/chattySmtp.js` → `'"Your Invoice" noreply-pdfinvoice@chattyemail.com'`
+    ⚠️ **Một chỗ cố ý lệch pattern, cần dantt biết:** `deploy_staging`/`deploy_staging_2` có
+    `except: $CI_COMMIT_TITLE =~ /Merge branch/`. Giữ nguyên dòng đó cho job pin `master` thì
+    **gần như không bao giờ chạy**, vì commit trên master phần lớn LÀ merge commit.
+    → Job 3/4 chỉ giữ `except` cho `[deploy-only]`, bỏ vế `Merge branch`.
 
-    Đúng phải là `"Your Invoice" <địa-chỉ>`. Hiện env đang có giá trị nên default không được dùng —
-    nhưng shop/môi trường nào thiếu env sẽ rơi vào chuỗi sai này.
+    ⚠️ Cả 2 job cùng pin `master` ⇒ mỗi lần push master chạy **2 build + 2 deploy song song**.
+    Đúng ý dantt (2 môi trường luôn mirror master), nhưng tốn gấp đôi quota runner on-premise.
 
-    ### Về avatar (dấu `?` trong Gmail)
-    Gmail chỉ hiện logo/ảnh người gửi khi địa chỉ thuộc tài khoản Google có ảnh, **hoặc** domain có
-    **BIMI**. BIMI cần: DMARC `p=quarantine|reject` với **`pct=100`** (hiện là 10) + SPF/DKIM khớp +
-    **VMC** (chứng chỉ nhãn hiệu, **mất phí**) + bản ghi DNS BIMI.
-    ⇒ Là việc **hạ tầng + thương hiệu**, không phải việc của app. Ưu tiên thấp hơn chuyện vào spam.
-
-    ### Thứ tự nên làm
-    1. Sửa `CHATTY_SMTP_SENDER` có tên hiển thị (rẻ nhất, hiệu quả ngay)
-    2. Xác minh host SMTP thật nằm trong SPF, và DKIM có ký không
-    3. Nâng DMARC `pct` dần lên 100 sau khi (2) sạch
-    4. BIMI/avatar — làm sau cùng, nếu thấy đáng tiền
-
-    ⚠️ Bối cảnh làm nó nghiêm trọng hơn bình thường: đây là thư **đòi nợ gửi cho khách của merchant**,
-    tần suất tự động. Vào spam thì merchant mất tiền thật, và uy tín domain gửi càng tụt.
-
-24. [ ] **Không có stage nào trong CI chạy test** (finding của verifier khi làm task 20, ngoài scope)
-
-    Nguyên văn: *"grepping `.gitlab/ci/*.yml` and `.gitlab-ci.yml` for `jest`/`test`/`lint` found no
-    matches — this repo currently has no CI stage that runs `jest` at all (only
-    `.gitlab/ci/auto-merge.yml`). This is a pre-existing repo-wide gap … it means these 7 new tests
-    currently only run when a human/agent invokes `npx jest` manually."*
-
-    ⇒ Toàn bộ test đang có (`packages/functions` 10 suites/69 tests, `packages/assets/__tests__`
-    12 tests) **không ai chạy tự động**. Mọi verdict PASS từ trước tới giờ đều là do agent chạy tay.
-
-    Cần chốt trước khi làm: thêm stage test vào `.gitlab/ci/` có đụng gì tới quota runner
-    on-premise (`git.avada.net`) không, và có muốn chặn merge khi test đỏ không.
+    💡 Gotcha hạ tầng: `git.avada.net` đứng sau Cloudflare, **chặn user-agent của `urllib`**
+    (`403 error code: 1010`). Gọi API bằng `curl`, đừng dùng `urllib.request` của Python.

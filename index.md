@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-11 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 10 item ngày 08-11: 3 digest + 2 shipped + 4 decision + 1 resource)_
+_Cập nhật: 2026-08-12 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-12: 3 digest + 1 shipped + 2 decision + 2 resource + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -54,6 +54,8 @@ _Cập nhật: 2026-08-11 · Trạng thái: đã seed 12 project + notes học t
 - [[caching-layers]] — caching qua các layer (client→CDN→proxy→app→Redis→DB): 3 pattern lõi + 3 cái khó (invalidation, key, stampede).
 - [[bang-chung-phan-biet-duoc]] — mọi kết luận miễn trừ công việc ("gate đỏ là pre-existing", "không thấy log", "đo ra 0", "verifier PASS") đều là bằng chứng vắng mặt hoặc tự chấm; chỉ bằng chứng phân biệt được hai giả thuyết mới kết luận được — và nó luôn rẻ hơn hậu quả.
 - [[migrate-repo-gitlab-on-prem]] — đổi `origin` là phần dễ; phần dễ hỏng là nhánh vẫn track remote cũ, push branch trigger deploy staging và push tag trigger deploy production — kèm cách xử lý nhánh diverged và tạo MR bằng push option.
+- [[chan-agent-bang-cau-hinh]] — dặn agent "chỉ đọc, đừng ghi vào DB dev" là một lời nhắc chứ không phải rào chắn — rào chắn là để default trỏ vào tài nguyên KHÔNG tồn tại, sao cho làm sai thì test skip/lỗi ồn ào thay vì ghi vào hệ thống thật.
+- [[mcp-auth-apikey-vs-oauth]] — MCP có Authorization spec chuẩn (OAuth 2.1 + RFC 9728) nên implement một lần là mọi client tuân spec dùng được — không có nhánh `if (client === 'claude')`; còn dùng nội bộ một người một máy thì API key qua header là đủ, dựng authorization server chỉ để tự login vào server của mình là thừa.
 - [[koa-yup-validator-yup029]] — middleware validate không chỉ kiểm tra mà còn GHI ĐÈ `ctx.request.body` bằng giá trị yup đã cast; với yup 0.29 điều đó sinh nested object toàn `undefined` (hỏng ồn ào 422 hoặc hỏng im lặng 200-mà-không-ghi) và `stripUnknown` âm thầm vứt field mới.
 
 **Học tập:**
@@ -164,6 +166,10 @@ _Cập nhật: 2026-08-11 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-11]] — dựng dòng `@avada/core` riêng (`5.0.0-joysub.N`) rẽ từ nhánh CTO để vá đường token hết hạn, kèm chuỗi bẫy khi làm việc trên 2 repo cùng lúc (gate soi nhầm repo, nhánh track nhầm remote, master local chậm 26 commit).
 - [[shipped-subscriptions-2026-08-11]] — commit landed 08-10 — master nhận 3 tag: `v2.34.60` một MR `[deploy-all]` không tiêu đề (release mù), `v2.34.61` banner rebuild widget SB-15248, `v2.34.62` surface lý do Shopify khi tạo selling plan group hỏng + action DevZone dọn sản phẩm đã xoá; trên nhánh: hai vòng sửa thông điệp gate của Sidekick (vòng sau gỡ chính chỉ thị vòng trước vừa thêm) và nới hook chặn git push; không revert, không migration.
 - [[digest-ticket-mcrsv-2026-08-11]] — repo đặt vé đã là microservice thật (DB riêng theo service, outbox, Kafka) khác với điều CLAUDE.md của nó mô tả; phiên này dựng spec bàn đo tải và lộ ra repo không build được vì proto generated code cố ý không commit. *(project mới `~/projects/ticket-mcrsv`, ngoài Avada — chưa có note project riêng)*
+- [[shipped-subscriptions-2026-08-12]] — commit landed 08-11 — master nhận 3 MR dưới MỘT tag `v2.34.63` mà tag lại nằm trên MR nhẹ nhất: xoá `apiHookV1` chết + hạ `apiHookV2` về 512MiB `[deploy-functions]` (!2460), chuỗi gate Sidekick vào master `[deploy-extensions]` (!2451), fix UI popover analytics (!2461); trên nhánh: 7 permission Read của MCP trả sai dữ liệu (SB-15077, +18 dòng index), CI resolver chưa bao giờ map controller về function của chính nó, và cụm win-back 08-03 (metrics luôn 0 SB-14513, email đọc sai shape contract SB-14690, merge tag SB-14667, test 29%→79%); 1 revert cosmetic cùng ngày. ⚠️ có 2 mục "cần xác nhận" (gate message một câu hay không mang chỉ thị; `reason` 403 có tới agent không).
+- [[digest-subscriptions-2026-08-12]] — CHỈ phần mới của dòng core riêng: `joysub.3` vá 7 gap so với `alpha.12`, hai biến env là hai quyết định khác nhau (`SHOPIFY_EXPIRING_OFFLINE_TOKEN` vs `SHOPIFY_AUTO_MIGRATE_OFFLINE_TOKEN`), chuyển sang mặc định bật nên biến CI thành thừa, và slot staging bị neo theo `STAGING_BRANCH` trong `.gitlab/ci/staging.yml`. ⚠️ có mục chưa xác minh (parse cờ `=TRUE`/`=1` đang **tắt** cờ).
+- [[digest-pdf-2026-08-12]] — root cause "shop không bao giờ được tạo" ở project Firebase mới là Firebase Authentication chưa bật (app vẫn tưởng đã install vì `checkIfActiveShop` chỉ nhìn `shopifySession`), cộng chuỗi gotcha provision staging 3/4 (service agent Gen2, UBLA, token Partner theo org) và chẩn đoán "store chưa nhận reminder" hoá ra là store không có đơn B2B nào.
+- [[digest-ticket-mcrsv-2026-08-12]] — load test bắn từ một máy = một IP nên rate limiter global 100 req/15 phút của gateway quyết định luôn con số baseline; cộng chuỗi bug thật (gRPC version skew 1.60 vs 1.63, self-grant admin, whitelist retry sai case, port bịa 50070) và kỷ luật xử lý agent tự khai vi phạm.
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
@@ -191,6 +197,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-11-sidekick-gate-message-khong-mang-chi-thi]] — Joy Subscription gỡ chỉ thị agent-facing khỏi `AGENT_TOOL_GATE_MESSAGE`; tool response chỉ còn một câu trần thuật, lệnh cấm suy đoán/upsell chuyển sang `instructions.md` của từng extension vì content policy Shopify cấm "embedded directives" và kiểm ở runtime. ⚠️ CHƯA MERGE — mới ở nhánh (review 2026-11-11).
 - [[2026-08-11-bo-feature-flag-payment-reminder]] — PDF Invoice bỏ biến env gate việc gửi payment reminder vì nó không được set ở đâu trong repo (chỉ ở CI variable + máy local) nên prod sẽ im lặng không gửi, trong khi merchant đã có công tắc opt-in riêng (review 2026-11-11).
 - [[2026-08-11-ban-do-tai-k3d-k6]] — `ticket-mcrsv` dựng "bàn đo" thật trên máy (k3d 3 node + Prometheus + k6, Kafka KRaft) trong ngân sách Docker 12GB thay vì mô phỏng AWS bằng LocalStack hay lên cloud (review 2026-11-11).
+- [[2026-08-12-mcp-settings-allowlist]] — Joy Subscription bỏ cách "forward cả settings doc trừ 3 key" cho MCP `get_settings` — nay chỉ 6 group được pass-through và `emailNotifications` có allowlist riêng theo field, vì cách cũ đang đẩy host/port/username SMTP (plaintext) và password (ciphertext AES) sang một LLM bên thứ ba. ⚠️ CHƯA MERGE — mới ở nhánh (review 2026-11-12).
+- [[2026-08-12-va-triet-de-saga-ticket]] — `ticket-mcrsv` cho phép sửa business logic trong vùng Spec #1 tuyên bố off-limits — vá `LazyStringArrayList`→Hibernate và hoàn thiện reservation ở ticket-service theo hướng đúng nghiệp vụ (partial unique index thay unique toàn cục), thay vì vá tối thiểu để đo hay đẩy G0 xuống sau F1 (review 2026-11-12).
 
 ## 💬 Feedback (feedback/)
 
@@ -204,6 +212,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-ten-nhanh-ngan]] — đặt tên nhánh `feature/payment-reminder`, không nhét `SB-xxxx` và không quá 3 từ sau dấu `/`.
 - [[feedback-doc-nguyen-van-tai-lieu]] — user dẫn tài liệu thì lấy nguyên văn phần liên quan trước khi khẳng định tài liệu nói gì; bản tóm tắt fetch đã lược mất câu quyết định và làm trả lời sai hai lượt liên tiếp.
 - [[feedback-feature-moi-mac-dinh-opt-in]] — default của một feature mới là `enabled: false`; khách cũ không bao giờ được tự nhiên bật một hành vi gửi mail ra ngoài mà họ chưa đồng ý.
+- [[feedback-dung-loop-khi-rong]] — khi `/loop` hoặc `/looptasks` báo "không thay đổi" khoảng 15 lượt liên tiếp thì tự huỷ cron và tổng kết, thay vì tiếp tục fire vô hạn chờ user quay lại.
 - [[feedback-git-guard-chi-chan-master]] — hook chặn `git push` của repo được nới lại: chỉ chặn khi đích là `master`/`main`, còn push nhánh feature thì agent làm thẳng, không phải nhờ người dán lệnh.
 
 ## 📦 Sources (sources/) — nguồn thô immutable
