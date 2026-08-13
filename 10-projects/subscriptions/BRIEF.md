@@ -333,11 +333,38 @@
    - **🔑 THAO TÁC KÍCH HOẠT BUG — quan trọng nhất để chặn tái diễn**: so cycle 1 (4 line, KHÔNG có gói 24x70g) với cycle 2 (4 line, CÓ gói 24x70g) → khách vừa **thêm variant 24x70g của đúng product Salmon đã có ở dạng 70g**. Hai line cùng `product.id` chính là điều kiện làm `processContractLines` gom nhóm theo product rồi lệch thứ tự với `lineIds`. Trùng đúng vùng commit `1d398eb42` ("issue adding same products") từng chạm
    - Ghi nhận thêm: `getFailedData` (`services/cron/automaticBillingAttemptService.js:116`) hardcode `shopifyCycleIndex: 1` trong idempotency key của nhánh lỗi — chưa đánh giá tác động, chưa mở task
 
+32. [ ] **[P1] BUG: `recurringOption: lowest` KHÔNG tính lại phí ship mỗi kỳ — trái với chính UI của app**
+   - Ticket kookut `JSUB-260811-TWjnqq` (phần ship) + `JSUB-260722-AuRa7p`. CS xác nhận expected: *"free shipping đơn đầu thôi, hiện tại tất cả upcoming order đang free ship hết"*
+   - **UI hứa gì** (`pages/Settings/Tabs/ShippingProfile/ShippingProfile.json`):
+     - `lowest` = *"Always use lowest shipping rate"* / *"Apply the lowest available rate **on each renewal**"*
+     - `initial` = *"Keep initial shipping rate"* / *"Use the original rate **unless the subscription changes**"*
+   - **Code làm gì**: `services/shippingProfile/shippingProfileService.js:747` chỉ chạy `autoUpdateShippingRate` khi có sự kiện `updateOnItemsChange`/`updateOnAddressChange`. **Không có đường tính lại ở mỗi kỳ.** → chọn `lowest` nhưng thực tế hành xử y như `initial`
+   - Mục "When to update shipping rate automatically" chỉ hiện khi đã chọn `lowest`, đặt tên là mốc **bổ sung** — merchant không có lý do hiểu rằng bỏ trống 2 ô đó thì rate không bao giờ được tính lại
+   - **Bằng chứng prod**: kookut setting `{recurringOption:'lowest', updateOnItemsChange:true, updateOnAddressChange:true}`. Contract `154109116797` (CHF, Neuchâtel) rate *"Standard - SwissPost Economy - **Première livraison offerte**"* → `deliveryPrice 0.0` đóng băng từ checkout, **cả 12 cycle đều 0** (đơn `#10422` cycle 0, `#10799` cycle 1 đã bill, 10 cycle tới đều 0)
+   - **Đối chứng**: contract `153505399165` CÓ bị sửa (đổi shipping option + company name) → `autoUpdateShippingRate` chạy → ra 5.90. Cùng shop, cùng cơ chế, khác kết quả **chỉ vì một cái bị đụng vào**
+   - → Câu trả lời tháng 7 (*"free shipping chỉ áp checkout, không áp recurring — biz của Shopify"*, `p1784714043626069`) **đúng nguyên tắc nhưng dẫn tới kết luận sai**: Shopify không mang ưu đãi sang recurring, nhưng nó **đóng băng con số 0** vào `contract.deliveryPrice`, nên hiệu ứng cuối vẫn là free mãi
+   - **CHƯA KIỂM**: nếu tính lại đúng theo `lowest` thì contract này ra bao nhiêu. Gián tiếp từ tháng 7 cho thấy rate khuyến mãi lần đầu KHÔNG nằm trong danh sách recurring (`lowest` khi đó trả 5.90 chứ không phải 0) → nhiều khả năng sửa bug này là hết khiếu nại. Phải gọi thử `getLowestShippingRate` cho contract đó mới chắc
+   - **✅ ĐÃ KIỂM CHỨNG 13/08 — giả thuyết "lowest cũng ra 0" BỊ BÁC**: gọi thật `getLowestShippingRate` cho `154109116797` → **10 CHF / "Standard - SwissPost Economy"**. Merchant có **2 rate riêng**: bản khuyến mãi *"— Première livraison offerte"* giá 0 và bản thường giá 10. Rate khuyến mãi **không** được chào cho recurring → **cấu hình của merchant hoàn toàn đúng và diễn đạt được**, app chỉ không chạy bước tính lại
+   - **ĐÃ SỬA `154109116797`** (13/08, user duyệt): `deliveryPrice` 0 → **10 CHF**, option đổi từ *"— Première livraison offerte"* sang *"Standard - SwissPost Economy"*. Script: `commands/misc/repairContractShipping.js` (dry-run mặc định)
+   - ⚠️ **Mirror Firestore chưa bắt kịp**: sau khi apply, Shopify đã là 10 (đọc live xác nhận) nhưng doc Firestore vẫn `deliveryPrice: 0.0` — trong khi **tên option thì đã sync**. Tức app UI có thể hiện 0 dù thực thu 10. Chưa rõ là webhook trễ hay `deliveryPrice` không được mirror ở đường đó. **Cần theo dõi**
+   - **📄 AUDIT ĐẦY ĐỦ: `docs/kookut-shipping-audit.md`** — 83 contract ACTIVE: **9 lệch** · 49 khớp · **25 KHÔNG XÁC ĐỊNH** (23 ca Shopify trả *"no shipping rates found"*, 2 ca không phải shipping). Nhóm 25 **không đồng nghĩa "đang đúng"** — trong đó có cả `151147970941` và `147905085821`
+   - **9 contract lệch, HAI CHIỀU**: 7 ca shop mất phí ship (3× 0→10 CHF: `154109116797` đã sửa, `150579708285`, `155222278525`; 4× 0→5.90 EUR: `154185236861`, `155756986749`, `155757019517`, `155757052285`) · **1 ca KHÁCH bị thu dư**: `156384657789` thu 10 nhưng đáng lẽ 5.90 · 1 ca lặt vặt `153490162045` 5.42 vs 5.90
+   - Sửa nhóm "shop mất phí ship" = **khách bắt đầu bị thu thêm tiền ship** từ kỳ tới → cần shop đồng ý + báo khách trước
+   - Script audit: `commands/misc/auditShippingRecurring.js` (chỉ đọc). Cần contract dạng Shopify (`lines`) — truyền doc Firestore (`products`) vào `getLowestShippingRate` sẽ bị skip *"no lines in contract"*, phải lấy qua `getSubscriptionContractByContractId({fullResp:true})`
+
 31. [⏳ 16:05] Ticket `JSUB-260812-WNwa8Q` — kookut: **upcoming order ở Orders tab không hiển thị hết**
+   - **Nguyên nhân đã tìm ra**: BQ procedure `get_upcoming_orders` (`commands/sql/createProceduresV2.sql:243`) có `ROW_NUMBER() OVER (PARTITION BY subscription_contract_id ORDER BY billing_attempt_expected_date ASC) AS rn` rồi `WHERE rn = 1` → **chỉ lấy đơn gần nhất của mỗi contract**
+   - Số thật kookut: **829** đơn UNBILLED tương lai chưa skip · tab hiển thị **83** (đúng bằng số contract) · **ẩn 746**. App sinh sẵn 10 chu kỳ/contract nên 9/10 bị cắt
+   - Count cũng dùng chung CTE (`p_is_count`) nên UI tự nhất quán, không có cảnh "hiện 20 / tổng 829"
+   - Bỏ `rn = 1` là đổi ý nghĩa cả trang (83 → 829 dòng riêng kookut, ~10× dữ liệu + chi phí BQ). Fix nằm ở **BigQuery procedure**, không phải code app → đường deploy khác
+   - **Cần product chốt hướng**: đổi nhãn cho đúng nghĩa hiện tại · thêm filter "xem tất cả chu kỳ" · hay bỏ `rn = 1`
    - Slack: https://avadaio.slack.com/archives/C07URV6QMJ8/p1786524942309849 · ảnh: https://capture.avada.io/i/MnPTd0tBVqJi
    - Cùng shop kookut, cùng ngày với ticket giá `JSUB-260811-TWjnqq`. dantt đã nhận trong thread
 
-30. [ ] **[P1] Phí ship của contract kookut `151147970941` đang là 0 thay vì 10 EUR — bản vá tay tháng 7 KHÔNG giữ được**
+30. [✅ 2026-08-13] ~~Phí ship contract `151147970941` là 0 thay vì 10~~ — **GỘP VÀO #32, cùng một nguyên nhân**
+   - Mở task này lúc chưa biết cơ chế. #32 đã giải thích trọn: `recurringOption: lowest` không tính lại mỗi kỳ → giá ship lúc checkout đóng băng vĩnh viễn với contract không bị sửa
+   - `151147970941` đăng ký với rate free ("Shop2Shop France" 0.0) → đóng băng 0. Con số 7.99 chỉ xuất hiện vì contract bị sửa nên `autoUpdateShippingRate` chạy. Con số 10 là dev set tay tháng 7, chưa từng có hiệu lực
+   - Nội dung điều tra giữ lại bên dưới làm tài liệu; **việc thật nằm ở #32**
    - Phát hiện 12/08 khi trả lời ticket. Đây là **bug KHÁC** với bug giá (khác field, khác luồng), chỉ mới xác định hiện trạng, **CHƯA truy nguyên nhân**
    - Trạng thái thật trên doc: `originDeliveryPrice: "7.99"` (giá sai của bug FX tháng 7, SB-14315) · `newDeliveryPrice: "10"` (CS set tay) · `isCustomDeliveryPrice: true` · **`deliveryPrice: {amount: "0.0"}`** ← giá THỰC TẾ đang áp
    - Cả 4 plan đều `enabledFreeShipping: false`, không plan nào có `discountId` → **không có cơ sở hợp lệ nào cho việc miễn ship**

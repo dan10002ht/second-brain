@@ -13,7 +13,11 @@
        Babel không thấy `.babelrc` của packages/functions khi cwd=root → 34/39 suite fail
        với "Cannot use import statement outside a module", kể cả file không liên quan.
        (verifier xác minh 06/08: grep các suite fail → 0 file nào chạm code đang sửa)
-    cd packages/functions && yarn test               # ĐÚNG: rootDir riêng, 3 suites / 22 tests
+    cd packages/functions && yarn test               # ĐÚNG: rootDir riêng
+       ⚠️ Baseline THAY ĐỔI theo nhánh — đừng chép số cũ vào brief, hãy ĐO LẠI.
+       Cách đo đúng (verifier làm 13/08): `git archive <HEAD trước thay đổi>` ra thư mục tạm
+       rồi chạy tách biệt, KHÔNG đụng worktree đang review.
+       master: 3 suites / 22 tests · feature/payment-reminder trước fix 13/08: 10 suites / 66 tests
     yarn workspace @avada/functions run lint        # eslint src/ — ⚠️ FAIL sẵn 94 errors ở file cũ
        (autoTranslateV2, euCountries, admin.controller, apiV1Auth, behaviorService, admin.service,
         subscription.service, test files). Cách chấm đúng: chạy eslint RIÊNG các file vừa sửa → 0 lỗi.
@@ -139,6 +143,216 @@ không có validate min/numeric. Chi tiết ở task 14.
 > 6 nhánh cũ (`-api`/`-fe`/`-cron`/`-tests`/`-sendtest`/`docs/…`) giữ tạm làm backup, xoá được.
 
 _(trống — thêm task ở đây)_
+
+30. [✅ 2026-08-13] SB-15563 — `[Email] Lỗi điều hướng button View online & Download PDF`
+
+    ## ❌ ĐÓNG — dantt chốt "không phải bug", KHÔNG sửa code
+
+    **Không có commit nào.** Agent đã sửa dở (validate URL ở schema + FE rule + phòng thủ lúc render
+    + test) nhưng **đã hoàn nguyên sạch**, `git status` về đúng nguyên trạng, HEAD vẫn `28dfc99`.
+
+    **Nguyên nhân thật sự:** QA gõ chuỗi test `123###` vào ô **"Button URL"** ở trang Customize email
+    template. Ô đó là tính năng **cố ý** — helpText ghi *"Leave the default to open the invoice link
+    generated for each order"*, tức merchant được phép cho nút trỏ đi nơi khác thay vì link hoá đơn.
+    Nên `ctaHref = t.buttonUrl || invoiceLink` (`buildReminderEmailHtml.js:55`) là **đúng thiết kế**.
+    Gõ vào đó một chuỗi không phải URL ⇒ Gmail redirector không parse được ⇒ văng ra `google.com`.
+
+    **dantt lập luận:** merchant nhập sai thì lỗi ở thao tác của merchant, không phải lỗi app.
+
+    ⚠️ **Tôi đã nêu phản biện và dantt giữ nguyên quyết định** — ghi lại để sau này không ai đi
+    điều tra lại từ đầu:
+    - Ô "Button URL" **không validate** (`paymentReminderSchema.js:31` chỉ `string().max(1000)`,
+      không `.url()`), trong khi ô "Reply email" **cùng form** thì đã validate email
+      (`paymentReminderRule.js`). Lệch chuẩn ngay trong một form.
+    - Merchant dán nhầm (`www.shop.com` thiếu `https://`, thừa khoảng trắng) ⇒ **mọi mail nhắc nợ
+      của shop đó có nút chết, âm thầm**: Save vẫn xanh, preview vẫn hiện nút, chỉ khách bấm mới biết.
+    → Nếu sau này có merchant thật báo lỗi này, đây là chỗ để mở lại, không cần điều tra lại.
+
+    **Còn nguyên, chưa xử:**
+    - Nút **"Download PDF"** trong tiêu đề ticket: tester **chưa kiểm** (dantt xác nhận), nên chưa
+      biết có lỗi hay không. Nút này dùng `downloadLink` riêng (`buildReminderEmailHtml.js:92`),
+      KHÔNG đi qua `buttonUrl` nên không dính cơ chế trên.
+    - Đường payment reminder **không truyền `isDraftOrder`** vào `generateViewOnlineOrDownloadLink`
+      (`wholeSale.service.js:378-386` cron, `:495-503` send test), trong khi automation email cũ có
+      (`mail.service.js:154-174`). Với đơn draft/wholesale link có thể trỏ sai route. **Bug tiềm ẩn
+      thật, chưa ai kiểm chứng bằng chạy thật.**
+
+    QA ngocvtb tạo 13/08 16:12, sub-task thứ 4 của SB-15385. Mô tả **chỉ là video ScreenPal**
+    https://somup.com/cOjIQXVnLc2 ("Recording #51", không có chữ nào).
+
+    🔑 **Mẹo đọc video ScreenPal/somup** (dùng lại được): fetch trang → `og:image` là poster frame
+    (`d1ka0itfguscri.cloudfront.net/.../preview.jpg`), `og:video:url` là player.
+    ⚠️ Máy này **không có ffmpeg** nên chỉ xem được 1 khung poster, không tách được frame giữa video.
+
+    Poster frame cho thấy: mail nhắc nợ nhận trong Gmail (`Invoice #1014 from
+    ag-binh-pdf-staging1-layout-template is due on August 15, 2026`), QA đang bấm nút
+    **"View invoice online 123###"**. Chuỗi `123###` / `123!@#` ở nút và footer là giá trị test
+    QA tự nhập vào theme, không phải bug.
+
+    🔑 **dantt xem lại video và chụp màn hình: bấm nút xong ra thẳng trang chủ `google.com`.**
+    Đây KHÔNG phải trang lỗi của app ⇒ loại bỏ hẳn hướng "thiếu secret → 404/403". Ra Google nghĩa
+    là `href` không phải URL tuyệt đối hợp lệ, Gmail redirector không parse được nên fallback về
+    trang chủ. Bug nằm ở **lúc render HTML mail**, không phải ở route phía server.
+
+    ### Root cause (đọc code, CHƯA qua verifier)
+
+    `packages/functions/src/helpers/email/buildReminderEmailHtml.js:55`:
+    ```js
+    const ctaHref = t.buttonUrl || invoiceLink || '#';
+    ```
+    **`theme.buttonUrl` (giá trị merchant tự gõ) được ưu tiên CAO HƠN `invoiceLink`** (link hoá đơn
+    thật vừa sinh bằng `generateViewOnlineOrDownloadLink`). Hễ `buttonUrl` non-empty là nó đè lên
+    link hoá đơn. `paymentReminderSchema.js:31` chỉ `string().max(1000)`, **không `.url()`**.
+    `defaultData.js:97` default `buttonUrl: ''` (falsy) nên shop bình thường vẫn fallback đúng —
+    bug chỉ lộ khi có giá trị non-empty không phải URL.
+
+    ✅ Nút **Download PDF KHÔNG dính** — `buildReminderEmailHtml.js:92` dùng thẳng `downloadLink`
+    (tham số riêng, `isDownload: true`), không đi qua `buttonUrl`.
+    ✅ Preview FE và mail thật **cùng dùng** `buildReminderEmailHtml` (`ReminderEmailPreview.js:44-56`)
+    nên nếu tái hiện thì preview cũng sai y hệt — không phải ca "preview đúng, mail sai".
+
+    ⏳ **Đang chờ chốt trước khi sửa**: `buttonUrl` là field sản phẩm CỐ Ý cho merchant chỉnh, hay là
+    field chết? Nếu FE không có input nào cho nó thì `t.buttonUrl || invoiceLink` là **sai từ thiết
+    kế** (nút "View invoice online" phải LUÔN trỏ hoá đơn), và thêm `.url()` vào schema là vá sai chỗ.
+
+    📌 **Bug tiềm ẩn tìm được khi điều tra, KHÁC nguyên nhân trên, chưa sửa:**
+    Đường payment reminder **không truyền `isDraftOrder`** vào `generateViewOnlineOrDownloadLink`
+    (`wholeSale.service.js:378-386` cron và `:495-503` send test), trong khi đường automation email cũ
+    có truyền (`mail.service.js:154-174`). Với đơn draft/wholesale thì link sinh ra có thể trỏ sai
+    route. Không phải nguyên nhân của video này (nếu sai route thì trình duyệt tới domain app rồi mới
+    lỗi, chứ không văng ra google.com).
+
+27. [✅ 2026-08-13] SB-15496 — sửa `[Customize email template] Thiếu ô import logo`
+
+    - nhánh `feature/payment-reminder` · commit `5ef1dcd` (**chưa push, chưa MR**)
+    - 🔑 **Root cause thật khác hẳn giả thuyết ban đầu**: `packages/assets/src/styles/_template.scss`
+      có rule global **không scope** `.Polaris-DropZone { display: none !important; ... }`, viết cho
+      widget logo cũ (`UploadLogo.js`/`TemplatePage.js`/`Settings.js`, đều bọc trong
+      `.Polaris-UpdateTemplate-DropZone`) nhưng ẩn **mọi DropZone toàn app**, kể cả cái mới ở
+      `LogoSection`. Đúng khớp ảnh QA: mất cả khung dashed lẫn thumbnail, chỉ còn dấu X.
+      Giả thuyết "logoImage luôn truthy" chỉ là lớp phủ bên trên, không phải nguyên nhân.
+    - Sửa: scope rule về `.Polaris-UpdateTemplate-DropZone .Polaris-DropZone` · nối `onDrop`
+      (đang là no-op) vào helper sẵn có `@assets/helpers/handle/uploadLogo` với `isSaveLogo: false` ·
+      thêm trạng thái uploading/lỗi · `uploadLogo.js` set loading sớm hơn + toast khi lỗi.
+    - ⚠️ Verifier riêng của agent bắt được lỗi vòng 1: chỉ sửa i18n file nguồn mà quên
+      `locale/translations/{en,origin}.json` là file runtime thật → `MissingTranslationError` làm
+      crash LogoSection lúc upload. Đã sửa cả 3 file.
+    - Verify (verifier độc lập, `PASS`): `packages/functions && yarn test` exit 0 (11 suites/74 tests) ·
+      `@avada/functions run production` exit 0 (422 files) · `@avada/assets run production` exit 0
+      (2 vite build) · eslint riêng từng file sửa → 0 lỗi · grep hết 4 chỗ dùng `DropZone`, xác nhận
+      3 chỗ cũ vẫn bọc đúng wrapper nên **không regression** · gọi thật `translate()` của
+      `@shopify/react-i18n` với `en.json` cho mọi key → OK.
+    - ⚠️ Chưa xác minh: chưa mở browser xem UI thật, chỉ đọc JSX + CSS selector.
+
+    **Mô tả gốc lúc nhận task:**
+
+    dantt chốt scope 13/08: **fix 3 subtask Jira của SB-15385**, chung nhánh `feature/payment-reminder`.
+
+    🔑 **Đọc được ảnh QA rồi** (capture.avada.io là SPA, ảnh thật nằm ở `og:image` →
+    `https://d2798l25hiaz3h.cloudfront.net/<id>.webp` — mẹo này dùng lại được cho mọi ticket sau).
+    ⇒ **Đính chính kết luận verifier hôm nay**: mockup KHÔNG ẩn ô import. Ảnh Expected
+    (`tHvEuspFgfKS`, mockup bot sinh 12/08) hiện **khung dashed DropZone luôn hiển thị, logo nằm
+    BÊN TRONG khung**, dấu X ở góc trên phải khung, dưới là slider Logo size (60px).
+    Ảnh Actual (`eV3pkPUXYKL1`): **mất hẳn khung dashed**, chỉ còn dấu X trơ + slider (129px),
+    không thấy cả thumbnail.
+    ⇒ Hướng sửa: render logo bên trong DropZone như mockup, giữ vùng thả file luôn hiện.
+
+28. [✅ 2026-08-13] SB-15554 — `[Setting email] Chưa lấy được custom sender email`
+
+    - nhánh `feature/payment-reminder` · commit `9bb31de` (**đã push, chưa MR**)
+    - ✅ **Chỉ sai ở UI, mail thật vẫn gửi đúng.** Cả cron (`wholeSale.service.js:435-437`) lẫn
+      Send test đều **không set `options.from`**, nên `MailService.sendMail` tự resolve qua
+      `getSenderFrom(shop, emailNotification)`. Merchant chỉ bị hiểu lầm khi nhìn màn hình.
+    - Root cause: `GeneralSection.js:16` hardcode
+      `const DEFAULT_SENDER = 'AVADA PDF Invoice <noreply@avada.io>'`, trang không hề fetch email settings.
+    - Sửa: `paymentReminder.controller.js:33-39` trả thêm `senderFrom`, resolve bằng **chính**
+      `getSenderFrom(shop, emailNotification)` với `emailNotification` từ
+      `emailNotificationRepository.getLatestForShop(shop)` — **cùng hàm, cùng nguồn dữ liệu** với lúc
+      gửi thật (`mail.service.js:43-44`) nên hiển thị không thể lệch khỏi thực tế. FE chỉ hiển thị,
+      **không** nhân bản logic custom-vs-default.
+    - ⚠️ Vòng 1 bị verifier trả **FAIL**: key `PaymentReminderSettings.from.loading` chỉ có ở file
+      nguồn, thiếu ở `locale/translations/{en,origin}.json` → field From hiện **rỗng** thay vì
+      "Loading…" (`App.js:64` để `onError` không throw nên lỗi bị nuốt im lặng). **Bẫy i18n tái phát
+      lần thứ 4.** Vòng 2 đã thêm vào cả 3 file.
+    - Verify (verifier độc lập, `PASS`): gọi thật class `I18n` của `@shopify/react-i18n@7.14.0` với
+      `en.json` + `origin.json` thật, dịch **32 key** tự grep độc lập → **0/32 missing** ·
+      `packages/functions && yarn test` exit 0 (12 suites/76 tests) · `@avada/functions run production`
+      exit 0 · `@avada/assets run production` exit 0 (2 vite build) · eslint riêng → 0 lỗi.
+    - ⚠️ Khoảng trống coverage: nhánh Tier-2 "custom SMTP" của `getSenderFrom.js:34-37` chưa có test.
+
+29. [✅ 2026-08-13] SB-15545 — sửa `[Overdue reminder] Lỗi cứ 1h lại gửi mail 1 lần`
+
+    - nhánh `feature/payment-reminder` · commit `28dfc99` (**đã push, chưa MR**)
+    - Sửa: `createOrUpdateOrder` bọc `firestore.runTransaction` theo đúng pattern `claimAemInvoice`
+      (`orderRepository.js:46-48`) và siết query tồn tại từ chỉ `orderId` → `orderId + shopId` cho
+      khớp `updateOrder` · `updateOrder` **throw** thay vì im lặng trả `undefined` khi 0 doc khớp.
+    - ⚠️ Vòng 1 bị verifier trả **FAIL**: sót call site `updateOrder` ở `#processExpiredOrder`
+      không có `.catch`. Vì `updateOrder` giờ throw, một order lỗi → reject `Promise.all` →
+      `updateDiscountEarlyForOrder()` throw → `handleOrderDaily.js:8-11` reject →
+      **`sendPaymentReminders()` không chạy cho TOÀN BỘ shop lượt đó**. Fix bug lại đẻ ra bug rộng hơn.
+    - Vòng 2 đổi **thiết kế** thay vì vá một dòng: gom thành helper dùng chung
+      `#updateOrderInBatch` (`wholeSale.service.js:168-176`), **cả 5** call site trong batch cron đi
+      qua nó (`updatePaymentTerm`, `#sendDueReminderForOrder`, `#markDueReminderSkipped`,
+      `#sendOverdueReminderForOrder`, `#processExpiredOrder`); 3 chỗ đơn lẻ
+      (`updateOrderById:64`, `updateOrderDiscountById:622`, `webhook.service.js:115`) vẫn throw —
+      đúng, vì Shopify tự retry webhook. Helper log đủ `context` + `orderId` + `shopId` + stack.
+      ⇒ Audit sau này chỉ còn một lệnh grep.
+    - Test mới: `wholesaleOrdersDuplicateGuard.test.js` (fake Firestore có `runTransaction`
+      mutex-serialized + `.get()` async thật, mô phỏng race thật chứ không mock trả sẵn kết quả đẹp) ·
+      `updateDiscountEarlyForOrderBatchResilience.test.js` (import `handleOrderDaily` **thật**, chỉ
+      mock tầng repository/shopify/mail).
+    - Verify (verifier độc lập, `PASS`): tự gỡ fix ra → **4 test đỏ đúng như mong đợi**, khôi phục →
+      xanh, MD5 khớp, `git status` về nguyên trạng · `yarn test` exit 0 (12 suites/76 tests, baseline
+      10/66) · 2 build exit 0 · eslint riêng → 0 lỗi · tự grep lại toàn repo, xác nhận không còn sót
+      call site nào trong batch.
+
+    ⚠️ **CÒN LẠI — fix chỉ chặn doc trùng MỚI.** Doc trùng đã tồn tại vẫn kẹt (mỗi tick chỉ vá được
+    1 trong 2). Chưa viết script dọn. dantt chạy query kiểm trước (xem task 26).
+
+    📌 Verifier tìm thêm 2 chỗ **cùng cơ chế lỗi, pre-existing, chưa sửa**:
+    - `wholeSale.service.js:207-214` — `sendPaymentReminders()` lặp shop không try/catch → 1 shop lỗi
+      chặn các shop còn lại. Cùng dạng lỗi vừa vá ở cấp order, chưa vá ở cấp shop.
+    - `wholeSale.service.js:711-736` — trong `#processExpiredOrder`, `#removeLineItemsDiscount` và
+      `MailService.sendWithDiscount` vẫn ném thẳng, các `await` trước đó cũng không bọc → vẫn có thể
+      chặn `sendPaymentReminders()` toàn shop.
+
+    **Mô tả gốc task 28 (SB-15554) lúc nhận:**
+
+    QA ngocvtb tạo 13/08 14:46. Ảnh `6H9GnW5av3vf`: trang Payment due reminder → card General →
+    field **From** disabled hiện `AVADA PDF Invoice <noreply@avada.io>`, dưới là
+    "Go back to Email settings to change sender email". QA khoanh đỏ + ghi
+    *"sai trường hợp dùng custom sender email"* ⇒ shop đã cấu hình custom sender email thì From
+    phải hiện email đó, không phải default của Avada.
+
+    **Mô tả gốc task 29 (SB-15545) lúc nhận:**
+
+    Root cause đã điều tra + verify ở task 26 (xem mục dưới task đó). Tóm tắt: race
+    `createOrUpdateOrder` (`wholesaleOrdersRepository.js:35-43`, check-then-act không transaction)
+    ⇒ 2 doc trùng ⇒ `updateOrder` `.limit(1)` chỉ vá 1 doc, doc kia mãi `count: 0`.
+
+    🔑 **Ảnh setting của QA (`iAIWBdpJMIBp`) loại trừ giả thuyết `resendDays=0`**:
+    `Days after the overdue date = 1`, `Send again after = 1`. Với `resendDays=1` thì
+    `getDiffDays(lastOverdueReminderAt) >= 1` phải false trong cùng ngày ⇒ step 2 không thể bắn
+    hàng giờ. Lặp mỗi giờ ⇒ `overdueReminderCount` **đứng yên ở 0** ⇒ cờ không được ghi.
+    Củng cố đúng root cause doc trùng.
+
+    ### 📌 Finding NGOÀI SCOPE — cùng pattern check-then-act, CHƯA sửa (chờ dantt quyết)
+
+    Agent sửa task 29 đã quét toàn repo theo yêu cầu "sửa lỗi là quét hết chỗ tương tự".
+    7 repository khác cũng `.where(...).get()` rồi `.add()` **không transaction**, y hệt bug
+    `createOrUpdateOrder`. Nằm ngoài luồng wholesale order nên **cố ý không đụng** (giữ diff surgical):
+
+    - `src/repositories/integrationRepository.js:31-44` (`updateOrCreateIntegration`)
+    - `src/repositories/emailNotificationRepository.js:41-56` (`updateOrCreate`)
+    - `src/repositories/settingsRepository.js:67-90` (`updateOrCreateSettings`)
+    - `src/repositories/translationRepository.js:32-43` (`updateOrCreateTranslation`)
+    - `src/repositories/bulkOperationRepository.js:39-44` (create-or-update theo `shopId`)
+    - `src/repositories/deliveryRepository.js:123-150` (`updateOrCreateDelivery`)
+    - `src/repositories/templateRepository.js:225-248` (`updateOrCreateTemplate`)
+
+    ⚠️ Fix của task 29 chỉ **chặn tạo doc trùng MỚI**. Doc trùng **đã tồn tại** thì vẫn kẹt
+    (mỗi tick chỉ vá được 1 trong 2). Chưa viết script dọn — dantt quyết có cần không sau khi
+    chạy query kiểm Firestore.
 
 25. [✅ 2026-08-12] Tôi muốn bạn check ON_PREMISE_GITLAB_TOKEN ở .env.local và tạo giúp tôi 2 staging mới là staging 3 và staging 4 được ko?
 
@@ -360,3 +574,126 @@ _(trống — thêm task ở đây)_
 
     💡 Gotcha hạ tầng: `git.avada.net` đứng sau Cloudflare, **chặn user-agent của `urllib`**
     (`403 error code: 1010`). Gọi API bằng `curl`, đừng dùng `urllib.request` của Python.
+
+26. [✅ 2026-08-13] feature ở nhánh feature/payment-reminder check bug giúp t nhé https://space.avada.net/browse/SB-15385
+
+    - dantt làm rõ: **bug nằm ở các sub-task của SB-15385**, không phải bug hunt tự do.
+      SB-15385 đang ở trạng thái `Test Staging`, QA `ngocvtb` mở 2 sub-task:
+      - **SB-15496** (12/08) `[Customize email template] Thiếu ô import logo` — trang thiếu ô
+        upload logo so với mockup. Ảnh actual/expected trên `capture.avada.io` (cần đăng nhập).
+      - **SB-15545** (13/08) `[Overdue reminder] Lỗi cứ 1h lại gửi mail 1 lần` — cron là
+        `0 * * * *` nên "mỗi 1h" = **mọi lượt cron đều gửi lại cùng một đơn** ⇒ chặn trùng
+        nhánh overdue không ăn.
+
+    ### ✅ SB-15496 — root cause (verifier `PASS`, chứng minh bằng code, chưa sửa)
+
+    Ô import logo **không bao giờ hiện** vì `LogoSection.js:32` render `DropZone.FileUpload`
+    (`:43-45`) CHỈ khi `logoImage` falsy, mà `theme.logoImage` không bao giờ falsy:
+    - state FE khởi tạo `= defaultPaymentReminder.theme` (`CustomizeEmailTemplate.js:36`),
+      giá trị `DEFAULT_LOGO` (`packages/functions/src/constants/defaultData.js:11-12,85`)
+    - FE import thẳng file của package functions qua alias `@functions`
+      (`packages/assets/vite.config.js:220`) — **không** qua API
+    - BE cũng merge cùng default đó trong `GET /payment-reminders`
+      (`paymentReminderRepository.js:29-40`) cho mọi shop chưa từng lưu logo riêng
+    ⇒ Ô import chỉ lộ ra sau khi bấm nút xoá logo (`LogoSection.js:54` set `logoImage: ''`).
+
+    🔴 Và kể cả lúc đó cũng vô dụng: `onDrop={() => {}}` (`LogoSection.js:31`) là **no-op**,
+    kéo/chọn file không upload gì. Comment sẵn ở `LogoSection.js:21-22`:
+    *"Known issue, intentionally not fixed as part of this cleanup"*.
+
+    ⚠️ **KHÔNG phải lệch mockup** — verifier đối chiếu
+    `product-team/marketing/product/mockup-app/src/mockups/automation-email/customize-email-template.jsx:108-118`:
+    mockup dùng **y hệt** điều kiện đó và `DEFAULT_EMAIL_THEME.logoImage` cũng là URL luôn truthy.
+    Nên đây là **hạn chế thiết kế kế thừa từ mockup**, không phải regression khi implement.
+    ⇒ Cách sửa là quyết định sản phẩm (thêm nút "Change logo" cạnh thumbnail + implement upload
+    thật), không phải "sửa cho khớp mockup". Chưa đối chiếu được Figma gốc.
+
+    ### ✅ SB-15545 — root cause (verifier `PASS`, chưa sửa; còn 1 việc cần dantt tự kiểm)
+
+    **Không phải bug của code payment reminder mới — là bug cũ ở tầng webhook, nay mới lộ ra.**
+
+    `createOrUpdateOrder` (`wholesaleOrdersRepository.js:35-43`) là **check-then-act không
+    transaction**: query `where('orderId','==',...).limit(1)` rồi mới `.add()`. Gọi thẳng từ
+    webhook `orders/updated` (`webhook.service.js:28-32`, route `webhook.route.js:18-22`),
+    **không có dedup theo webhook id** ở tầng route/middleware.
+
+    🔑 Bằng chứng mạnh nhất nằm ngay trong repo: `orderRepository.js:46-48` đã vá **đúng race
+    này** bằng `runTransaction`, kèm comment của chính codebase:
+    *"Uses a transaction so that a burst (Shopify firing duplicate orders/updated within a
+    second) has exactly one winner."* ⇒ Shopify bắn trùng webhook trong 1 giây là chuyện **đã
+    được xác nhận**, chỉ là `wholesaleOrdersRepository` chưa được vá tương tự.
+
+    **Chuỗi dẫn tới "gửi mail mỗi 1h":**
+    1. 2 webhook gần đồng thời → cả hai đọc `size === 0` → tạo **2 doc trùng** `orderId+shopId`,
+       cả hai `overdueReminderCount: 0` / `isSendDueReminder: false` (`repo:41-42`)
+    2. `getOrdersForOverdueReminder` không `.limit` → trả về **cả hai** doc làm candidate
+    3. `updateOrder` (`repo:51-59`) có `.limit(1)` → mọi lần gọi đều resolve về **cùng một** doc
+       thắng cuộc; doc còn lại **vĩnh viễn không được chạm tới**, mãi `count: 0`
+    4. Mọi tick cron `0 * * * *` lại chọn đúng doc đó → gửi lại → **lặp vô hạn mỗi giờ**
+
+    **Đã loại trừ dứt điểm (đừng đi lại các hướng này):**
+    - `#sendReminderMail` trả về falsy khi thành công → **SAI**. `wholeSale.service.js:399` là
+      literal `return true`; mọi nhánh thoát sớm trả `false` (`:303, :309, :330`). Giá trị trả về
+      của `MailService.sendMail` không hề được dùng làm `sent`.
+    - Lệch kiểu `orderId` (số vs chuỗi) → **SAI**. Cả 4 đường ghi đều qua `formatOrder`
+      (`formatOrder.js:112` → `getGraphqlId.js:5` `.split('/').pop()`) nên luôn là string.
+    - `overdueReminderCount` ghi dạng string → **SAI**. 3 nơi ghi đều number literal
+      (`wholeSale.service.js:284`, `repo:40`, `backfillReminderFields.js:49`).
+    - Collision xuyên shop do `shopId` rỗng → **SAI**. `formatOrder.js:128` luôn ghi `shop.id`.
+
+    🔴 **Test không guard được tầng này** (verifier tự đọc, không tin lời agent):
+    `__tests__/wholeSale/sendPaymentReminders.test.js:306-347` mock `updateOrder` bằng
+    `Object.assign` lên **một** object JS duy nhất → không mô phỏng nổi khái niệm "2 document,
+    `.limit(1)` chỉ vá được 1". `wholesaleOrdersRepository.test.js:42-83` chỉ test câu query,
+    không có test nào cho `createOrUpdateOrder`/`updateOrder`/kịch bản trùng doc.
+
+    ⚠️ **CÒN LẠI — cơ chế đã chứng minh bằng code, nhưng chưa xác nhận nó ĐÃ xảy ra thật.**
+    dantt chạy giúp trên project đúng (kiểm `gcloud config get-value project` trước):
+    ```
+    db.collection('wholesaleOrders').where('orderId','==','<orderId bị lặp mail>').get()
+    ```
+    - `>1 doc` cùng `shopId` → xác nhận đúng root cause; xem doc nào kẹt ở `count: 0`
+    - đúng `1 doc` → giả thuyết sai, phải điều tra lại; lúc đó kiểm thêm `resendDays` đã lưu
+      trong `paymentReminders` của shop đó (xem bug 🟡 ngay dưới)
+
+    ### Bug phụ tìm được khi soi SB-15545 (chưa sửa, chắc chắn bằng code)
+
+    - 🟡 **`resendDays`/`timingDays` không validate số** (`paymentReminderSchema.js:10-11` chỉ
+      `string().max(10)`). `Number(config.resendDays || 0)` → để rỗng hoặc `0` thì step 1 và
+      step 2 chạy liên tiếp **trong cùng một tick** (`wholeSale.service.js:253-266`,
+      `getDiffDays(vừa-ghi)=0 >= 0` luôn đúng) ⇒ 2 mail liền. `'abc'` → `NaN` ⇒ **không bao giờ
+      gửi, im lặng**. Số âm → `setDate(... - (-5))` cộng ngày thay vì trừ.
+    - 🟡 **`updateOrder` (`repo:51-59`) không log/throw khi 0 doc khớp**, caller
+      (`wholeSale.service.js:278-287`) cũng không kiểm kết quả → mail đã gửi mà cờ không ghi thì
+      im lặng hoàn toàn. Không phải nguyên nhân trực tiếp ở đây nhưng cùng họ rủi ro.
+    - 🟡 **`sendPaymentReminders()` lặp shop không try/catch** (`wholeSale.service.js:177-180`) →
+      1 shop lỗi là dừng cả cron, các shop sau không được xử lý lượt đó.
+    - 🟡 **`Promise.all(batch.map(...))`** (`wholeSale.service.js:228-231`, `270-274`) → 1 đơn lỗi
+      làm reject cả batch; riêng nhánh due, `skipJobs` (`:232`) không bao giờ được await.
+
+    ### Bug tìm thêm ở tầng API/email (reviewer riêng, CHƯA qua verifier)
+
+    - 🔴 **Theme fields không escape khi nối vào HTML email**
+      (`buildReminderEmailHtml.js:55, 61-63, 78-137`): `buttonUrl`, `buttonText`, `logoImage`,
+      `logoSize`, `footerDescription`, các mã màu, `attachmentName`, `customCss` nối thẳng vào
+      `href=`/`style=`/`bgcolor=`/`<style>`. Schema chỉ giới hạn độ dài, không kiểm định dạng.
+      ⇒ merchant lưu `logoSize = '40"><img src=x onerror=...>'` là payload đi vào **mọi mail gửi
+      cho khách thật**. Repo đã có convention ngược lại: `customEmail.controller.js:2,12` và
+      `emailNotification.service.js:22,288` đều dùng `escape` của lodash — file mới không theo.
+    - 🟡 `replyEmail` thiếu `.email()` (`paymentReminderSchema.js:15`) trong khi
+      `paymentReminderTestSchema.js:9` có — mà `replyEmail` mới là cái dùng cho **mọi** lần gửi
+      thật (`wholeSale.service.js:279`).
+    - 🟡 Tiền không format theo locale shop (`renderReminderMergeTags.js:47-50` không truyền
+      `locale`, `getCurrencyFormat.js:8` mặc định `'en-VN'`).
+    - 🔵 "Send test" không truyền `timezone` trong khi cron thật có → ngày trong mail test lệch
+      1 ngày quanh nửa đêm.
+    - Đã kiểm, **không** phải bug: tenant isolation OK (`getShop(ctx)` từ session +
+      `assertShopWholesale` ở cả 3 action) · merge tag dùng LiquidJS nên không có chuyện thiếu
+      cờ `g` hay in `undefined`.
+
+    ⚠️ **Reviewer frontend bịa 3 trích dẫn file:line** (`GeneralSection.js:1092` — file thật 117
+    dòng · `Emails.js:1055` — 789 dòng · `DaysNumberField.js:1015-1024` — 27 dòng; `grep logoImage`
+    cả 3 file = 0 match). Nên các finding phụ của nó **chưa được kiểm chứng**, đừng tin ngay:
+    link "Email settings" trỏ `?tab=email_settings` mà `Emails.js` không đọc query param ·
+    `paymentReminderRule.js` không validate `timingDays`/`resendDays` · plan gate chỉ khoá Toggle
+    chứ không khoá các field còn lại khi shop không phải Wholesale.

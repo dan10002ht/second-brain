@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-12 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-12: 3 digest + 1 shipped + 2 decision + 2 resource + 1 feedback)_
+_Cập nhật: 2026-08-13 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 11 item ngày 08-13: 3 digest + 2 shipped + 4 decision + 1 resource + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -57,6 +57,7 @@ _Cập nhật: 2026-08-12 · Trạng thái: đã seed 12 project + notes học t
 - [[chan-agent-bang-cau-hinh]] — dặn agent "chỉ đọc, đừng ghi vào DB dev" là một lời nhắc chứ không phải rào chắn — rào chắn là để default trỏ vào tài nguyên KHÔNG tồn tại, sao cho làm sai thì test skip/lỗi ồn ào thay vì ghi vào hệ thống thật.
 - [[mcp-auth-apikey-vs-oauth]] — MCP có Authorization spec chuẩn (OAuth 2.1 + RFC 9728) nên implement một lần là mọi client tuân spec dùng được — không có nhánh `if (client === 'claude')`; còn dùng nội bộ một người một máy thì API key qua header là đủ, dựng authorization server chỉ để tự login vào server của mình là thừa.
 - [[koa-yup-validator-yup029]] — middleware validate không chỉ kiểm tra mà còn GHI ĐÈ `ctx.request.body` bằng giá trị yup đã cast; với yup 0.29 điều đó sinh nested object toàn `undefined` (hỏng ồn ào 422 hoặc hỏng im lặng 200-mà-không-ghi) và `stripUnknown` âm thầm vứt field mới.
+- [[gate-quet-ma-nguon-bang-ast]] — một gate kiểu "không được log thứ này" viết bằng regex sẽ luôn còn khe (comment, xuống dòng, alias, camelCase) và dễ bị tự-allowlist; dựng trên AST thì cú pháp hết là biến số.
 
 **Học tập:**
 - `learns/rust/`
@@ -170,6 +171,11 @@ _Cập nhật: 2026-08-12 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-12]] — CHỈ phần mới của dòng core riêng: `joysub.3` vá 7 gap so với `alpha.12`, hai biến env là hai quyết định khác nhau (`SHOPIFY_EXPIRING_OFFLINE_TOKEN` vs `SHOPIFY_AUTO_MIGRATE_OFFLINE_TOKEN`), chuyển sang mặc định bật nên biến CI thành thừa, và slot staging bị neo theo `STAGING_BRANCH` trong `.gitlab/ci/staging.yml`. ⚠️ có mục chưa xác minh (parse cờ `=TRUE`/`=1` đang **tắt** cờ).
 - [[digest-pdf-2026-08-12]] — root cause "shop không bao giờ được tạo" ở project Firebase mới là Firebase Authentication chưa bật (app vẫn tưởng đã install vì `checkIfActiveShop` chỉ nhìn `shopifySession`), cộng chuỗi gotcha provision staging 3/4 (service agent Gen2, UBLA, token Partner theo org) và chẩn đoán "store chưa nhận reminder" hoá ra là store không có đơn B2B nào.
 - [[digest-ticket-mcrsv-2026-08-12]] — load test bắn từ một máy = một IP nên rate limiter global 100 req/15 phút của gateway quyết định luôn con số baseline; cộng chuỗi bug thật (gRPC version skew 1.60 vs 1.63, self-grant admin, whitelist retry sai case, port bịa 50070) và kỷ luật xử lý agent tự khai vi phạm.
+- [[shipped-pdf-2026-08-13]] — commit landed 08-12 — master nhận 5 MR trong một ngày (4 tag `v3.1.75`→`v3.1.78`): trọn chuỗi wholesale template SB-15436/SB-15444 (heading trong khổ giấy, 12 Content setting trước đây bấm không ra gì, extra info xuống dưới Total, footer in một lần), rollout Joy cross-app promo 70%→90%, và 2 slot deploy mới staging 3/4; trên nhánh: Sidekick tool `list_invoice_templates` + intent mở thẳng editor (SB-15503); không revert.
+- [[digest-pdf-2026-08-13]] — root cause "không thấy ô upload logo" là một rule CSS global chứ không phải default logo (giả thuyết cũ đã được verifier PASS nhầm); sender email sai vì FE hardcode chuỗi mặc định; chi phí verify tăng tuyến tính theo số bug.
+- [[shipped-subscriptions-2026-08-13]] — commit landed 08-12 — master nhận 3 MR / 2 tag: Volume Bundle native quantity-break SB-13947 cuối cùng cũng merge sau ~1 tháng (`v2.34.64`, `[deploy-extensions]`), và hai fix cùng một họ "ghi giá vào đúng dòng đã tính giá" (price sync `v2.34.65` + bulk swap); trên nhánh: đường token refresh-aware bật mặc định + fix parse cờ đóng đúng mục treo của digest 08-12; không revert, không migration.
+- [[digest-subscriptions-2026-08-13]] — bug lệch index khi bulk-swap làm 19/26.338 contract ACTIVE thu sai tiền thật; mirror Firestore lệch Shopify nên audit đọc sai; spike cost $3→$4 là burst traffic 1 ngày, tăng maxInstances chỉ làm đắt thêm.
+- [[digest-ticket-mcrsv-2026-08-13]] — một loạt tính năng chưa bao giờ chạy được (capture payment sai ID, check-in gọi RPC chưa implement, migration chưa từng áp), 11+ route IDOR, và CI của 2 service Node chưa từng chạy vì gitignore mọi lockfile.
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
@@ -198,6 +204,10 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-11-bo-feature-flag-payment-reminder]] — PDF Invoice bỏ biến env gate việc gửi payment reminder vì nó không được set ở đâu trong repo (chỉ ở CI variable + máy local) nên prod sẽ im lặng không gửi, trong khi merchant đã có công tắc opt-in riêng (review 2026-11-11).
 - [[2026-08-11-ban-do-tai-k3d-k6]] — `ticket-mcrsv` dựng "bàn đo" thật trên máy (k3d 3 node + Prometheus + k6, Kafka KRaft) trong ngân sách Docker 12GB thay vì mô phỏng AWS bằng LocalStack hay lên cloud (review 2026-11-11).
 - [[2026-08-12-mcp-settings-allowlist]] — Joy Subscription bỏ cách "forward cả settings doc trừ 3 key" cho MCP `get_settings` — nay chỉ 6 group được pass-through và `emailNotifications` có allowlist riêng theo field, vì cách cũ đang đẩy host/port/username SMTP (plaintext) và password (ciphertext AES) sang một LLM bên thứ ba. ⚠️ CHƯA MERGE — mới ở nhánh (review 2026-11-12).
+- [[2026-08-13-wholesale-table-chi-chua-item-grid]] — PDF Invoice đảo hướng trình bày wholesale: mọi khối không phải lưới hàng (banner Total, order tag, extra information, footer) rời khỏi `<table>` thành sibling block-level, và footer bỏ `<tfoot>` — chấp nhận mất tính năng "lặp footer mỗi trang" mà bản gốc Word cố ý có (review 2026-11-13).
+- [[2026-08-13-khong-validate-button-url-pdf]] — đóng SB-15563 không sửa — nút CTA dẫn ra ngoài là do merchant/tester tự gõ chuỗi không phải URL vào ô Button URL, không phải lỗi app (review 2026-11-13).
+- [[2026-08-13-tach-gate-khoi-cham-tung-bug]] — khi một task sửa nhiều bug, chạy gate MỘT lần cho cả cụm rồi để mỗi verifier chỉ chấm phần bug của mình, thay vì mỗi verifier chạy lại nguyên gate (review 2026-11-13).
+- [[2026-08-13-commit-lockfile-ticket-mcrsv]] — bỏ dòng gitignore mọi lockfile, commit lockfile thật của từng service Node và đổi CI từ `npm ci` sang `yarn install --immutable`; lint tạm thời chưa chặn để CI không đỏ vĩnh viễn (review 2026-11-13).
 - [[2026-08-12-va-triet-de-saga-ticket]] — `ticket-mcrsv` cho phép sửa business logic trong vùng Spec #1 tuyên bố off-limits — vá `LazyStringArrayList`→Hibernate và hoàn thiện reservation ở ticket-service theo hướng đúng nghiệp vụ (partial unique index thay unique toàn cục), thay vì vá tối thiểu để đo hay đẩy G0 xuống sau F1 (review 2026-11-12).
 
 ## 💬 Feedback (feedback/)
@@ -214,6 +224,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-feature-moi-mac-dinh-opt-in]] — default của một feature mới là `enabled: false`; khách cũ không bao giờ được tự nhiên bật một hành vi gửi mail ra ngoài mà họ chưa đồng ý.
 - [[feedback-dung-loop-khi-rong]] — khi `/loop` hoặc `/looptasks` báo "không thay đổi" khoảng 15 lượt liên tiếp thì tự huỷ cron và tổng kết, thay vì tiếp tục fire vô hạn chờ user quay lại.
 - [[feedback-git-guard-chi-chan-master]] — hook chặn `git push` của repo được nới lại: chỉ chặn khi đích là `master`/`main`, còn push nhánh feature thì agent làm thẳng, không phải nhờ người dán lệnh.
+- [[feedback-khong-khep-viec-khi-con-khe-ho]] — khi còn một lỗ đã biết, không được đề xuất đóng task bằng lý lẽ "đủ tốt rồi" — làm chuẩn để dự án là một standard, không làm ít cho xong.
 
 ## 📦 Sources (sources/) — nguồn thô immutable
 
