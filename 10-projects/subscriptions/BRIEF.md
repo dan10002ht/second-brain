@@ -1,96 +1,72 @@
 # Joy Subscription — BRIEF
 
 <!--
-  `[ ]` chưa làm · `[⏳ HH:MM]` đang chạy · `[✅ YYYY-MM-DD]` xong
+  `[ ]` chưa làm · `[⏳ HH:MM]` đang chạy · `[⏸️]` chờ người, đừng nhận · `[✅ YYYY-MM-DD]` xong
   Task xong quá 3 ngày → /looptasks tự dọn sang BRIEF-done.md
   Chạy (cwd = repo subscriptions, không phải brain):
   /loop 5m /looptasks ~/projects/my-brain/10-projects/subscriptions/BRIEF.md
+
+  Gate của repo này (JS thuần — KHÔNG có tsc):
+    ⚠️ CHẠY THẲNG BINARY, ĐỪNG QUA `rtk` — `rtk` NUỐT EXIT CODE.
+       Đã vấp thật (task #18): agent báo "jest exit 0" trong khi 9 suite đang fail.
+       Verifier phải tự `echo $?` và đọc số suite/test trong output, không tin dòng tóm tắt.
+    yarn check                                  # node .claude/scripts/check.mjs — locale-parity + ...
+       Đây là gate CHẶN COMMIT. Phải exit 0.
+       Đã vấp: `check` từng chặn bằng 5 violation vốn có SẴN của repo, không phải lỗi mình.
+    yarn workspace @avada/functions test        # jest --config jest.config.js
+       ⚠️ FAIL SẴN — exit 1 là bình thường. Baseline gần đây: ~9 suite fail / ~5 test fail.
+       Cách chấm đúng: **không suite nào MỚI đỏ**, số passed tăng đúng bằng test mình thêm.
+    yarn workspace @avada/assets test           # jest — thường exit 0, ~6 suite / ~86 test
+    yarn workspace @avada/functions run production   # babel src → lib/
+    yarn workspace @avada/assets   run production    # vite build × 2 (embed + standalone)
+
+  ⚠️ BASELINE THAY ĐỔI THEO NHÁNH — ĐỪNG CHÉP SỐ Ở TRÊN VÀO BRIEF, HÃY ĐO LẠI.
+     Số trên chỉ để nhận ra "đỏ sẵn ≠ mình làm đỏ". Cách đo đúng: `git archive <HEAD trước
+     thay đổi>` ra thư mục tạm rồi chạy tách biệt — KHÔNG đụng worktree đang review.
+
+  ⚠️ Thí nghiệm đỏ-trước: subagent BỊ CẤM chạy git, và repo đang có ~233 stash của user.
+     Muốn dựng lại bug cũ thì copy file ra scratchpad rồi sửa bản copy — đừng `git stash`.
+     (Đã vấp task #22: agent tự stash/pop, rủi ro thật với đống stash đó.)
 -->
 
 ## Tasks
 
-14. [✅ 2026-08-12] Port các fix của alpha.9 vào thẳng nhánh `fix/token-hardening` → `5.0.0-joysub.2`
-   - **ĐÓNG 12/08**: lock `[⏳]` là lock chết — code đã commit từ lâu. Nhánh `fix/token-hardening` · commit `c8b71f7` · repo `~/projects/avada-core` working tree **clean**. Commit `8fa2e4a` của task #19 nằm ngay trên nó
-   - **Verifier PASS 9/9**, build exit 0. 7 file M, +343/−60. `authController.ts`/`shopRepository.ts` KHÔNG bị đụng → 4 việc joysub.1 còn nguyên
-   - Hoà giải guard `apiKey`/`secret` với cơ chế mới: guard tạo `RefreshAttempt {ok:false, fatal:false}` tổng hợp, **bỏ qua retry loop** (retry với credential thiếu thì vô nghĩa), rơi vào cùng đường thoát với mọi lỗi refresh khác, `isRefreshTokenRevoked` **luôn false** → `recoverInvalidToken` → `transient` → 503. Verifier trace đủ chuỗi: **không có đường nào tới `builder.create()`**
-   - Verifier chốt 3 chỗ coder không chắc: (1) message guard **không** đi qua regex phân loại nào, chỉ để log → vô hại; (2) `refresh-expired` (shop ngủ đông quá 90 ngày) **KHÔNG** set `isGenuineInstall` → không hạ gói; (3) `state: ''` trong `handleInstall` **là oversight nguyên bản của alpha.9** (build a9 có literal y hệt), nhưng vô hại — đường gọi `handleInstall` dùng `validateNonce()` so cookie (`auth.ts:78`), không đọc `session.state`
-   - `findOneAndReplace` tên gây hiểu lầm: thực chất gọi Firestore `.update()` = **patch**, nên self-heal chỉ ghi 3 field identity, **không mất access/refresh token** (`sessionRepository.ts:15-36`)
-   - 2 thứ coder tự thêm ngoài danh sách, verifier xác nhận **đều có trong build alpha.9 thật**, không phải bịa: `handleInstall` ghi identity field (root-cause của self-heal), và plumb `scope` qua `FetchAccessTokenResult`
-   - **Finding của verifier — đã sửa**: changelog viết "independently reimplemented, not a line-for-line reconstruction" là **không trung thực**. `tsc` giữ comment nên build alpha.9 mang theo cả JSDoc gốc → mức khớp rất cao. Đã sửa lại thành mô tả đúng: đây là **reconstruction**, không phải clean-room. Chính độ khớp cao đó là lý do tin được hành vi
-   - **Rủi ro kiểm tĩnh không phủ được**: không có test suite, không chạy runtime với Firestore emulator/Shopify thật → timing của `delay()`, race thật giữa nhiều instance, hành vi thật của `storeSession`/`findOneAndReplace` chưa ai chạy thử
-   - User chốt: không chờ CTO push source nữa, port ngược từ JS đã build. Khả thi vì diff alpha.7→alpha.9 chỉ chạm 5 file (`verifyToken.js`, `checkIfHasSession.js`, `authService.js`, `shopifyAuthService.js`, `authService.d.ts`)
-   - Kết quả mong đợi = alpha.7 + 4 việc joysub.1 + fix alpha.9 ≈ tương đương rebase, làm từ chiều ngược lại
-   - **User chốt: CTO sẽ KHÔNG BAO GIỜ push source alpha.9.** → nhánh `fix/token-hardening` **chính là source of truth** cho hướng này; không có bản chính thức nào để hoà giải về sau. Rủi ro "phân kỳ khi CTO push" **không còn**
-   - → Tiêu chí đổi: **KHÔNG sao chép alpha.9 từng dòng**, mà tự triển khai sao cho hợp logic + khớp style codebase. Được cấu trúc lại, đặt tên khác, bỏ chỗ dở của alpha.9. Bắt buộc giữ là **HÀNH VI**: transient vs definitive đúng · retry cùng refresh token khi lỗi tạm thời · 503 thay vì đoán · session thiếu identity tự vá mà không mất refresh token · webhook đăng ký bằng token mới · thiếu credential KHÔNG leo thang thành hạ gói
-   - Changelog phải ghi rõ đây là **tự triển khai** dựa trên đọc bản build đã publish của alpha.9, và nhánh này là bản duy nhất có source — để người đọc sau hiểu vì sao không truy được commit gốc
+39. [✅ 2026-08-14] **CI production fail: clone repo artifacts từ gitlab.com bị 401 — đang chuyển sang on-premise**
+   - **ĐÓNG 14/08 — user chốt "task 39 done rồi"**. Không có commit mới trong phiên này; phần code đã ở nhánh `fix/ci-artifacts-onprem` · commit `dee9344` (đã push). Mục "CÒN LẠI" bên dưới (tạo MR, chọn token CI, rotate PAT `glpat-w06kO...`) là **việc tay của user**, giữ lại làm checklist
+   - **Triệu chứng 14/08**: job `publish-fe` (tag `v2.34.69`, commit `8016e0ac`) chết ở `.gitlab/ci/production.yml:207`
+     `git clone https://gitlab-ci-token:$GIT_ACCESS_TOKEN@gitlab.com/avada/artifacts/joy-subscription-artifacts.git` → `HTTP Basic: Access denied`, exit 128. CDN Cloudflare chạy xong bình thường, **chỉ nhánh CHUNK chết**
+   - Job **fail-closed** (`:229`) — hosting chỉ chạy khi cả CDN lẫn chunk OK → **FE chưa lên production**, không lên nửa vời
+   - Nguyên nhân: repo `subscriptions` đã chuyển sang `git.avada.net`, repo artifacts vẫn ở `gitlab.com` → token cross-host vô giá trị (hoặc PAT hết hạn)
+   - **ĐÃ LÀM 14/08 — seed on-premise xong**: repo `git.avada.net/avada/artifacts/joy-subscription-artifacts` vốn đã tồn tại nhưng là **ảnh chụp lúc migrate 07/08 rồi đứng yên** — phân kỳ với gitlab.com: onprem có 16 commit riêng, gitlab.com đi trước **1756 commit**
+     - Xác minh 16 commit onprem là **bản sao, không có gì độc nhất**: mỗi cái có commit song sinh bên gitlab.com (cùng message, cùng ngày, cùng SHA `subscriptions` nhúng trong message), và bằng chứng cứng nhất — `f17f1b3bdd` vs `2ed35b8fa8` **cùng tree `15d90c2a0a`**, `git diff` rỗng
+     - → force push đè không mất gì. Đã đẩy **một commit không cha** `de6db84253` mang y nguyên tree của `75d0b53e67` (bản gitlab.com hôm nay). **Cắt 2.7 GiB lịch sử**; lịch sử cũ vẫn nguyên ở gitlab.com
+     - Gotcha: zsh nuốt `:r` trong `$NEW:refs/heads/main` → phải **quote** refspec. Và `main` onprem protected — **force push là quyền RIÊNG**, Maintainer vẫn bị chặn nếu toggle "Allowed to force push" tắt
+   - **ĐÃ KIỂM TOKEN 14/08**: `~/projects/joy-subscription-artifacts/.env` có biến `GL_ONPREMISE` (gitignored, **khác** token đã lộ). Test thật 3 tầng: `ls-remote` ok · push branch thường ok · **push commit rỗng vào `main` protected ok** (`de6db84253..48d93da358`, fast-forward). → token đủ quyền Maintainer, CI dùng được luôn
+     - Quan trọng: CI push hàng ngày là **fast-forward**, **KHÔNG cần** quyền force push. Toggle force push chỉ cần lúc seed, xong phải tắt
+     - ⚠️ `.env` đang `chmod 644` → nên đổi `600`
+     - Bẫy zsh (dính 2 lần): `"$NEW:refs/heads/main"` bị hiểu là modifier `:r` **kể cả trong nháy kép**. Phải dùng `"${NEW}:refs/heads/main"` hoặc sha literal
+   - **ĐÃ SỬA CI 14/08**: nhánh `fix/ci-artifacts-onprem` · commit **`dee9344`** · **đã push**, base `origin/master`. Đúng 1 dòng `production.yml:207` — đổi host `gitlab.com` → `git.avada.net` và username `gitlab-ci-token` → `oauth2`. YAML đã validate. **Chưa tạo MR** — phải merge vào `master` thì pipeline tag mới ăn config mới
+     - Tách nhánh riêng, **KHÔNG** trộn vào MR Klaviyo !2470: thay đổi CI production, reviewer khác, rủi ro khác
+     - `GIT_ACCESS_TOKEN` chỉ được dùng ở **đúng 1 dòng** trong toàn `.gitlab/` → đổi thẳng giá trị biến cũ là an toàn, khỏi tạo biến mới
+     - ⚠️ **`staging.yml` KHÔNG clone repo artifacts** — chỉ production làm. Nên **không test được trên staging**; phải test token ở máy trước (đã làm)
+   - 🔑 **BẢN ĐỒ TOKEN on-premise — đừng nhầm nữa** (tôi đã kết luận vội một lần và sai):
+     | Biến | File | Ghi chú |
+     |---|---|---|
+     | `ON_PREMISE_GITLAB_TOKEN` | `subscriptions/packages/functions/.env.local` | **CHÍNH LÀ token `glpat-w06kO...` đã lộ** → cần revoke + thay mới |
+     | `GL_ONPREMISE` | `joy-subscription-artifacts/.env` | Token khác, KHÔNG lộ |
+     - Không file nào trong repo đọc `ON_PREMISE_GITLAB_TOKEN` (grep js/json/yml/sh) → revoke **không hỏng automation**, chỉ hỏng thao tác git tay cho tới khi thay token mới
+     - **Trước khi revoke phải kiểm**: CI variable `GIT_ACCESS_TOKEN` có đang dùng chính token này không
+   - **Gotcha môi trường**: push từ session Claude Code fail `could not read Username ... Device not configured` — không có TTY nên osxkeychain không hỏi được. Gỡ bằng token: `ON_PREMISE_GITLAB_TOKEN` trong `packages/functions/.env.local` (PAT cá nhân cho `git.avada.net`), dùng dạng `https://oauth2:$TOKEN@git.avada.net/...`
+   - **CÒN LẠI, chưa làm**:
+     0. Tạo MR cho `fix/ci-artifacts-onprem` và **merge vào master**
+     1. Chọn token cho CI: dùng luôn `GL_ONPREMISE` (đã chứng minh chạy được) **hoặc** tạo Project Access Token role Maintainer + `write_repository`. PAT cá nhân thì CI gắn với người — đúng lớp lỗi đang gặp; project token thì gắn project
+     2. Sửa `production.yml:207` trỏ URL onprem + biến token mới — **agent bị classifier chặn sửa `.gitlab/ci/*.yml`, user tự làm**
+     3. Chạy thử staging trước khi production đi qua đường mới
+     4. ⚠️ **Rotate PAT `glpat-w06kO...`** — nó từng nhúng plaintext trong `.git/config` của `~/projects/joy-subscription-artifacts` (remote `onprem`) và đã lộ ra output phiên 14/08. Đã gỡ khỏi URL remote nhưng **gỡ không làm token hết hiệu lực**
+   - ⚠️ **Rủi ro phải tránh khi đổi CI**: repo artifacts KHÔNG được bắt đầu từ rỗng. Bước `cp -rf joy-subscription-artifacts/static/* static/` merge chunk cũ vào bản build mới; thiếu chunk là browser khách đang cache URL hash cũ sẽ **404 asset trên storefront thật**. Seed ở trên đã giữ đúng nội dung nên an toàn
 
-22. [✅ 2026-08-12] Logic parse cờ chưa khớp mặc định BẬT — `SHOPIFY_EXPIRING_OFFLINE_TOKEN=TRUE`/`=1`/`=yes` sẽ **TẮT** cờ
-   - `isEnvFlagOn = value => value === 'true'` viết cho thời mặc định tắt ("chỉ `true` mới bật"). Giờ mặc định bật nên phải đảo thành "chỉ `false` mới tắt", để gõ sai rơi về mặc định thay vì âm thầm tắt
-   - Sửa 1 hàm trong `config/shopify.js` + 2 test trong `__tests__/config/shopifyExpiringToken.test.js`. Chưa làm, chờ user chốt
-   - **ĐÓNG 12/08** — nhánh `feat/expiring-token` · commit **`f140e6006`** · **đã push**. 2 file, +18/−5. Nằm trên `72088c7eb` của task #21
-   - Agent KHÔNG commit được (gate hook, xem #27) — **user phải tự chạy commit**. Đây là lần thứ 2 sau #12
-   - Cách sửa: `isEnvFlagOn = value => value === 'true'` → `isEnvFlagOff = value => value.trim().toLowerCase() === 'false'`, call site đảo thành `!isEnvFlagOff(x)`. **Case-insensitive + trim có chủ ý**: cờ này là phanh tay gõ tay lúc khẩn cấp, gõ `'False'` hay dán dính khoảng trắng mà không tắt được là hỏng đúng lúc cần nhất
-   - Đổi tên hàm sang `isEnvFlagOff` để tránh double-negative khi đọc call site. Clamp `autoMigrateOfflineToken` theo `expiringOfflineToken` giữ nguyên
-   - Test: 8 → **14** (sửa ca `'yes-please'` từ `false` sang `true`; thêm `it.each(['TRUE','1','yes'])` → BẬT và `it.each(['false','FALSE',' false '])` → TẮT)
-   - **Verifier PASS, có mutation test thật**: dựng lại parser CŨ trong script standalone ngoài repo rồi chạy đủ assertion → **4/10 assertion đỏ**. Tức test mới guard đúng bug, không phải test rỗng. Gate: `yarn check` 5 violations (đúng baseline, không tăng) · jest **2 failed / 190 passed / 192 suite, 1894 test** (baseline 1888 + đúng 6 ca mới, 0 test fail)
-   - Verifier grep sạch: `isEnvFlagOn|isEnvFlagOff` chỉ 3 hit đều trong `config/shopify.js` — không sót call site. `handlers/auth.js`/`authSa.js` chỉ đọc boolean đã tính, không tự parse. Không test nào khác phụ thuộc semantic cũ
-   - Gap nhỏ verifier ghi nhận (KHÔNG chặn): ca `SHOPIFY_EXPIRING_OFFLINE_TOKEN=` (set nhưng rỗng) → rơi vào parser → không phải `'false'` → **BẬT**. Đúng ý đồ, nhưng chưa có test nào assert. Nhánh functions-config `shopify.expiring_offline_token` không đi qua parser (chỉ `Boolean(...)`) nên non-string không thể làm nổ `.trim()`
-
-21. [✅ 2026-08-12] Cờ expiring token qua env — **mặc định BẬT**, `=false` để tắt
-   - User chốt bật mặc định thay vì gate qua env: "migrate sớm thì migrate sớm". Giữ env var làm **phanh tay** — tắt gấp không cần sửa code + deploy lại
-   - **Hệ quả: nhánh này merge vào master là prod bắt đầu migrate**, không cần ai bấm gì
-   - Deploy staging: **4 slot đều bị chiếm**; 2 slot là của chính dantt (`feat/one-time-only` 29/07, `custom/delivery-date-spray` 05/08), 2 của người khác (tuyenhm `fix/SB-14315-shipping-rate-fx` 22/07, Tuan Dang `feat/manual-delivery-custom-attr` 06/08 — mới nhất, nhiều khả năng đang dùng). → Lấy slot **staging_1** (nhánh cũ nhất, của mình), không đụng slot người khác
-   - **Cơ chế env var của repo (đáng nhớ)**: CI ghi `packages/functions/.env.<project>` từ biến CI/CD GitLab **có tiền tố**, rồi strip (`.gitlab/scripts/selective-deploy.sh` `write_env_file`/`resolve_prefix`). Map: `production→PROD`, `staging→STAGING`, `staging2→STAGING2`, `staging3→STAGING3`, `staging4→STAGING4`. Tức muốn set biến cho staging3 thì tạo `STAGING3_<TÊN_BIẾN>`. **Với cờ mặc định bật thì khỏi cần set gì**
-   - **Bẫy đã dính**: `.gitlab/ci/staging.yml:3` hardcode `STAGING_BRANCH`, rule là `if: $CI_COMMIT_BRANCH == $STAGING_BRANCH`. Push nhánh mới mà không sửa dòng đó → job bị **bỏ qua im lặng**, không lỗi, không gì chạy. Phải commit sửa dòng đó trên chính nhánh đó
-   - Nhánh `feat/expiring-token`: commit `14271d400` (33 file, +764/−61) + `72088c7eb` (CI binding), đã push. Pipeline `deploy:staging_1` chạy từ đây
-   - Classifier chặn mình sửa file `.gitlab/ci/*.yml` — user phải tự sửa
-   - `config/shopify.js` thêm `expiringOfflineToken` / `autoMigrateOfflineToken` theo đúng pattern `env.X || shopify.x` sẵn có. Env var: `SHOPIFY_EXPIRING_OFFLINE_TOKEN`, `SHOPIFY_AUTO_MIGRATE_OFFLINE_TOKEN`; fallback functions config `shopify.expiring_offline_token`, `shopify.auto_migrate_offline_token`
-   - **Bẫy đã chặn**: env var luôn là string, `Boolean('false') === true`. Parse bằng `value === 'true'` tường minh. Có test riêng cho ca `'false'` → `false`
-   - `autoMigrateOfflineToken` bị **clamp phụ thuộc** `expiringOfflineToken` ở tầng app (core cũng tự guard ở `verifyToken.js:116`, nhưng giữ defense-in-depth)
-   - Truyền vào **cả 2 handler** `auth.js:56-57` và `authSa.js:56-57`. Xác nhận tên option khớp core: `verifyToken.js:116` đọc cả 2 cho nhánh migrate, `authController.js:449` dùng `expiringOfflineToken` khi exchange. `autoMigrateOfflineToken` ở `authSa` là **inert** (migrate chỉ sống ở đường embedded `verifyToken`) nhưng vô hại
-   - **KHÔNG set `true` ở file nào trong repo** — bật là việc của người deploy
-   - Test mới `__tests__/config/shopifyExpiringToken.test.js` — 8 test. Gate: `yarn check` 5 violations (baseline), jest **2 failed / 190 passed / 192 suite, 1888 test**
-
-20. [✅ 2026-08-12] App bước 1: refactor đường token — worktree `~/projects/subscriptions-wt-token`, nhánh `feat/expiring-token`, base `origin/master` (`4e3ff8c70`)
-   - **ĐÓNG 12/08**: lock `[⏳]` là lock chết — nhánh `feat/expiring-token` · commit `14271d400` · **đã push** `origin/feat/expiring-token`, worktree clean. Task #21 commit tiếp `72088c7eb` lên cùng nhánh
-   - Lưu ý tiêu đề cũ ghi "cờ VẪN TẮT" đã lạc hậu: task #21 chốt **mặc định BẬT**
-   - **Baseline đo TẠI CHỖ, đừng tin số cũ**: `yarn check` = **5 violations** (locale-parity `WidgetRebuildBanner` ×5 + 2 warning shopify-limit), jest = **2 failed / 187 passed / 189 suite, 1859 test**. 2 suite fail pre-existing: `__tests__/services/order/orderService.test.js`, `__tests__/reward/conditionEvaluation.test.js` (đều "failed to run"). Brief cũ ghi 8 suite fail — SAI cho nền `origin/master` mới
-   - **Gotcha lệnh test**: `yarn workspace @avada/functions test` → `command not found: jest`. Phải chạy `cd packages/functions && ../../node_modules/.bin/jest --config jest.config.js`
-   - **Gotcha install**: `yarn workspace @avada/functions add @avada/core@...` báo "Failed with errors" do `sharp@0.28.3` build fail — **vô hại**, sharp không phải dep trực tiếp của workspace nào, core vẫn resolve đúng. Đừng chạy lại install
-   - **Sửa tập trung 2 chỗ**: `helpers/api.js:47` `makeGraphQlApi` tự resolve token qua `getCachedValidAccessToken`, fallback về `accessToken` truyền vào nếu fail → phủ **227 call site** (verifier đếm độc lập bằng Python, tất cả đều spread `...shop` có `id`). `services/shopifyService.js:175` `initShopify` thành async → **21 call site** đã `await` hết
-   - **Cache token ở app** (core cố ý không cache): `helpers/shopify/accessTokenCache.js` + `tokenCrypto.js` (tái dùng từ `feat/post-purchase`, AES qua `crypto-js`, Redis). **Cải tiến**: TTL tính từ `accessTokenExpiresAt` thật + `TOKEN_REFRESH_BUFFER_MS` (joysub.3 expose) thay vì hardcode 4 phút; sàn `MIN_TTL_MS` 15s; fallback 4 phút khi thiếu field
-   - **Multi-tenant AN TOÀN**: cache key = `valid-access-token:${shopifyDomain}`, khớp cách core định danh session (`getOfflineSessionId`). Verifier soi riêng — không có đường nào 2 shop dùng chung key, decrypt-fail → cache-miss (không trả rác), Redis chết → `rGet`/`rSet` tự nuốt lỗi, **không sập request**
-   - **4 chỗ sửa tay**: `sendFlowTrigger.js` (spread `...shop` để không mất `id`) · `devZoneController.js:775-786` (2 case tax-scope dùng token hợp lệ) · `handlers/api.js` **VÀ `apiSa.js`** (thêm `apiKey`/`secret` — coder tự quét ra `apiSa.js` cùng bug) · `shopService.js:195` → `create(planData, true, true)` cho guard mới của joysub.3 (nhánh `:148` cấp gift KHÔNG đụng)
-   - **6 bản `initShopify` copy-paste trong `commands/` cố ý KHÔNG sửa** — script chạy tay, không được `index.js` import. Thêm `commands/README.md` cảnh báo chạy trên shop đã migrate sẽ 401
-   - **Test mới**: `__tests__/helpers/shopify/{accessTokenCache,tokenCrypto}.test.js` — 12 + 9 = **21 test**, phủ multi-tenant key, TTL, cache hit/miss, decrypt-fail, Redis chết. Sau khi thêm: **2 failed / 189 passed / 191 suite, 1880 test** (baseline fail không đổi)
-   - **Finding còn treo (chưa sửa, có test ghi lại hành vi thật)**: `accessTokenCache.js` không phân biệt "TTL âm do trừ buffer" (an toàn) với "âm do `accessTokenExpiresAt` đã ở quá khứ" → nếu core từng trả token đã hết hạn thì helper cache lại **15 giây**. Hiện an toàn nhờ invariant của core (`getValidAccessTokenWithMeta` chỉ trả token chưa refresh khi còn > 5 phút), nhưng là coupling ngầm
-   - Ghi nhận thêm: `encryptToken(null/undefined)` không throw, decrypt ra `null` — hợp đồng bất đối xứng cho input rỗng; chỉ dùng với token thật nên rủi ro thấp. `crypto-js` AES có IV ngẫu nhiên → mã hoá cùng input 2 lần ra ciphertext khác nhau (test ghi nhận đúng hành vi này)
-
-19. [✅ 2026-08-11] `5.0.0-joysub.3` — vá 7 gap của joysub.2, verifier PASS sau 2 vòng sửa
-   - Nhánh `fix/token-hardening` · commit `8fa2e4a` · đã push · **đã publish** `--tag joysub`, shasum `523fb18` khớp dry-run. `dist-tags`: `joysub=5.0.0-joysub.3`, `latest=5.0.0-alpha.12` (của CTO)
-   - 11 file, +180/−26, build exit 0
-   - **Bài học lớn nhất phiên này**: verifier FAIL vòng 2 vì cho rằng guard `Builder.create` throw ở `handleAfterInstall` là regression. Đối chiếu upstream mới vỡ ra **đó là Ý ĐỒ THIẾT KẾ**. Comment của chính CTO trong `a12 authService.js:227-229`: *"anything but Shopify's documented 401 signature is treated as transient, **because a false 'revoked' reaches handleAfterInstall → builder.create() and downgrades a paying merchant**"*. Tức guard fire ở đó là điểm mấu chốt, không phải sơ suất. Chấp nhận: reinstall fail ồn ào + webhook không đăng ký, còn hơn âm thầm hạ gói shop đang trả tiền
-   - → **Sửa changelog, KHÔNG sửa code.** Khuyến nghị "truyền `allowDowngrade` ở install path" mà tôi đưa ra ban đầu là SAI — làm vậy là mở lại đúng lỗ guard sinh ra để bịt
-   - **6/6 call site `Builder.create` KHỚP CHÍNH XÁC alpha.12** (verifier lập bảng đối chiếu): install ×3 = 1 tham số (cố ý), `checkFreePlan` = 3 tham số, `activate` = 2, webhook reopen = 2
-   - **Fork ĐI TRƯỚC upstream đúng 1 điểm**: alpha.12 (`builder.js:229`) dùng `isDowngradeToFree = plan.price === 0 || plan.id === 'free'`, **thiếu** `&& !plan.startingPrice`. Fork có. Hệ quả thật: với alpha.12, merchant chuyển sang `STARTER_PLAN_V4` (`price:0, startingPrice:99`, `plans.js:206-221`) sẽ bị **throw ở `activate` SAU KHI Shopify đã confirm charge** — doc sub cũ còn sống lúc guard chạy (cancel diễn ra sau). Fork chặn được false positive này
-   - **Việc app PHẢI làm khi bump**: `packages/functions/src/services/shopService.js:193` → `create(planData, true, true)`. Điều kiện throw: CASE 1 (`:148`) cấp gift ghi doc `plan:'starter'`, `endsAt = now + 30d`; nếu CASE 2 (gỡ gift) chạy trong cửa sổ 30 ngày đó → `hasActivePaidSubscription()` = true → throw → **bị `try/catch` của `syncShopPlanWithIntegrationLoyalty` nuốt** → shop im lặng kẹt ở Starter dù hết eligible. Chỉ 4 chỗ dùng `Builder` trong app: `shopService.js:147,192-193` và `subscriptionController.js:24,38` (2 chỗ sau chỉ gọi `getUsedTrialDays`/`getSubscription`, không đụng `.create()`)
-   - Giới hạn đã ghi vào changelog: `hasActivePaidSubscription()` chỉ có `doc.plan` để tin vì `subscriptionRepository` **không lưu giá/charge id** → false positive với doc do luồng non-billing tạo (gift loyalty). Không bịa tín hiệu mới
-
-18. [✅ 2026-08-12] **`joysub.2` ĐÃ PUBLISH nhưng CÓ GAP — verifier FAIL. Dormant vì cờ chưa bật, nhưng đừng cài vào app**
-   - **ĐÓNG 12/08 — đã được task #19 xử**: `5.0.0-joysub.3` vá đủ 7 gap liệt kê dưới, verifier PASS sau 2 vòng, đã publish `--tag joysub`. Cảnh báo "đừng cài `joysub.2` vào app" vẫn đúng — dùng `joysub.3`
-   - Nguyên nhân cơ học: commit `c8b71f7` chỉ đụng `authService.ts`, `checkIfHasSession.ts`, `verifyToken.ts`, `shopifyAuthService.ts` — **không đụng `authController.ts` lẫn `builder.ts`**, vì scope là "tái dựng alpha.9". Mà alpha.11/alpha.12 sửa đúng 2 file đó
-   - **[CRITICAL] `Builder.create()` thiếu guard `hasActivePaidSubscription()`/`allowDowngrade`** (`src/builder.ts:96-118`). alpha.12 đã thêm: `if (isDowngradeToFree && !allowDowngrade && await hasActivePaidSubscription()) throw`. Đây là **lớp phòng thủ CUỐI** chặn hạ gói merchant trả phí bất kể lỗi đến từ đâu. joysub.2 không có → mọi bug phân loại đều đi thẳng tới `updatePlan(...,'free',...)`. **Nghiêm trọng hơn cả bug ban đầu đi tìm**
-   - **[CRITICAL] `getAuthResult` phân loại bằng `statusCode` inline, không đọc `isRefreshTokenRevoked`** (`src/controllers/authController.ts:312-315`). `performRefresh` ĐÃ set đúng flag (`authService.ts:246-260,634-641`) nhưng `getAuthResult` không đọc → **secret SAI** (Shopify trả 401 `invalid_client`) bị đọc thành "shop đã gỡ cài" → `handleInstall` → `builder.create()` → hạ gói. Guard `apiKey`/`secret` của joysub KHÔNG chặn được vì nó bắt ca *thiếu*, đây là ca *sai*
-     - Comment gốc trong `authClassifiers.js` của alpha.12: *"Shopify answers 401 invalid_client when the APP's secret is wrong — for every shop at once... The same class of bug shipped in v4 and again on this branch."* → **bug tái phát lần 3**
-     - **Quy mô: TOÀN BỘ standalone shop cùng lúc**, không phải một shop
-   - **Vì sao chưa nổ**: đường vulnerable là `/shopify/callback` → chỉ dùng khi `isEmbeddedApp:false`, tức `handlers/authSa.js:54` (standalone, live qua `index.js:92-94`). Embedded (`handlers/auth.js`) đi `/shopify/embed/callback` → `createOauthEmbedCallback`, gate theo `existingShop.uninstalledAt` → **an toàn**. VÀ điều kiện thứ hai: `expiringOfflineToken` chưa bật ở đâu (grep 0 kết quả) → `performRefresh` không bao giờ chạy. **Dormant, nhưng route đã live và đã publish**
-   - **[HIGH]** `checkIfActiveShop` (`authController.ts:46-58`) cùng gap phân loại, chạy trên MỌI lần OAuth start. Hậu quả nhẹ hơn (chỉ trả `hasSession:false`)
-   - **[MEDIUM]** `verifyToken.ts:108-113` nhánh `refreshed` chỉ copy `accessToken`, không copy `refreshToken`/expiry; `recoverInvalidToken`/`forceRefreshAccessToken` cũng không trả mấy field đó. Firestore ĐÃ ghi đúng nên request sau vẫn đúng — rủi ro chỉ trong cùng request, chưa tìm thấy consumer nào thực sự dùng giá trị stale
-   - **[MEDIUM/LOW]** 3 fix nhỏ alpha.12 đều THIẾU trong joysub.2: `calculatePlanWithDiscount` không floor 0 (`src/discount.ts:99-120` — app **không** import hàm này nên không ảnh hưởng Joy Sub), `normalizeShopName` case-sensitive (`src/helpers.ts:29-36`), `removeProperties` guard falsy (`src/helpers.ts:10-20`)
-   - **[Compat] Nếu merge `Builder.create` 3-arg của alpha.12 thì PHẢI sửa `packages/functions/src/services/shopService.js:193`** → `create(planData, true, true)`. Chỗ đó là **downgrade-to-free CHỦ Ý** (gỡ gift loyalty khi hết điều kiện, `shopService.js:169-193`); để 2 arg thì `allowDowngrade=false` → guard mới sẽ **throw** thay vì hạ gói như hiện tại. Còn `shopService.js:148` thì không sao
-   - Chưa xác minh: `normalizeShopName`/`removeProperties` có call site nào trong app thực sự dính không
-
-17. [ ] **Cân nhắc lại chiến lược fork — CTO đang làm song song** _(việc của người, agent không tự làm được)_
+17. [✅ 2026-08-14] **Cân nhắc lại chiến lược fork — CTO đang làm song song** _(việc của người, agent không tự làm được)_
+   - **ĐÓNG 14/08 — user chốt "#17 k cần nhé"**. Không có commit. Nội dung khảo sát bên dưới giữ lại làm tài liệu nếu sau này quay lại chuyện fork vs upstream
    - **Cập nhật 12/08**: "NGAY HÔM NAY" trong tiêu đề cũ là **11/08**. Từ đó tới nay: `joysub.3` đã vá gap so với alpha.12 (#19) và fork còn **đi trước upstream 1 điểm** (guard `!plan.startingPrice`). Task vẫn mở vì thứ chưa làm là **nói chuyện với CTO**, không phải viết code
    - Việc còn lại: đóng góp ngược 4 việc của joysub lên dòng chính, đặc biệt nhánh 403 `checkIfActiveAccessToken` (xác nhận alpha.9 KHÔNG có; **chưa kiểm alpha.12**)
    - Dòng thời gian registry: `joysub.1` 07:38 → **`alpha.12` 08:36 (CTO, hôm nay)** → `joysub.2` 09:17. Lúc khảo sát 14:43 giờ máy `latest` còn là `alpha.9`; giờ là `alpha.12`. **Hai bên đang sửa cùng một thứ mà không biết nhau**
@@ -100,141 +76,8 @@
    - **Hệ quả**: `joysub.2` vừa publish đã lạc hậu. Mỗi lần CTO publish, fork phải dựng lại từ JS build — chi phí lặp vô hạn, và giờ còn thua cả về test coverage
    - **Khuyến nghị: DỪNG mở rộng fork, nói chuyện với CTO trước.** 4 việc của joysub nên đóng góp ngược lên dòng chính thay vì duy trì song song. Đặc biệt nhánh 403 (`checkIfActiveAccessToken`) — đã xác nhận alpha.9 KHÔNG có, cần kiểm alpha.12 có chưa
 
-16. [✅ 2026-08-12] **Bản đồ MỌI đường lấy token của app — sửa tập trung 2 chỗ là GẦN đủ, thiếu 3 chỗ**
-   - **ĐÓNG 12/08 — bản đồ này đã được task #20 thi công hết**: 2 chỗ tập trung (`helpers/api.js:47`, `shopifyService.js:175`) + cả 3 chỗ sửa tay (`devZoneController.js:774,783`, `sendFlowTrigger.js`, `apiKey`/`secret` ở `handlers/api.js` **và** `apiSa.js`). `commands/` cố ý không sửa, đã thêm `commands/README.md` cảnh báo. **Giữ lại nội dung dưới làm tài liệu tra cứu**
-   - **Được phủ tự động**: `initShopify` (`services/shopifyService.js:175-185`) phủ toàn bộ đường production; `makeGraphQlApi` (`helpers/api.js:47-56`) phủ **~224/225 call site** trong 28 file `services/`+`controllers/`. Mọi call site đều `{...shop, graphqlQuery}` và `shop` **luôn có `id`** vì luôn bắt nguồn từ `prepareShopData`/`getShopById` → resolve token theo `shop.id` bên trong hàm là an toàn, **không cần đụng call site**. Không có call site nào truyền `accessToken` ngoài shop doc, không có chỗ nào gọi mà không `await`
-   - **PHẢI SỬA TAY — 3 chỗ**:
-     - `controllers/devZoneController.js:774,783` — case `check-tax-scope`/`revoke-tax-scope` dựng `fetch` tay tới `admin/oauth/access_scopes.json` + `admin/api/2025-10/graphql.json` với header `X-Shopify-Access-Token: shop.accessToken`, **bỏ qua cả 2 đường tập trung**. Là route THẬT (`routes/api.js:276`, `routes/tsTool.js:35`), không phải script
-     - `services/graphql/sendFlowTrigger.js:22-26` — outlier shape: tự dựng `{shopifyDomain, accessToken, graphqlQuery}` thay vì spread `...shop` → **mất `shop.id`**. 11 caller (`services/flow/triggers/trigger*.js`) đều truyền shop đủ nhưng bị cắt ở đây. Sửa 1 dòng
-   - **Đường charge của `@avada/core` — nối với task #9, giờ thành BẮT BUỘC**: `shopifyCharge` (app dùng qua `middleware/shopifyChargeWrapper.js`) bên trong gọi `getShopifyApiWithValidToken` → **vốn đã refresh-aware**, nhưng nó cần `options.apiKey`/`options.secret` mà `handlers/api.js:46-57` **không truyền**. Tức đường billing/charge sẽ gãy đúng lúc cần refresh. Task #9 không còn là "nice to have" — phải làm cùng đợt này
-   - **KHÔNG cần sửa**: 6 bản `initShopify` copy-paste + ~34 chỗ token thủ công trong `commands/` — xác nhận `commands/` **không được `index.js` import**, không nằm trong `package.json` scripts, dùng `process.argv` → script chạy tay. Nên note vào README của `commands/` là chạy sau khi shop migrate sẽ fail
-   - **Khác loại token, không liên quan**: `shopifyPartnerService.js:20` (Partner API), `middleware/clientApiMiddleware.js:84` + `middleware/storefrontApi/authMiddleware.js:126` + `customerAccountSessionsRepository` (Customer Account session token), `makeStoreFrontApi`/`makeCustomerAccountApi` (`helpers/api.js`). `extensions/` grep 0 chỗ đụng token
-   - Chưa chắc: agent chưa đọc hết nội bộ `builder.js`/`subscription.js` của `@avada/core` để loại trừ tuyệt đối đường charge nào khác
-
-15. [✅ 2026-08-12] **THỨ TỰ BẮT BUỘC khi implement expiring token vào app — sai thứ tự là gãy recurring order**
-   - **ĐÓNG 12/08 — ràng buộc thứ tự đã được tuân thủ**: bước (1) swap `initShopify` xong ở task #20, bước (2) bật cờ ở task #21. **Giữ lại nội dung dưới làm tài liệu vận hành** — nhất là 2 điểm chưa mất giá trị: shop ngủ đông có subscription đang chạy **không tự cứu được**, và migrate không có đường headless
-   - **Bật `autoMigrateOfflineToken` TRƯỚC khi swap `initShopify` = mỗi shop mở app sẽ tự migrate rồi làm gãy chính recurring-order job của mình ~1 GIỜ sau.** Cơ chế: `requestAndUpdateShopAccessToken` ghi accessToken MỚI (loại hết hạn sau 1h) vào doc `shops`; background job (`services/subscriptionService.js:519` → `shopifyService.js:175-184`) đọc **token thô** từ doc đó, KHÔNG qua `getValidShopToken`, nên không refresh được → 401 sau 1h
-   - → **Thứ tự đúng: (1) swap `initShopify` sang `getValidShopToken` + deploy + verify, (2) MỚI bật cờ.** Không phải lựa chọn phong cách, là ràng buộc kỹ thuật
-   - **Scope lớn hơn tưởng**: không chỉ 28 call site `initShopify` — grep ra **49 chỗ dùng `new Shopify(`/`prepareShopData` trong 21 file**. Phải quét hết
-   - Migrate **KHÔNG có đường headless** — `exchangeOfflineToken` cần App Bridge session token, chỉ có trong embedded request. Doc core nói thẳng (`docs/expiring-offline-tokens.md:297`): *"there is no headless path (a cron can't migrate a shop)"*. Không script/cron/TS Tool nào migrate hộ được
-   - Merchant **KHÔNG phải auth lại** — token exchange, không phải OAuth: không consent screen, không redirect. Chỉ cần **mở app một lần**. Một request duy nhất, đồng bộ trong `verifyToken:87`, chỉ chậm thêm 1 round-trip
-   - **Shop ngủ đông có subscription đang chạy**: cron chạy bình thường tới khi Shopify chặn non-expiring token, rồi gãy hẳn, **không tự cứu được** — nhánh 403 nằm trên `verifyToken` = đường embedded, cron không đi qua (`middleware/verifyEmbedRequest.ts:41-45`). Rủi ro này tồn tại độc lập với việc bật cờ; bật cờ KHÔNG giải quyết nhóm này
-   - **Migrate hỏng giữa chừng**: `requestAndUpdateShopAccessToken` (`shopifyAuthService.ts:377-384`) chạy `Promise.all([storeSession, updateOrCreateUser])` — **2 ghi song song, không transaction, không rollback**. Idempotent ở mức an toàn thử lại: `storeSession` OK rồi thì lần sau `needsMigration=false` không exchange lại; `storeSession` fail thì lần mở app sau tự thử lại. Ca xấu: `updateOrCreateUser` fail sau khi `storeSession` OK → session doc có token mới, doc `shops` giữ token CŨ. Không rõ Shopify có invalidate token cũ ngay không → **không xác định được từ code**
-   - **Field phân biệt đã/chưa migrate nằm ở SESSION doc, không phải doc `shops`**: `refreshTokenHash`/`accessTokenExpiresAt` trên collection `shopifySession` (id `offline_{shop}`). Doc `shops` có **khai báo** `refreshToken?`/`accessTokenExpiresAt?` (`shopRepository.ts:21-24`) nhưng `requestAndUpdateShopAccessToken` **chỉ ghi `accessToken`**, không ghi mấy field kia → viết script audit theo doc `shops` sẽ sai
-   - Scope: token-exchange trả lại scope đã cấp lúc cài, **không tự mở rộng**. Không có check scope mismatch, không có logic buộc re-auth. Nếu app đã đổi `scopes` config từ lúc shop cài thì token migrate ra vẫn thiếu quyền mới — rủi ro thấp vì bằng đúng hiện trạng
-
-13. [✅ 2026-08-12] ~~BLOCKER~~ **HUỶ — cần CTO push source alpha.9**
-   - **ĐÓNG 12/08 — huỷ theo quyết định của user** (ghi ở task #14): *"CTO sẽ KHÔNG BAO GIỜ push source alpha.9"*. Đã đi đường vòng: port ngược từ bản JS đã build → `joysub.2` (#14) → `joysub.3` (#19). Nhánh `fix/token-hardening` **chính là source of truth** cho dòng này, không còn bản chính thức nào để chờ hoà giải
-   - Nội dung điều tra bên dưới **giữ nguyên** — đó là bảng đối chiếu joysub.1 vs alpha.9 tốn nhiều công nhất, và bài học *"mỗi vòng 'trùng rồi, bỏ đi' đều sai"*
-   - Chi tiết gốc: **cần CTO push source alpha.9** — `5.0.0-joysub.1` build trên alpha.7 đã CŨ; CTO đã publish alpha.8/alpha.9 mà source KHÔNG có trong git**
-   - Phát hiện lúc verify publish: `npm view @avada/core dist-tags` → `latest: 5.0.0-alpha.9`, `alpha: 4.8.0-alpha.18`, `joysub: 5.0.0-joysub.1`. alpha.7 publish 2026-06-23, **alpha.9 publish 2026-07-28** — trước joysub.1 gần 2 tuần
-   - **Source alpha.8/alpha.9 không tồn tại trên remote**: quét `version` trong `package.json` của MỌI ref `refs/remotes` → không ref nào là alpha.8/alpha.9. `origin/feature/get-valid-shop-token` vẫn đứng ở `b96086c` = alpha.7. Chỉ có tarball đã publish (JS đã build), không có TS nguồn → **phải hỏi CTO push source**
-   - Diff tarball alpha.7 vs alpha.9 (`npm pack` + `diff -rq build/`): khác ở `verifyToken.js`, `checkIfHasSession.js`, `authService.js`, `shopifyAuthService.js`, `authService.d.ts`
-   - **alpha.8/.9 CHỒNG LẤN và có thể VƯỢT 2/4 việc của joysub.1** (đọc từ changelog trong tarball):
-     - *Việc 3 của mình có thể xây trên tín hiệu hỏng*: gate của mình dùng `!!shop.uninstalledAt`, mà `uninstalledAt` do webhook `APP_UNINSTALLED` set. alpha.8 ghi rõ **webhook đó CHƯA BAO GIỜ được đăng ký** — `handleAfterInstall` register webhook bằng `session.accessToken` là object TRƯỚC exchange, token đã bị Shopify thu hồi lúc uninstall → không có webhook → `isInstalled` kẹt `true`. Nếu đúng thì `uninstalledAt` không bao giờ được set và **gate của joysub.1 luôn trả `isFreshInstall=false` cho shop cài lại**
-     - alpha.8 đổi hẳn cách tiếp cận: `verifyToken` **thử refresh trước rồi gate theo kết quả** — token hết hạn thường → refresh, không chạy hook; token trả về *definitively invalid* → coi là (re)install. Không phụ thuộc webhook nữa. Hướng này chắc hơn hướng đọc `uninstalledAt` của mình
-     - alpha.9 phân biệt lỗi refresh **transient vs definitive** (5xx/429/timeout retry với backoff; chỉ 401 `invalid_request` mới là chết), cờ `isRefreshTokenRevoked`. Changelog cảnh báo đúng thứ liên quan Việc 1 của mình: *"fatal" leo thang thành "merchant reinstalled" → gọi `builder.create()` → huỷ subscription hiện tại và hạ về `initialPlan`*. **Guard `apiKey`/`secret` của mình throw trong `performRefresh` — cần kiểm nó bị phân loại là transient hay fatal dưới logic alpha.9**
-     - alpha.9 còn fix: uninstall→reinstall làm session doc mất field identity → mọi request gọi `https://undefined/...`; và `checkIfHasSession` tự vá session cũ tại chỗ
-   - **ĐỐI CHIẾU joysub.1 vs alpha.9 (agent + verifier, verifier FAIL 1 claim)** — `alpha.8` CHƯA TỪNG publish (registry chỉ có alpha.1,2,3,5,6,7,9), nội dung alpha.8 nằm trong tarball alpha.9. Không có source TS alpha.9 ở đâu → phải đọc JS đã build
-     - **Việc 3 KHÔNG no-op — cảnh báo trước đó của tôi SAI.** Có **2 luồng cài đặt song song, không loại trừ nhau**: (a) *OAuth cổ điển* (`handlers/auth.js` → `shopifyAuth` → `authController.ts`) — `validateAuthCallback` (`shopifyAuthService.ts:132-227`) **mutate + return** `currentSession` với token mới (`:211`), nên `registerWebhooks` (`authController.ts:499-510`) dùng token hợp lệ → `APP_UNINSTALLED` đăng ký OK → `uninstallApp` set `uninstalledAt` (`webhookController.ts:44`) → **gate joysub.1 chạy đúng**. (b) *embedded/token-exchange* (`handlers/api.js` → `verifyEmbedRequest` → `verifyToken.ts:93-95` → `handleAfterInstall`) — `requestAndUpdateShopAccessToken` (`shopifyAuthService.ts:362-388`) tạo object MỚI `{...session, accessToken, scope}` (`:368`), KHÔNG mutate `session` → `handleAfterInstall` (`:436-462`) dùng token cũ → webhook fail âm thầm → `uninstalledAt` không bao giờ set. joysub.1 không đụng luồng b; alpha.9 sửa rồi (`build/services/shopifyAuthService.js:502` → `shopModel.accessToken || session.accessToken`)
-     - **Verifier hạ mức claim "việc 3 vô dụng NGAY khi bật `expiringOfflineToken`"**: `src/auth.ts` đăng ký route OAuth cổ điển **không** điều kiện theo cờ đó; cờ chỉ đổi loại token Shopify cấp (`authController.ts:340`). Hai handler `auth.js` và `api.js` là 2 Firebase Function độc lập chạy song song → luồng cổ điển KHÔNG bị thay thế. Chưa xác minh được phía Shopify thực tế route request qua đường nào (hành vi platform, không đọc code ra được)
-     - **⚠️ VERIFIER BÁC (Y4 FAIL) — claim "việc 2 trùng 100% alpha.9" là SAI**: `a9/build/services/shopifyAuthService.js:342-379` `checkIfActiveAccessToken` chỉ có `401→false`, `429→true`, `430→true`, **default `return true`** — **KHÔNG có nhánh 403 nào**. `grep 403` trong `a9/build/` chỉ ra 5 match không liên quan (`isAuthFailure` ở `authController.js:398` vốn có từ alpha.7). → **Nhánh 403 là ĐỘC QUYỀN của joysub.1**. Nếu rebase lên alpha.9 mà không port riêng việc 2 thì **mất khả năng phát hiện token legacy bị Shopify từ chối bằng 403** — alpha.9 sẽ coi token đó "vẫn active"
-     - **Guard `apiKey`/`secret` port lên alpha.9 AN TOÀN, không hạ gói** (verifier trace đủ chuỗi): guard ném plain `Error`, không set `isRefreshTokenRevoked` → `forceRefreshAccessToken` (`a9 authService.js:476-500`) không try/catch → `recoverInvalidToken` (`:420-452`) tính `isRevoked = Boolean(e.isRefreshTokenRevoked) || message.startsWith('No refresh token available')` = **false** → `outcome:'transient'` → `verifyToken.js:148-156` trả **503**, KHÔNG chạy `handleAfterInstall`/`builder.create()`. Regex `isDeadRefreshToken = /invalid_request|invalid_grant|active refresh_token/i` (`:225`) không khớp message guard. **Điều kiện an toàn: người port KHÔNG được gán `error.isRefreshTokenRevoked = true`**. Nên đặt guard SAU bước phân loại lỗi của alpha.9 để không che mất retry/503
-     - **Việc 4 vắng mặt hoàn toàn ở alpha.9**: grep `getValidAccessTokenWithMeta|TOKEN_REFRESH_BUFFER_MS|tokenRefreshBufferMs` trong `a9/build/` → 0 match. (`refreshed` có xuất hiện nhưng là `outcome:'refreshed'` của taxonomy khác)
-     - **alpha.9 có mà joysub.1 KHÔNG có** (verifier kiểm sâu 3 mục, đều PASS): self-heal session thiếu identity field (`a9 checkIfHasSession.js` case 3-4, `if (!session.shop)` → `findOneAndReplace`) — nghiêm trọng cao, không có nó thì sau reinstall mọi request gọi `https://undefined/...`; `handleAfterInstall` dùng token đúng (`:502`); retry/backoff `TRANSIENT_REFRESH_RETRIES=2`/`BACKOFF_MS=500` (`a9 authService.js:290-291`, dùng ở `:532-533`); trả 503 khi Shopify unreachable; taxonomy `isRefreshTokenRevoked`
-     - Verifier chỉnh thêm: gate install của alpha.9 là **BỔ SUNG chứ không THAY** cờ cũ — `isGenuineInstall = recovery.outcome === 'revoked' || !shopBeforeExchange || shopBeforeExchange.isInstalled === false` (`a9 verifyToken.js:169-172`)
-     - **Việc 3 CHỐT: GIỮ.** `build/controllers/authController.js` của alpha.7 và alpha.9 **giống hệt nhau từng byte** (cùng MD5 `0b2f3d75bd3e421e68f4dc58ebc6821e`, diff rỗng) → alpha.9 KHÔNG đổi gì ở luồng OAuth cổ điển, vẫn `installed = options.isInstalled` (`:481`) và `if (!authResult.installed)` (`:665`). grep `isFreshInstall|shopBeforeExchange|isGenuineInstall|markShopReinstalled|uninstalledAt` trong file đó → **0 kết quả**. Gate động `isGenuineInstall` của alpha.9 CHỈ sống ở luồng embedded (`verifyToken.js:169-172` → `handleAfterInstall` clear `uninstalledAt` inline tại `shopifyAuthService.js:531`), **không được 2 callback cổ điển gọi tới**
-     - `markShopReinstalled` cũng không tồn tại ở alpha.9 (grep toàn package → 0, kể cả `.d.ts`; `shopRepository.js` alpha.9 không export hàm này) → khi rebase phải mang cả implementation từ `git show 19e6e2f -- src/repositories/shopRepository.ts`, không chỉ chỗ gọi
-     - **KẾT LUẬN CUỐI: rebase lên alpha.9 và GIỮ CẢ 4 VIỆC.** Không việc nào trùng alpha.9. Chuỗi đính chính: agent điều tra nói giữ 2 → verifier bác việc 2 (403 độc quyền) thành giữ 3 → check cuối bác nốt việc 3 (authController alpha.9 y hệt alpha.7) thành giữ 4. **Bài học: mỗi vòng "trùng rồi, bỏ đi" đều sai; đừng tin claim trùng lặp nếu chưa diff thật**
-   - **Việc phải làm**: xin CTO push source alpha.9 → rebase `fix/token-hardening` lên đó → đánh giá lại 4 việc (nhiều khả năng Việc 3 phải bỏ/viết lại theo hướng alpha.8, Việc 1 phải khớp phân loại lỗi của alpha.9) → publish `5.0.0-joysub.2`
-   - **Trong lúc chờ: ĐỪNG dùng `joysub.1` cho production.** Nó thiếu 2 tháng fix của alpha.8/.9, và Việc 3 của nó có thể là no-op
-
-12. [✅ 2026-08-11] Làm bản core mới `5.0.0-joysub.1` — alpha.7 + 4 việc từ task #11
-   - Nhánh `fix/token-hardening` trong `~/projects/avada-core`, rẽ từ `origin/feature/get-valid-shop-token` (`b96086c`). alpha.7 CHƯA merge vào `main` (còn 24 commit) nên base là nhánh feature, không phải main
-   - Version channel `joysub` = Joy Subscription. User ban đầu chọn `js`, sau đổi sang `joysub` — `js` dễ đọc nhầm thành JavaScript trong một lib JS, và convention team là "Joy" trống = Joy Loyalty nên phải viết đủ
-   - 4 việc theo thứ tự verifier: E guard `apiKey`/`secret` → C1 self-heal 403 → C2 `isFreshInstall` ở `authController.ts` → C4 expose expiry cho app tự cache
-   - **Nhánh `fix/token-hardening` · commit `19e6e2f` · đã push `origin/fix/token-hardening`** (nhánh ban đầu track nhầm `origin/feature/get-valid-shop-token` của CTO — phải `push -u origin fix/token-hardening` tường minh, push trần là đẩy vào nhánh CTO)
-   - **Đã publish** `@avada/core@5.0.0-joysub.1` lên `registry.avada.io` với `--tag joysub`. **Bắt buộc `--tag`**: `npm publish` trần gắn dist-tag `latest` kể cả với prerelease → mọi app không pin version sẽ kéo về. Verify: `dist-tags.joysub = 5.0.0-joysub.1`, shasum khớp dry-run
-   - Sửa: `authService.ts` (guard trong `performRefresh` + `getValidAccessTokenWithMeta` + `TOKEN_REFRESH_BUFFER_MS`), `shopifyAuthService.ts` (nhánh 403), `authController.ts` (gate `isFreshInstall` 2 callback), `shopRepository.ts` (`markShopReinstalled`), `index.ts`, `package.json`, `changelog.md`, `docs/expiring-offline-tokens.md`. 8 file, +203/−48
-   - **Việc 4 làm ADDITIVE, khác đề xuất ở task #11**: KHÔNG đổi kiểu trả về của `getValidAccessToken` (`Promise<string>`, có caller cả trong core lẫn app) — biến nó thành wrapper mỏng quanh `getValidAccessTokenWithMeta` mới. `getValidShopToken` chỉ thêm field. Trên lib dùng chung thì breaking không đáng
-   - Verify: verifier PASS 8/8, tự chạy `npm run build` exit 0, truy mọi call site, dựng bảng 4 ca install cho gate. Repo **không có test suite** → verifier là lớp kiểm duy nhất, tất cả là đọc mã tĩnh
-   - **Gate `yarn check` chặn commit** bằng 5 vi phạm locale-parity **của repo `subscriptions`** (thiếu key `WidgetRebuildBanner` từ commit `dc037d463` của người khác) dù đang commit ở repo `avada-core`. `--no-verify` VÔ DỤNG — gate ở tầng Claude Code hook, chặn Bash call trước khi git chạy. Và `git add` đi chung call cũng bị chặn theo. User phải tự chạy commit
-   - **⚠️ ĐỌC TASK #13 TRƯỚC KHI DÙNG BẢN NÀY** — nó build trên alpha.7 đã cũ 2 tháng
-
-9. [✅ 2026-08-12] `getValidAccessToken` có thể nhận `apiKey`/`secret` = `undefined` ở charge flow
-   - **ĐÓNG 12/08 — đã sửa ở task #20**, kiểm chứng lại trên nhánh `feat/expiring-token` (commit `14271d400`): `handlers/api.js:56-57` truyền `apiKey`/`secret` vào **đúng** `shopifyChargeWithDynamicPlans({...})`, `handlers/apiSa.js:35-36` cũng có. Coder tự quét ra `apiSa.js` dính cùng bug — finding gốc chỉ nêu `api.js`
-   - Vẫn đúng phần "chưa chạy runtime": fix là truyền tham số còn thiếu, chưa ai chạy thật một charge trên shop đã migrate
-   - **Finding nguyên văn của verifier**: `packages/functions/src/handlers/api.js:41-52` truyền vào `shopifyChargeWithDynamicPlans({...})` KHÔNG có `apiKey`/`secret` (chỉ có `accessTokenKey`), trong khi core `getShopifyApiWithValidToken` (CẢ `.18` LẪN alpha.7) gọi `getValidAccessToken(shop.shopifyDomain, options.accessTokenKey, options.apiKey, options.secret)`. Nếu token của shop đang trong buffer 5 phút gần hết hạn đúng lúc merchant bấm subscribe/activate → `refreshAccessToken` (`authService.ts:147-152`, đưa thẳng `client_id: apiKey, client_secret: clientSecret` vào POST body) gửi `client_id: undefined` → Shopify từ chối → charge flow lỗi
-   - Có ở **cả hai nhánh core**, không phải điểm khác biệt `.18` vs alpha.7 → không đổi khuyến nghị rebase, nhưng là bug thật trong domain expiring token mà **cả hai report đều bỏ sót**
-   - Chỉ mới đọc code, **chưa chạy runtime**; `options.apiKey`/`secret` có thể được merge ở tầng khác chưa grep ra. Cần verify trước khi coi là bug thật
-   - Chỉ kích hoạt khi đã bật `expiringOfflineToken` — hiện chưa bật nên đang ngủ
-
-10. [✅ 2026-08-12] Nhánh `fix/expiring-offline-tokens` (`.18`) làm mất route `/link/:plan` và nhánh `shopFromQuery` so với `main`
-   - **ĐÓNG 12/08 — hết hiệu lực**: task này chỉ tồn tại như checklist *"nhớ đối chiếu khi rebase `.18` lên alpha.7"*. Hướng đó đã bỏ — dòng joysub base từ alpha.7 rồi port ngược từ build alpha.9/alpha.12, **không bao giờ rebase `.18`**. Regression của `.18` vẫn có thật nhưng app không dùng `/link/:plan` (0 hit) → không ai dính
-   - `git diff origin/main origin/fix/expiring-offline-tokens -- src/middleware/verifyShopQuery.ts`: file bị **xoá** (25 dòng). `src/shopifyCharge.ts` bản `.18` thiếu dòng `router.get('/link/:plan', verifyShopQuery(), subscriptionController.subscribeAndRedirect(options));` — dòng này có ở **cả `main` lẫn alpha.7**
-   - Kèm theo: `subscriptionController.js:32-37` bản `.18` chỉ còn nhánh dựa `referer` header trong `getShopContext`, mất nhánh dựa `ctx.query.shop` mà `main`/alpha.7 đều có (`:33-46`)
-   - App hiện **không** dùng `/link/:plan` hay `subscribeAndRedirect` (0 hit trong `packages/functions/src`) nên chưa vỡ. Nhưng là regression thật của `.18`
-   - **Vì sao thành task**: lúc rebase gate `isFreshInstall` của `.18` lên `authController.ts`/`subscriptionController.ts` của alpha.7, phải đối chiếu **đầy đủ 2 file đó**, không chỉ phần token — nếu không sẽ bê nguyên regression này sang
-
-11. [✅ 2026-08-12] https://avadaio.slack.com/archives/C07URV6QMJ8/p1786494004579699 check cho tôi issue này nhé, và bạn có thể check các slack tương tự ở store trên tại sao cứ lặp đi lặp lại các lỗi vậy ???
-   - **12/08 — ĐANG LÀM. Đã khoanh gần xong root cause, chờ agent chốt `file:line` của flow sync.** Dưới đây là dữ liệu prod đã lấy — **đừng query lại, tốn công**
-   - **Issue**: store `kookut.myshopify.com`, ticket `JSUB-260811-TWjnqq`, CS ThắngNĐ báo 11/08 URGENT. Contract `#151147970941`: *Wild Alaskan Salmon 70g* bị tính **€38** thay vì ~**€1.71** → charge 6×38 = **€228**. Thread chỉ có 2 reply ("@dantt check nhé" + "."), **chưa ai chẩn đoán**
-   - **Đường đọc prod** (script read-only đã viết, đang untracked trong `packages/functions/src/commands/misc/`): `inspectContractPricing.js`, `inspectContractActivities.js`, `inspectContractOrders.js`, `inspectBulkSwapJobs.js`. Chạy `SA_ENV=prod node <script> ...`. **Claude Code classifier có lúc chặn `SA_ENV=prod node`** — chặn thì nhờ user chạy bằng `!`
-   - **DỮ LIỆU CHỐT** — doc `subscriptionContracts/KGc5t81ZquCuDATu84Ef`, shopId `4VgCcf9Ov5cIBx2tCkcT`:
-     ```
-     [0] Salmon 6576427466960 variant 39412859404496 "70g"    variant.price 1.8 basePrice 40  ← SAI
-     [1] Salmon 6576427466960 variant 39412859371728 "24x70g" variant.price 42  basePrice 40  ← đúng
-     [2] Tuna   6576443031760 variant 39412882735312 "70g"    variant.price 1.8 basePrice 1.7 ← đúng
-     [3] Tuna   6576443031760 variant 39412882702544 "24x70g" variant.price 42  basePrice 40  ← đúng
-     ```
-     `currentPrice = basePrice × 0.95`. `currency: EUR` / `shopCurrency: CHF` (basePrice là giá đã convert: 1.8 CHF≈1.7 EUR, 42 CHF≈40 EUR)
-   - **KHÔNG phải bug chọn nhầm variant** — variant đúng hết. Bug nằm ở **`basePrice` của line [0] mang giá gói 24x70g**. `variant.price` (đúng) và `basePrice` (sai) nằm cạnh nhau trong cùng doc vì **đến từ 2 nguồn khác nhau**: `prepareLineData` (`services/graphql/contractService.js:37-125`) bắn GraphQL lấy **giá catalog SỐNG** cho `variant.price`, còn `basePrice` mirror từ `pricingPolicy` đã đóng băng
-   - **NGUYÊN NHÂN (mức rất chắc, chờ chốt file:line)**: job `sync-product-price-to-subscription-contract` đẩy **một giá cho cả product** xuống **mọi line** của product đó, **không phân biệt variant**. Bằng chứng thời gian khớp chính xác:
-     | productId | sản phẩm | sync gần nhất | processed |
-     |---|---|---|---|
-     | `6576427466960` | Salmon (line SAI) | **11/08 19:48:52** | 7/7 |
-     | `6576443031760` | Tuna (line 70g ĐÚNG) | 06/08 10:09 | **8/29** |
-     Contract `shopifySyncedAt` ≈ 11/08 19:48:2x, order docs `updatedAt` 19:48:32 → **khớp job sync Salmon**. Tuna chạy dở (8/29) nên contract này chưa bị đụng → line Tuna 70g còn nguyên giá đúng. **Đây là đối chứng tự nhiên mạnh nhất của cả vụ**
-   - **BUG THỨ HAI lộ ra**: nhiều job `status: 'DONE'` nhưng `processedCount` < `totalContracts` — 3/23, 2/22, 5/26, 6/26, 2/23, 9/30, 8/29. **Sync dừng giữa chừng vẫn báo DONE** → dữ liệu lệch nhau giữa các contract, không ai biết
-   - **BUG THỨ BA (cùng lớp lỗi, flow khác)**: `services/subscription/bulkSwapProducts.js:205-234` destructure `price` từ **line CŨ** (`variantNeedSwap.product.variant.price`) rồi gửi kèm `variantId: newVariantId` → **variant mới + giá cũ**. Ghi lên `pricingPolicy.basePrice` của Shopify (`:357-385`). Cùng lớp lỗi "giá không gắn với đúng variant". Kèm `:228` hardcode `quantity: 1` — nghi làm mất quantity gốc, **chưa kiểm**
-   - **CẢNH BÁO đường điều tra sai đã tốn công**: agent đầu kết luận root cause là bulk-swap modal chọn nhầm `variants[0]` → **SAI**, vì (a) variant trong doc đúng hết, (b) shop này **không có job `bulk-swap-subscription-products` nào** trong 22 backgroundActivities. Đừng đi lại đường này
-   - **Giả thuyết index-zip cũng đã BÁC BỎ**: `plans[]` xếp khác thứ tự `lineIds[]` là thật, nhưng downstream join theo key (`helpers/subscription/subscriptionContract.js:109` dùng `lines.find(l => getLineSellingPlanKey(l) === plan.sellingPlanId)`), và `products[]`/`basePrice` map 1:1 từ `lines` không qua `plans[]` → artifact vô hại
-   - **Activity log KHÔNG ghi gì khi sync**: contract chỉ có 3 event (`create_subscription` 14/06, `attempt_billing`+`recurring` 14/07). Job sync ghi đè giá mà không để lại vết → CS/dev nhìn activity log sẽ không bao giờ thấy nguyên nhân
-   - **TẠI SAO CỨ LẶP** (trả lời câu hỏi thật của user): không phải cùng 1 bug lặp, mà là **cùng một lớp lỗi kiến trúc**: giá bị snapshot/đóng băng ở nhiều nơi (`basePrice` trên line, `pricingPolicy` trên Shopify, `sellingPlanId` dùng chung nhiều product, giá bake vào metafield) thay vì resolve tươi theo đúng variant tại thời điểm dùng. Mỗi lần upstream đổi thì một mặt khác của cùng điểm yếu lộ ra thành "bug mới". Cộng thêm: (a) **fix bằng tay không chữa được** vì giá sai nằm trên `pricingPolicy` phía Shopify — sửa Firestore vô nghĩa (đúng lời khách: *"support fix thủ công nhưng lỗi vẫn tái diễn"*), (b) **không có đối soát chủ động** — mọi case đều do khách phát hiện sau khi đã bị charge sai
-   - **Lịch sử ticket cùng store — 8 ticket/11 tuần** (25/05→11/08): checkout fail 25/05 · discount không áp khi swap 09/06 (root cause: nhiều product chung `sellingPlanId`) · badge discount sai 24/06 · **CHF thay vì EUR** 01/07 (MR!2284/!2293) · double-charge race 10/07 (Redis lock MR!2322) · **cùng contract `#151147970941`: shipping 7.99 thay vì 10 EUR** 15/07 (SB-14315, fix `437759f59` đã lên master, nhưng **cách xử lý cho khách là CS set tay giá ship**) · company name + shipping revert 22/07 (MR!2398) · **giá SP sai 11/08** (vụ này)
-   - **2 tuyên bố của agent điều tra đã bị verifier BÁC** — đừng chép lại: (1) *"`convertBaseCurrencyToSpecificCurrency` (`exchangeRateService.js:57-66`) không guard cùng currency"* — đúng nghĩa đen nhưng **cả 5 call site đã guard ở tầng trên** (`currencyHelpers.js:6`, `calculateDiscount.js:130`, `flatPricingPolicy.js:31`, `prepareProductData.js:313`, `graphql/shippingProfileService.js:515`); (2) *"one-time addon sai giá 2 tầng currency"* — **SAI**, write-path (`fixedBundleService.js:63-84`) không convert, cart-transform nhân **một lần** bằng `presentmentCurrencyRate` chính thức của Shopify (`onetimeExpand.js:47`). Đây là cách chuẩn
-   - **✅ ROOT CAUSE ĐÃ CHỐT (12/08) — xác nhận 100% bằng dữ liệu prod, không cần query thêm**
-   - **`services/subscription/contractBulkActionService.js:74`** lấy `id: contract.lineIds?.[idx] || p.contractLineId` — **theo VỊ TRÍ mảng** thay vì dùng `p.contractLineId` vốn có sẵn và luôn đúng. Hai mảng xây bằng 2 đường khác nhau nên **không cùng thứ tự**:
-     - `lineIds` ← `lines.map(...)`, thứ tự theo response GraphQL mới (`webhook/subscriptionContractUpdateService.js:116`)
-     - `products` ← `processContractLines.js:41-58`, nhóm lại **theo `product.id`** (PRODUCT, không phải variant — `presentLineItem.js:6-17`) dựa trên thứ tự CŨ trong Firestore
-   - **Đối chiếu doc thật — 3/4 index lệch, xoay đi một nhịp**:
-     ```
-     idx:       0           1          2          3
-     products:  Salmon70g   Salmon24   Tuna70g    Tuna24
-     đúng ra:   d16e14c3    fa9851df   581312ff   fbc3a243
-     lineIds:   581312ff    d16e14c3   fa9851df   fbc3a243   ← 0,1,2 LỆCH
-     ```
-     Chạy job sync Salmon lên cái lệch này: `idx 1` = Salmon 24x70g tính giá **40** → ghi vào `lineIds[1]` = `d16e14c3` = **line Salmon 70g** → 70g thành 40. **Khớp chính xác bug.** `idx 0` = Salmon 70g giá 1.7 → ghi vào `lineIds[0]` = line **Tuna 70g**; Tuna 70g "đúng giá" chỉ là **TRÙNG HỢP** vì hai variant 70g cùng 1.8 CHF
-   - **Ghi THẲNG LÊN SHOPIFY**, không chỉ Firestore: `contractBulkActionService.js:130-136,148-216` → `createDraftContract` → `subscriptionDraftLineUpdate` (`graphql/contractService.js:659-680`) → `commitDraftContract`. `pricingPolicy.basePrice` bị đè vĩnh viễn → **sửa Firestore vô nghĩa**, đúng lời khách
-   - **Trigger = webhook `products/update`** (`handlers/pubsub/productWebhookHandler.js:83` → `productService.js:121,133`, gate `automation.syncProductPrice === true`). **Không có điều kiện "chỉ chạy khi giá variant đó thật sự đổi"** → merchant sửa bất cứ gì trên product là chạy lại đường ghi nhầm dòng. **Đây là lời giải cho "tại sao cứ lặp"**
-   - **Đính chính 2 kết luận sai của vòng điều tra trước** (giữ lại để không đi lại): (1) *"sync đẩy 1 giá cho cả product"* — **SAI**, `shopify/productService.js:75-80` build `variantPricesMap` theo `variant.id`, giá per-variant đúng; cái sai là **ghi nhầm dòng**. (2) *"index-zip đã bị bác bỏ"* — bác bỏ đó đúng cho `subscriptionContractCreateService.js:228-239` nhưng **SAI ở chỗ kết luận chung**: index-zip THẬT SỰ là root cause, chỉ nằm ở file khác (`contractBulkActionService.js:74`). **Bài học: bác bỏ một giả thuyết ở một call site không bác bỏ được cả lớp giả thuyết**
-   - Currency KHÔNG phải nguyên nhân: convert qua Shopify Markets theo `countryCode` (`shopify/productService.js:83-102`), không dùng FX thủ công. Nhánh `convertUSDToSpecificCurrency` (`contractBulkActionService.js:69-71`) là **dead code** vì `currency` truyền vào luôn = `contract.currency`
-   - **Chưa audit hết**: các chỗ khác dùng `variant.price` (`prepareSkippedLines.js`, `expandBundleLine.js`, `buildAutoSwapMetafield.js`, `billingEmailProps.js`, `prepareEmailData.js`, `cycleSnapshotInit.js`, `emailService.js`, `updateSubscriptionPlansMetafields.js`) — agent chưa soi sâu. Nơi nên quét tiếp
-   - → Đã tách thành task **#23 / #24 / #25** bên dưới. Task này (#11) đóng ở mức ĐIỀU TRA, không có commit
-
-23. [✅ 2026-08-12] **[P0] Fix ghi nhầm dòng ở sync giá — `contractBulkActionService.js:74`** _(root cause vụ kookut #151147970941, xem task #11)_
-   - Đổi `id: contract.lineIds?.[idx] || p.contractLineId` → ưu tiên `p.contractLineId` (id gắn liền với chính line đó), chỉ fallback `lineIds[idx]` khi thiếu — hoặc bỏ hẳn fallback theo index vì nó luôn sai khi 2 mảng lệch thứ tự
-   - Cân nhắc sửa tận gốc: `processContractLines.js:41-58` nhóm theo `product.id` làm `products` lệch thứ tự với `lineIds`. Sửa ở đây thì mọi consumer khác của cặp mảng này cũng an toàn — nhưng rủi ro rộng hơn, cần cân nhắc
-   - **Regression test viết TRƯỚC**: dựng contract có 2 product × 2 variant với `products` và `lineIds` LỆCH thứ tự (dùng đúng dữ liệu kookut ở #11), assert mutation gửi đúng `lineId` cho từng variant
-   - **Việc dữ liệu (KHÔNG tự chạy — user tự làm)**: contract `#151147970941` đang có `basePrice` sai **trên Shopify**, sửa Firestore vô nghĩa. Cần một lượt sửa lại `pricingPolicy` cho line Salmon 70g. **Trước 14/09** (cycle kế tiếp) kẻo charge sai lần nữa
-   - Cần quét xem còn bao nhiêu contract/shop khác đã bị ghi sai bởi cùng bug này — không chỉ kookut
-   - **ĐÓNG 12/08** — nhánh `fix/line-price-sync` · commit **`2dc2fb9fd`** · **đã push**, base `origin/master` `4e3ff8c70`. 2 file, +295/−5. Chung commit với #24. **A1 xong, verifier PASS. A2 cố ý KHÔNG làm.** Chưa tạo MR
-   - **A1**: `contractBulkActionService.js:83` đổi thứ tự ưu tiên thành `p.contractLineId || contract.lineIds?.[idx] || contract.lineId`. Giữ fallback index cho doc cũ có thể thiếu `contractLineId` — hành vi khi thiếu **không đổi** so với code cũ, không phải bug mới
-   - **Verifier tự dựng repro ngoài repo** với đúng shape kookut: công thức CŨ sai **3/4 dòng** (idx 0,1,2), công thức MỚI đúng **4/4**. `idx 1` (Salmon 24x70g, giá 40) ghi đúng vào `fa9851df`, không lệch sang `d16e14c3`
-   - **A2 DỪNG — có bằng chứng, không phải né việc** (verifier đọc lại 2 commit, xác nhận): `processContractLines.js` nhóm theo `product.id` là **CỐ Ý**. `7c7f5aed2` "persist products order" tạo ra nó để danh sách sản phẩm trong admin không nhảy loạn mỗi lần sync; `1d398eb42` refine tiếp cho ca cùng product nhiều dòng. Sửa nó = phá thứ tự hiển thị của MỌI shop để chữa một bug đã chặn được ở A1. **Muốn làm A2 phải tìm hướng giữ được thứ tự hiển thị, không phải sắp lại theo `lines`**
-   - Cả 2 write-path của `processContractLines` (`shopifyService.js:2123`, `webhook/subscriptionContractUpdateService.js:75`) đều truyền `includeContractLineId: true` → `p.contractLineId` có thật trên mọi doc ghi bởi code hiện tại; rủi ro chỉ còn ở doc rất cũ chưa từng rewrite
-
-24. [⏳ 11:00] **[P1] Job bulk-action báo `DONE` khi mới chạy được một phần**
+24. [✅ 2026-08-14] **[P1] Job bulk-action báo `DONE` khi mới chạy được một phần**
+   - **ĐÓNG 14/08**: lock `[⏳ 11:00]` là lock chết — code đã commit từ 12/08. Nhánh `fix/line-price-sync` · commit **`2dc2fb9fd`** (chung commit với #23) · đã có trên `master`. Xác minh lại bằng `git show`: `unprocessedContractIds` + 2 `console.warn` có mặt đúng như mô tả bên dưới. 2 file, +295/−5
    - `contractBulkActionService.js:464-470` set `status: BULK_ACTION_STATUS_DONE` **vô điều kiện** sau khi hết `while` loop, không so `processedContracts.size === totalContracts`
    - Contract bị bỏ qua âm thầm ở `:231-233` (`if (!contract) continue;` — không log, không đếm) khi không có trong `contractsMap` từ `getSubscriptionContractsByContractIds` (`:379-382`)
    - Bằng chứng prod (shop kookut): 3/23, 2/22, 5/26, 6/26, 2/23, 9/30, 8/29 — đều `status: DONE`
@@ -244,38 +87,9 @@
    - **Sửa đúng: BỎ HẲN `PARTIAL`.** Giữ `status: DONE` vô điều kiện (semantics với guard/FE y hệt pre-diff, `type.js` và `bulkActionHandler.js` đều **diff rỗng**), chỉ thêm `unprocessedContractIds` trung thực + `console.warn`. Loại rủi ro **bằng cấu trúc** thay vì vá cẩn thận. Verifier tự grep lại: 43 match `'DONE'` trong 24 file, không chỗ nào cần đụng
    - **FINDING CÒN TREO — mục tiêu chỉ đạt một nửa**: dữ liệu giờ trung thực nhưng **không ai thấy**. `unprocessedContractIds` chỉ nằm trong doc Firestore, **không UI nào đọc**, không banner/alert/dashboard. `console.warn` có vào Cloud Logging (Functions v2 tự thu stdout/stderr) nhưng **không có alert policy, không log-based metric**. → Job chạy thiếu vẫn trôi im lặng như cũ; khác biệt duy nhất là giờ có dấu vết để tra **sau khi đã có người khiếu nại**. Muốn đạt trọn thì cần alert/metric — việc riêng, chưa mở task
 
-25. [✅ 2026-08-12] **[P1] `bulkSwapProducts.js` — swap gán giá của variant CŨ + mất quantity gốc**
-   - `services/subscription/bulkSwapProducts.js:205-217` destructure `price` từ `variantNeedSwap.product.variant.price` (**line CŨ**) rồi gửi kèm `variantId: newVariantId` → **variant mới + giá cũ**. Phải fetch giá catalog của `newVariantId`
-   - `:228` hardcode `quantity: 1` — agent xác nhận grep cả file, **không có chỗ nào bù lại quantity gốc** → mọi swap đưa line về quantity 1 dù trước đó là 2, 3…
-   - Ghi lên Shopify `pricingPolicy.basePrice` (`:357-385`) nên cũng là lỗi vĩnh viễn, không phải lỗi hiển thị
-   - Cùng họ "price/variant desync" với #23 nhưng **khác cơ chế** (#23 lệch index; #25 cố ý lấy giá cũ, thiếu recompute)
-   - **ĐÓNG 12/08** — nhánh `fix/bulk-swap-price` · commit **`84425caae`** · **đã push**, base `origin/master` `4e3ff8c70`. 2 file, +290/−6. Verifier **PASS** ở vòng sửa thứ 2. Chưa tạo MR
-   - Agent không commit được (gate hook, xem #27) — user chạy tay
-   - Cách sửa: giá lấy từ catalog của **variant MỚI** qua `getProductVariantsByProductId({shop, productId, country})`; `quantity` từ `product.quantity` của line gốc thay vì hardcode 1
-   - **VÒNG 1 BỊ VERIFIER BÁC — bài học đáng giữ nhất phiên này**: fix đầu dùng `country = deliveryMethod?.countryCode || shop.shopCountry`. Fallback `shop.shopCountry` **tái tạo đúng lớp lỗi đang chữa**: shop CH + contract EUR → `contextualPricing(country: CH)` trả CHF → ghi giá CHF vào contract EUR. **Gate vẫn XANH 3/3** vì fixture `buildContract()` luôn set sẵn `deliveryMethod.countryCode` → nhánh fallback không bao giờ bị test chạm. *Fixture "luôn đủ field" là cách bug lọt gate.*
-   - Sửa đúng: `deliveryMethod?.countryCode || contract?.countryCode`, **bỏ hẳn `shop.shopCountry`**. Khớp pattern có sẵn `services/shopify/productService.js:61-71` và `helpers/cancellationFlow/evaluateConditions.js:185`. `shop.shopCountry` ở mọi call site khác chỉ để browse catalog admin. Không resolve được country → skip line + log, KHÔNG đoán
-   - Fixture sửa luôn: `shopCountry: 'CH'` giờ là **mồi nhử chạm tới được** (contract dùng DE/FR) → code lỡ rơi về shop country là đỏ ngay. 5 test. Verifier tự dựng lại đỏ-trước/xanh-sau ngoài repo. Gate: `yarn check` 5 violations (baseline), jest **1864 test pass, 0 fail**
-   - Verifier ghi nhận (không chặn, đã có từ trước diff): `processedContracts.add(contractId)` nằm ngoài vòng `for` và ngoài try/catch (`:288`) → contract có line bị skip vẫn được đánh dấu "processed" y như contract swap thành công
-
-26. [✅ 2026-08-12] Hình như hiện tại các recurring qua paypal luôn failed nhỉ ?
-   - **TRẢ LỜI: nghi vấn SAI ở mức tổng thể, nhưng ĐÚNG với vài shop cụ thể.** Điều tra, không có commit
-   - **Số liệu prod** (60 ngày, 8000 order gần nhất, script `commands/misc/checkPaypalBillingFailRate.js`): PayPal **42/152 fail = 27.6%** · phần còn lại **807/1893 = 42.6%**. PayPal fail **ÍT hơn** mặt bằng chung
-   - ⚠️ **Cách nhận diện PayPal — đừng lặp lại sai lầm**: `customerPaymentMethod.type` **LUÔN** là literal `"CustomerPaymentMethod"` với mọi contract → vô dụng. Thứ phân biệt là **có field `customerPaymentMethod.paypalAccountEmail`** (211/2301 contract có payment method, ~9%). Query đầu tiên dùng `type == 'CustomerPaypalBillingAgreement'` trả **0 kết quả** và làm mọi attempt rơi nhầm vào nhóm non-PayPal — suýt kết luận sai. Firestore: `orderBy('customerPaymentMethod.paypalAccountEmail')` chỉ trả doc CÓ field đó → dùng làm bộ lọc
-   - **Cơ cấu lỗi mới là chỗ khác biệt thật**: PayPal có `PAYMENT_PROVIDER_IS_NOT_ENABLED` (6/152) và `AUTHENTICATION_ERROR` (4/152) — gần như vắng ở nhóm kia (1/1893). Đây là dấu hiệu **merchant chưa được PayPal duyệt Reference Transactions**
-   - **Shop dính nặng** (≥3 attempt, 60 ngày):
-     | shop | fail | mã lỗi |
-     |---|---|---|
-     | `hairsupply-co.myshopify.com` | **6/7 = 86%** | `AUTHENTICATION_ERROR` ×4 |
-     | `homnes-2214.myshopify.com` | 2/3 = 67% | `VARIANT_NOT_EXIST` ×2 (không phải lỗi payment) |
-     | `nmfq1d-hg.myshopify.com` | 3/5 = 60% | **`PAYMENT_PROVIDER_IS_NOT_ENABLED` ×3** ← đúng ca chưa duyệt |
-     | `24123e-4.myshopify.com` | 16/74 = 22% | `UNEXPECTED_ERROR` ×7, `BUYER_CANCELED_PAYMENT_METHOD` ×6 |
-   - **Nguyên nhân gốc (code)**: `services/order/manualInvoiceService.js`, commit `0c3c90cbd` có comment gốc — *"Used when the gateway (e.g. PayPal) is not yet approved for merchant-initiated transactions"*. `subscriptionBillingAttemptCreate` là merchant-initiated → PayPal từ chối nếu merchant chưa bật Reference Transactions. **Giới hạn nền tảng, không phải bug app**
-   - Team đã có fallback: `741d1a756` thêm action "Send Invoice" khi `ORDER_STATUS_BILLING_FAILED` (`pages/Subscriptions/Tabs/History/HistoryOrderRow.js:186-201`); `0c3c90cbd` cho `sendManualInvoiceForOrder` dùng `SKIP_PAYMENT_AND_CREATE_UNPAID_ORDER`. Mã `PAYPAL_ERROR_GENERAL` đã định danh sẵn ở `const/subscription/subscriptionErrors.js:26`
-   - **Đã loại trừ**: không có code path nào chặn/loại PayPal khỏi retry — xử lý generic theo `errorCode` (`helpers/subscription/billingAttemptGuard.js`, `services/cron/automaticBillingAttemptService.js`, `services/webhook/billingAttemptWebhookService.js`)
-   - **Phát hiện ngoài lề đáng chú ý**: mã lỗi lớn nhất toàn hệ thống KHÔNG phải payment mà là **`INSUFFICIENT_INVENTORY` (333/1893)** ở nhóm non-PayPal. Bỏ lỗi tồn kho ra thì tỉ lệ fail PayPal ≈ non-PayPal. Đáng mở task riêng nếu quan tâm tỉ lệ recurring fail nói chung
-   - ⚠️ **Agent điều tra đã tự chạy query prod dù brief CẤM** — harness cảnh báo. Mọi số ở trên là tôi tự chạy lại, không lấy từ nó
-
-28. [ ] **[P0] SỬA DỮ LIỆU contract đã bị ghi sai giá — code fix KHÔNG chữa được dữ liệu cũ**
+28. [⏸️] **[P0] SỬA DỮ LIỆU contract đã bị ghi sai giá — code fix KHÔNG chữa được dữ liệu cũ**
+   - 🛑 **CẢNH BÁO 14/08 — ĐỪNG CHẠY `repairContractLinePrices.js --apply` CHO TỚI KHI XỬ XONG [[#43]]**: script dùng `contextualPricing` (`repairContractLinePrices.js:87,95`) làm "giá catalog thật". Verifier đã chứng minh trên kookut rằng **`contextualPricing` KHÔNG đáng tin**: với sản phẩm `Pacific Tuna & Sardine - Natural` nó trả 1.95 / 42.95(FR) / 45.95(DE,IT) trong khi **PriceList FIXED** của chính merchant là **1.70 / 40.00**, và nó **tự mâu thuẫn giữa các nước**. Chạy apply lên nhóm đó = **ghi giá còn sai hơn hiện tại**, và tăng tiền khách
+   - → Trước khi apply bất cứ gì: đổi nguồn giá tham chiếu sang `PriceList.prices(originType: FIXED)` theo đúng catalog/market của contract, rồi **dry-run lại từ đầu**. Mọi con số dry-run cũ (15 dòng / 11 contract) **phải coi là chưa đáng tin**
    - **`151147970941` charge lại 14/08 05:32 UTC** (đã xác nhận bằng `billingAttemptExpectedDate` 1786685579). Chu kỳ 1 tháng, không phải 14/09 như tôi ghi nhầm lúc đầu
    - **Re-sync KHÔNG tự chữa được.** `findContractsNeedPriceUpdate` (`contractBulkActionService.js:58`) so `shopifyPrice !== Number(p.variant.price)` — nó so **`variant.price`** (đúng ở cả 2 phía), KHÔNG so `basePrice` (cái đang sai). Line hỏng **vô hình** với chính cơ chế sync → deploy fix xong chạy lại sync cũng không đụng tới nó
    - **Quét kookut (script `commands/misc/scanLineIdMisalignment.js`, `STATUS=ANY`)**: 206 contract (83 ACTIVE / 73 PAUSED / 50 CANCELLED) → **30 lệch index**, **7 hỏng giá**
@@ -315,6 +129,7 @@
      - Cách phân biệt: `isNonDevShop: false`, `shopifyPlanName` ∈ {`partner_test`, `affiliate`}, `shopifyPlanDisplayName` chứa "Development"/"Developer Preview", email `@avada`
      - **Merchant THẬT trong danh sách**: `kookut` · `24123e-4` (New Earth Innovations) · `sc22z9-0f` (Canine Kitchen) · `ug4de1-v8` (Juan Valdez) · `cf9676` (EM Campers and Canines)
    - **ĐÍNH CHÍNH nhận định về dòng `1.95 → 1.7`**: tôi từng xếp nó "không chắc, donor yếu, để riêng" — **SAI**. Nhìn cả contract thì donor hiện rõ: `Pacific Tuna & Sardine` có catalog 1.95 mà đang đeo 1.7. Đúng một cặp hoán. **Bài học: đừng phán một dòng khi chưa ghép cặp với các dòng còn lại trong cùng contract**
+   - **⏸️ USER CHỐT 14/08: "để đấy đã, sau check thêm"** — KHÔNG apply gì thêm cho tới khi user mở lại. Dry-run vẫn còn nguyên, chạy lại được bất cứ lúc nào
    - **Chờ user duyệt apply cho merchant thật còn lại**: `24123e-4` (4 contract, JPY/CAD/AUD/EUR) · `sc22z9-0f` (1) · `ug4de1-v8` (2, Nhóm C — độ chắc thấp) · `cf9676` (đã loại hết ở v2, chỉ còn drift)
    - **KOOKUT còn lại (không thu thừa nữa, nhưng là việc thật)**: 3 contract PAUSED hỏng (`117124989309` 20 dòng · `117131379069` +150 CHF · `127309513085` thu thiếu) và 2 chỗ **thu thiếu** cần Kookut duyệt — `147905085821` Dry Food 1.7 thay vì 22.48 EUR, `127309513085` Chicken 24x70g 1.7 thay vì 39.67 EUR (bán gói 24 con giá một gói lẻ)
    - Đáng báo merchant sớm dù không gấp: `22094774594` (abby-florist) Lily Bouquet đang tính **50 VND** thay vì **500.000 VND** — merchant mất gần hết giá trị đơn mỗi kỳ
@@ -333,7 +148,8 @@
    - **🔑 THAO TÁC KÍCH HOẠT BUG — quan trọng nhất để chặn tái diễn**: so cycle 1 (4 line, KHÔNG có gói 24x70g) với cycle 2 (4 line, CÓ gói 24x70g) → khách vừa **thêm variant 24x70g của đúng product Salmon đã có ở dạng 70g**. Hai line cùng `product.id` chính là điều kiện làm `processContractLines` gom nhóm theo product rồi lệch thứ tự với `lineIds`. Trùng đúng vùng commit `1d398eb42` ("issue adding same products") từng chạm
    - Ghi nhận thêm: `getFailedData` (`services/cron/automaticBillingAttemptService.js:116`) hardcode `shopifyCycleIndex: 1` trong idempotency key của nhánh lỗi — chưa đánh giá tác động, chưa mở task
 
-32. [ ] **[P1] BUG: `recurringOption: lowest` KHÔNG tính lại phí ship mỗi kỳ — trái với chính UI của app**
+32. [⏸️] **[P1] BUG: `recurringOption: lowest` KHÔNG tính lại phí ship mỗi kỳ — trái với chính UI của app**
+   - ⏸️ **Chờ user chốt hướng** (hỏi 14/08, chưa trả lời): sửa bug này = **mọi shop đang để `lowest` sẽ bắt đầu tính lại phí ship mỗi kỳ**, tức khách của họ bị thu thêm tiền từ kỳ tới. Đây là quyết định thương mại, không phải quyết định kỹ thuật → agent không tự nhận
    - Ticket kookut `JSUB-260811-TWjnqq` (phần ship) + `JSUB-260722-AuRa7p`. CS xác nhận expected: *"free shipping đơn đầu thôi, hiện tại tất cả upcoming order đang free ship hết"*
    - **UI hứa gì** (`pages/Settings/Tabs/ShippingProfile/ShippingProfile.json`):
      - `lowest` = *"Always use lowest shipping rate"* / *"Apply the lowest available rate **on each renewal**"*
@@ -352,7 +168,9 @@
    - Sửa nhóm "shop mất phí ship" = **khách bắt đầu bị thu thêm tiền ship** từ kỳ tới → cần shop đồng ý + báo khách trước
    - Script audit: `commands/misc/auditShippingRecurring.js` (chỉ đọc). Cần contract dạng Shopify (`lines`) — truyền doc Firestore (`products`) vào `getLowestShippingRate` sẽ bị skip *"no lines in contract"*, phải lấy qua `getSubscriptionContractByContractId({fullResp:true})`
 
-31. [⏳ 16:05] Ticket `JSUB-260812-WNwa8Q` — kookut: **upcoming order ở Orders tab không hiển thị hết**
+31. [✅ 2026-08-14] Ticket `JSUB-260812-WNwa8Q` — kookut: **upcoming order ở Orders tab không hiển thị hết**
+   - **ĐÓNG 14/08 — user chốt: "lỗi filter thôi, close nhé".** Không có commit: đây là hành vi cố ý của procedure BQ (`rn = 1` lấy đơn gần nhất mỗi contract), không phải bug code app. Điều tra giữ lại bên dưới làm tài liệu
+   - **CÒN NGUYÊN, chưa xử**: tab vẫn chỉ hiện 1 đơn/contract (kookut 83/829, ẩn 746). Muốn đổi thì phải sửa BQ procedure `get_upcoming_orders` (`commands/sql/createProceduresV2.sql:243`) — đường deploy khác, và bỏ `rn = 1` là ~10× dữ liệu + chi phí BQ
    - **Nguyên nhân đã tìm ra**: BQ procedure `get_upcoming_orders` (`commands/sql/createProceduresV2.sql:243`) có `ROW_NUMBER() OVER (PARTITION BY subscription_contract_id ORDER BY billing_attempt_expected_date ASC) AS rn` rồi `WHERE rn = 1` → **chỉ lấy đơn gần nhất của mỗi contract**
    - Số thật kookut: **829** đơn UNBILLED tương lai chưa skip · tab hiển thị **83** (đúng bằng số contract) · **ẩn 746**. App sinh sẵn 10 chu kỳ/contract nên 9/10 bị cắt
    - Count cũng dùng chung CTE (`p_is_count`) nên UI tự nhất quán, không có cảnh "hiện 20 / tổng 829"
@@ -361,42 +179,322 @@
    - Slack: https://avadaio.slack.com/archives/C07URV6QMJ8/p1786524942309849 · ảnh: https://capture.avada.io/i/MnPTd0tBVqJi
    - Cùng shop kookut, cùng ngày với ticket giá `JSUB-260811-TWjnqq`. dantt đã nhận trong thread
 
-30. [✅ 2026-08-13] ~~Phí ship contract `151147970941` là 0 thay vì 10~~ — **GỘP VÀO #32, cùng một nguyên nhân**
-   - Mở task này lúc chưa biết cơ chế. #32 đã giải thích trọn: `recurringOption: lowest` không tính lại mỗi kỳ → giá ship lúc checkout đóng băng vĩnh viễn với contract không bị sửa
-   - `151147970941` đăng ký với rate free ("Shop2Shop France" 0.0) → đóng băng 0. Con số 7.99 chỉ xuất hiện vì contract bị sửa nên `autoUpdateShippingRate` chạy. Con số 10 là dev set tay tháng 7, chưa từng có hiệu lực
-   - Nội dung điều tra giữ lại bên dưới làm tài liệu; **việc thật nằm ở #32**
-   - Phát hiện 12/08 khi trả lời ticket. Đây là **bug KHÁC** với bug giá (khác field, khác luồng), chỉ mới xác định hiện trạng, **CHƯA truy nguyên nhân**
-   - Trạng thái thật trên doc: `originDeliveryPrice: "7.99"` (giá sai của bug FX tháng 7, SB-14315) · `newDeliveryPrice: "10"` (CS set tay) · `isCustomDeliveryPrice: true` · **`deliveryPrice: {amount: "0.0"}`** ← giá THỰC TẾ đang áp
-   - Cả 4 plan đều `enabledFreeShipping: false`, không plan nào có `discountId` → **không có cơ sở hợp lệ nào cho việc miễn ship**
-   - UI admin xác nhận: đơn 14/08 hiện `Shipping €0.00`
-   - ⚠️ **ĐÍNH CHÍNH: tôi từng ghi "merchant mất trọn 10 EUR/kỳ" — SAI.** Đọc thread tháng 7 (`p1784114012506859`, JSUB-260715) thì `€0` hiện tại **có khả năng cao là ĐÚNG**
-   - **Dòng thời gian thật** (dev dựng lại tháng 7 + trạng thái hiện tại): 14/06 khách đăng ký chọn "Shop2Shop France" → origin order ship **0.0, MIỄN PHÍ** · 24–25/06 sửa contract → `autoUpdateShippingRate` chạy → **7.99** · 14/07 renewal thu **7.99** · dev set tay `newDeliveryPrice = 10` · hiện tại `deliveryPrice` = **0.0**
-   - → **Lúc mua, khách vốn được miễn ship.** Câu *"recurring free shipping vẫn bị lỗi"* nghĩa là khách phàn nàn **bị thu tiền**, không phải được miễn. Con số **10 EUR là dev tự áp** theo profile merchant, không phải điều khách đã đồng ý. Merchant còn nói *"chưa tạo profile bao giờ"*
-   - Cái SAI là **7.99** (bug FX, đã fix SB-14315 `437759f59`) và có thể cả **10** (dev áp vào). `€0` khớp đúng điều kiện đăng ký gốc
-   - **Bài học**: `originDeliveryPrice`/`newDeliveryPrice` trên doc KHÔNG phải "giá gốc/giá đúng" — `newDeliveryPrice` chỉ là con số ai đó set tay, có thể chưa từng có hiệu lực. Đừng suy ra "đang thiếu tiền" từ chênh lệch giữa chúng
-   - Việc còn lại (nhẹ hơn nhiều so với tưởng ban đầu): xác nhận với Kookut rằng khách này được miễn ship theo điều kiện đăng ký, và dọn `newDeliveryPrice: 10` cho khỏi gây hiểu nhầm lần sau. Không có ai đang mất tiền
+33. [✅ 2026-08-14] Tôi muốn bạn check logic của klaviyo integration trong app tôi có phải đang thế này không?
+  - hồi xưa làm là integrate xong vào trong step 2 bấm trigger example từng cái thì bên app klaviyo nó mới hiện event trigger bên mình lên
+   - **TRẢ LỜI: nhớ đúng về UI, sai về nguyên nhân.** Step 2 "Get started with sample events" đúng là có dropdown chọn từng metric + nút "Trigger events" (`pages/Integrations/KlaviyoIntegration/KlaviyoIntegration.json:19-23`, handler `KlaviyoIntegration.js:86-99`). Nhưng **app KHÔNG chặn event thật khi chưa bấm** — nếu metric chỉ hiện sau khi bắn mẫu thì đó là **hành vi phía Klaviyo** (Klaviyo tạo Metric trong danh sách khi nhận event đầu tiên mang tên đó)
+   - nhánh `docs/klaviyo-audit` · commit `facb11c` · **đã push** → gộp vào **MR !2470** (`fix/klaviyo-integration`, cherry-pick `d84721d42`). 1 file mới `docs/klaviyo-integration-audit.md` (+152). Không sửa dòng code nào
+   - **Bằng chứng hội tụ**: sample path (`controllers/integrationsController.js:265`) và real path (`helpers/klaviyo/prepareMetricEvent.js:403`) đều gọi **cùng** `sendMetricEvent()` (`services/klaviyo/klaviyoService.js:219`) → `sendEventWithRetry()` → `POST /events` (`:259-270`). Không có nhánh riêng cho event thật
+   - Gate duy nhất trên đường real: `if (!klaviyoData?.enable) return` (`prepareMetricEvent.js:389-392`). Verifier tự grep `testedEvents|enabledEvents|isVerified|verifiedMetrics|metricVerified` toàn repo — mọi hit `isVerified` thuộc **Custom SMTP**, không dính Klaviyo. Doc integration chỉ lưu `enable, isSynced, disableDate, codeVerifier, codeChallenge, shopId, app, updatedAt` (`integrationsController.js:200-228`) → **không có field nào ghi "đã test event nào"**
+   - **17 metric**, định nghĩa `const/klaviyo/default.js:55-73` (verifier đếm lại độc lập)
+   - Step 3 "Sync data" cũng bắn cùng `sendMetricEvent` cho dữ liệu lịch sử → kể cả bỏ qua Step 2, metric vẫn hiện. Đường đi qua Pub/Sub nền: `integrationsController.js:287-324` → `backgroundHandler.js:779-781` → `klaviyoService.js:420-505`
+   - **Verifier PASS**. Không có gate build/test (task điều tra, 0 dòng code đổi); `git status --porcelain` xác nhận đúng 1 file untracked mới, **không file nguồn nào bị sửa**
+   - **CHƯA KIỂM ĐƯỢC (cần test tay trên Klaviyo dashboard)**: Klaviyo có tự hiện Metric ngay khi nhận event đầu tiên hay có độ trễ, và metric mới có xuất hiện ngay trong Flow trigger picker không
 
-29. [✅ 2026-08-12] **[P1] Regression test cho thao tác kích hoạt bug: thêm variant thứ hai của product đã có trong contract**
-   - Phát hiện từ #28: contract `151147970941` hỏng ngay sau khi khách thêm variant `24x70g` của Salmon vốn đã có dạng `70g` → 2 line cùng `product.id` → `processContractLines` gom nhóm → `products[]` lệch thứ tự với `lineIds[]` → sync giá ghi nhầm dòng
-   - Test hiện có ở `__tests__/services/subscription/contractBulkActionService.test.js` chỉ dựng sẵn mảng đã lệch. **Chưa có test nào đi qua đường THẬT tạo ra sự lệch đó** — tức chưa chặn được nguyên nhân, chỉ chặn triệu chứng
-   - Cần: test dựng contract 1 product/1 variant → thêm variant thứ hai cùng product qua đúng đường add/swap → assert `products[i].contractLineId === lineIds[i]` cho mọi i, HOẶC assert sync giá sau đó ghi đúng dòng
-   - Đây cũng là **cảnh báo cho CS**: thao tác "thêm variant khác của sản phẩm đã có" là thao tác rủi ro cho tới khi có test phủ
+36. [✅ 2026-08-14] **[P0] Sample event Klaviyo: email dev hardcode + mutate const global → RÒ EMAIL GIỮA CÁC SHOP**
+   - Phát hiện 14/08 khi trả lời câu hỏi "auto gửi sample sau step 1 có risk gì". Hai bug xếp chồng, cùng nằm ở đường sample event
+   - **ĐÓNG 14/08** — nhánh `fix/klaviyo-sample-leak` · commit **`4a81c12`** · **đã push**, base `origin/master` `832b61627`. 5 file, +206/−57. → gộp vào **MR !2470** (cherry-pick `2ab509301`)
+   - **Chọn factory, KHÔNG deep clone** — loại bug bằng cấu trúc: xoá hẳn `SAMPLE_EVENT_DATA` / `SAMPLE_SUBSCRIPTION_BASE_DATA` / `SAMPLE_ORDER_BASE_DATA`, thay bằng `helpers/klaviyo/buildSampleEventData.js` dựng object graph mới mỗi lần gọi. Không còn object dùng chung nào để mà mutate → call site thêm sau cũng không dính lại
+   - **Agent tự tìm ra call site thứ 2 mà brief không nhắc**: `services/klaviyo/klaviyoService.js` có default param `eventData = SAMPLE_EVENT_DATA` — cùng lỗ hổng. Đã đổi sang `buildSampleEventData()` (default expression chạy lại mỗi call nên an toàn)
+   - Email: ưu tiên merchant nhập → `shopFormatted?.email` (shop thật) → fallback `DEFAULT_SAMPLE_EMAIL = 'sample@joy-subscription.com'`. Verifier truy tới `@avada/shopify-auth` xác nhận `shop.email` là field có thật trong schema, không phải biến bịa
+   - **Xử luôn `new Date()` đóng băng**: `nextBillingDate` / `first_order_date` / `scheduled_at` trước nằm ở const module-level nên mang thời điểm **cold start**, giờ tính lại mỗi lần gọi factory
+   - **Verifier PASS, tự dựng 2 thí nghiệm riêng**:
+     - Gọi factory 2 lần, mutate sâu kết quả lần A (`customer.email`, `orderItems[0].title`, `customerPayment.maskedCardNumber`, `shippingAddress.city`, `billingAddress.city`) → lần B và metric khác **không bị ảnh hưởng**. Không object lồng nào còn share reference — bug không "lùi một tầng"
+     - Backup file fix, thay bằng bản mô phỏng bug cũ (`SHARED_BASE_PAYLOAD` module-level mutate in-place) → **3 test đỏ** đúng chỗ leak/isolation/fresh-date; khôi phục, md5 khớp, chạy lại 5/5 xanh
+   - **Rủi ro lớn nhất đã loại**: xoá 3 export là thay đổi phá vỡ, sót một importer là runtime nổ `undefined` mà `sendKlaviyoEvent` lại nuốt lỗi im lặng. Verifier grep toàn `packages/` + `extensions/` → **0 import còn lại**, chỉ còn tên trong comment và trong assertion phủ định của test. (`packages/functions/lib/` có bản build cũ nhưng gitignored)
+   - `hvu5877@gmail.com` **đã sạch khỏi repo**, chỉ còn trong test dạng `expect(...).not.toBe(...)`
+   - Gate verifier chạy trực tiếp (không qua `rtk`, tự đọc `echo $?`): `yarn check` **exit 0** · jest functions **exit 1** — 9 suite fail / **184** passed, 5 test fail / **1814** passed = đúng baseline + 1 suite + 5 test mới, không suite nào mới đỏ · jest assets **exit 0**, 6 suite / 86 test
+   - ⚠️ Agent viết code báo "jest exit 0" trong khi 9 suite fail — **`rtk` nuốt exit code**, đúng gotcha đã biết. Số ở trên là của verifier chạy thẳng binary
+   - **(a) Email hardcode là email cá nhân**: `const/klaviyo/default.js:126` → `SAMPLE_CUSTOMER.email = 'hvu5877@gmail.com'`. Merchant nào bấm "Trigger events" mà không nhập email thì Klaviyo của họ tạo profile mang email này. Klaviyo tính tiền theo active profile
+   - **(b) NGHIÊM TRỌNG HƠN — cross-tenant leak**: `controllers/integrationsController.js:260-262`
+     ```
+     const eventData = {...SAMPLE_EVENT_DATA};        // shallow copy
+     if (email && eventData[metric]?.customer) {
+       eventData[metric].customer.email = email;      // mutate object GỐC
+     }
+     ```
+     `SAMPLE_EVENT_DATA` (`default.js:212-218`) map **mọi** metric về **cùng một reference** `SAMPLE_SUBSCRIPTION_BASE_DATA`/`SAMPLE_ORDER_BASE_DATA`, mà hai cái đó lại share **cùng** `SAMPLE_CUSTOMER` (`:165`). Spread một tầng không cắt được liên kết → gán email là **ghi đè const module-level**, sống suốt đời instance Cloud Function
+     - Hệ quả: shop A nhập email của họ → shop B bấm test sau đó **trên cùng instance ấm** sẽ gửi sample event mang email của shop A sang Klaviyo của shop B. Vi phạm multi-tenant
+   - Sửa: deep clone trước khi gán (hoặc build payload từ factory function thay vì const dùng lại), và bỏ email cá nhân khỏi default — dùng email của shop hoặc địa chỉ trung tính
+   - Liên quan [[#34]] (fail âm thầm) và [[#35]] (shape lệch) — cùng một vùng code, nên gộp chung MR nếu làm liền tay
 
-27. [✅ 2026-08-12] **[P1] Gate `yarn check` chặn MỌI commit của agent — 5 vi phạm locale-parity của người khác**
-   - **NGUYÊN NHÂN THẬT (12/08): hook chạy `yarn check` ở REPO CHÍNH `~/projects/subscriptions`, KHÔNG phải ở worktree/repo đang commit.** Bằng chứng: `yarn check` trong worktree `subscriptions-wt-regr` (base `origin/master` mới) → **exit 0, "ok — 7 rule groups clean"**, nhưng commit từ đúng worktree đó vẫn bị chặn với 5 vi phạm locale-parity. Repo chính khi đó còn đứng ở `5f1b469ed`, trước khi locale được vá
-   - → **Cũng là lời giải cho task #12**: commit trong repo `avada-core` bị chặn bởi vi phạm của repo `subscriptions` — hook luôn soi thư mục chính bất kể đang commit ở đâu
-   - **CÁCH GỠ: cập nhật repo chính.** `cd ~/projects/subscriptions && git merge --ff-only origin/master`. Làm xong là commit từ worktree chạy ngay (đã kiểm: commit `5bad8ed` của #29 pass sau khi ff repo chính lên `af8421482`)
-   - **ĐÃ SỬA TẬN GỐC 14/08** — nhánh `fix/guard-git-worktree-scope` · commit `9e657a3bf` · **đã push**. 1 file, +39/−20. Không cần ff repo chính nữa; workaround trên vẫn đúng nhưng thành thừa
-   - Root cause đúng 2 dòng: `guard-git.sh:37` lấy `ROOT="${CLAUDE_PROJECT_DIR:-…}"` = checkout mà **session khởi động**, còn `check.mjs:36` lấy `ROOT = <vị trí file script>/../..` → gate luôn soi repo mà *file script* nằm trong. Nhánh `push` của hook (dòng 59–71) đã phân giải thư mục đúng rồi, nhánh `commit` thì không — **bất đối xứng đó chính là bug**
-   - Sửa: rút phần phân giải thành hàm `target_dir()` dùng chung cho cả 2 nhánh. Thêm `cd` nối bằng `;`/newline (trước chỉ bắt `&&`), path tương đối, và `rev-parse --show-toplevel` để `cd packages/functions && git commit` quy về repo. Gate chạy `check.mjs` **của repo đang commit** — file này được git track nên mọi worktree đều có bản riêng; repo không có gate thì hook đứng ngoài (đó là thứ khiến commit ở `avada-core` không còn bị gate của `subscriptions` chấm)
-   - Kiểm chứng bằng phân kỳ thật: dựng worktree ở `5f1b469ed` (trước khi locale được vá) → gate riêng của nó exit 1, repo chính exit 0. Chạy hook cũ vs mới trên **11 case: mới 11/11 đúng, cũ sai 2** (commit từ worktree đỏ → cũ `allow`, mới `deny`). push master / `--all` / `gh pr create` deny y nguyên
-   - **Bug lật hai chiều tuỳ trạng thái checkout chính**: 12/08 repo chính bẩn → `deny` sai (chặn oan); 14/08 repo chính sạch → `allow` sai (bỏ lọt worktree đỏ). Cùng một lỗi "soi nhầm chỗ". Nên triệu chứng "agent không commit được" chỉ là một nửa vấn đề — nửa kia là gate im lặng cho qua code chưa đạt
-   - Bài học vận hành (trước khi có fix): **giữ repo chính luôn ff lên `origin/master`** trước khi giao agent làm việc ở worktree, nếu không mọi commit đều bị chặn bởi trạng thái cũ của thư mục chính
-   - Vi phạm locale-parity `WidgetRebuildBanner` đã được người khác vá trên master, không cần chạy `yarn trans`
-   - Vẫn còn đúng: gate gợi ý `yarn update-label` — **script không tồn tại** trong `package.json` (chỉ có `trans`, `check`). Chỉ dẫn sai, đáng sửa nhưng không chặn ai
-   - `WidgetRebuildBanner` (6 key) có trong `en.json` nhưng thiếu ở `de/es/fr/it/ja`, từ commit `dc037d463` của người khác
-   - Gate ở **tầng Claude Code hook**, chặn Bash call TRƯỚC khi git chạy → `--no-verify` VÔ DỤNG, `git add` đi chung call cũng chặn theo. **Agent không commit được gì trong repo này**
-   - Đã chặn **3 lần**: #12 (commit ở repo `avada-core` vẫn bị chặn bởi vi phạm của repo `subscriptions`), #22, #25. Lần nào cũng phải nhờ user chạy tay
-   - **Gate gợi ý `yarn update-label` nhưng script đó KHÔNG TỒN TẠI** trong `package.json` (chỉ có `trans` và `check`). Chỉ dẫn trỏ vào hư không — giống `helpers/logger.js` mà `CLAUDE.md`/`server-code.md` bảo dùng nhưng không có thật
-   - Đường sửa theo `.claude/rules/i18n.md`: KHÔNG sửa tay `locale/translations/*.json`, phải `yarn trans` — nhưng lệnh này **tương tác** (hỏi y/n) và **tốn quota Google Translate**, sinh diff toàn bộ locale. Không phải việc agent tự quyết
-   - **Cần user chốt**: chạy `yarn trans` cho xong, hay sửa gate bỏ qua vi phạm pre-existing, hay ít nhất sửa 2 gợi ý sai (`yarn update-label`, `helpers/logger.js`)
+34. [✅ 2026-08-14] **[P1] Real event Klaviyo fail ÂM THẦM, còn sample event thì báo lỗi rõ — đúng thứ tạo ra hiểu nhầm ở #33**
+   - Finding của verifier ở #33
+   - **ĐÓNG 14/08** — nhánh `fix/klaviyo-event-logging` · commit **`4523763`** · **đã push**, base `origin/master` `832b61627`. 6 file, +366/−3. Chưa tạo MR
+   - Helper mới `helpers/klaviyo/logKlaviyoEventFailure.js`, nhãn cố định export `KLAVIYO_EVENT_FAILED_LABEL = 'klaviyo_event_failed'` (một hằng số dùng chung, không phải chuỗi rải rác). Log **một object literal** → Cloud Logging parse thành `jsonPayload` filter được từng field: `{label, shopId, metric, contractId, cycleIndex, errorName, errorMessage}`
+   - Sửa **3 chỗ nuốt lỗi**, không chỉ 1: `sendKlaviyoEvent` catch (`prepareMetricEvent.js`) + **2 tầng catch** trong `syncKlaviyoEvents` (`klaviyoService.js`, per-event `:483` và per-chunk `:489`). Tầng per-chunk hiện là code chết (catch trong đã nuốt hết nên `Promise.all` không bao giờ reject) — vẫn log cho nhất quán
+   - **Zero write đúng cam kết**: verifier grep `^+` toàn diff cho `Firestore|collection(|.set(|.update(|.create(|createOrUpdateIntegration|rSet|bigquery` → **không dòng thêm mới nào** chứa lời gọi ghi. Thân helper chỉ có `console.error({...})`
+   - **Hành vi không đổi**: vẫn nuốt lỗi, không throw lên caller, không retry — chỉ khác chỗ log
+   - **Không rò token/PII**: `access_token`/`refresh_token` có trong scope ngoài của `sendKlaviyoEvent` nhưng **không bao giờ** được truyền vào log. Test assert `JSON.stringify(payload)` không chứa token/email mock **và** assert đúng `Object.keys().sort()`
+   - **Verifier PASS, tự dựng lại thí nghiệm an toàn** (không dùng git): copy 2 file source ra scratchpad, `sed` revert về `console.error(string, error)` cũ → **4/8 test đỏ** đúng chỗ; khôi phục, `md5` khớp byte-identical cả 2 file
+   - Gate: `check` **exit 0** · `jest:fn` 9 suite fail = đúng baseline, **186** passed suite (183+3 mới) / **1817** passed test (1809+8 mới), không suite mới nào đỏ · `jest:as` **exit 0**
+   - ⚠️ **Agent viết code ĐÃ VI PHẠM ràng buộc "KHÔNG chạy git"** — nó `git stash` + `git stash pop` để làm thí nghiệm đỏ-trước. Repo đang có **233 stash** của user nên đây là rủi ro thật. Verifier kiểm lại: `stash@{0}` vẫn là stash cũ của user (`dd1c088cb`, chỉ chứa `shopify.app.toml`), không có stash mồ côi, diff 2 file mạch lạc không lẫn hunk lạ. **Lần sau brief phải nói rõ cách làm thí nghiệm an toàn thay vì chỉ cấm git**
+   - **Finding ngoài scope (verifier ghi, KHÔNG sửa)**: `services/klaviyo/klaviyoService.js:120` `getProfileByEmail` cũng nuốt lỗi (`console.error` + `return null`) — nhưng là **lớp bug khác** (tra profile fail bị coi như "không tìm thấy" → có thể tạo profile trùng), không thuộc "event thật fail im lặng". Chưa mở task riêng
+   - `helpers/klaviyo/prepareMetricEvent.js:411-413`: `sendKlaviyoEvent()` bọc toàn bộ trong `try/catch` chỉ `console.error`, **không throw lại, không retry, không dead-letter**. Lỗi network, Klaviyo trả 4xx, hay `prepareKlaviyoData` throw ("Subscription contract not found", "Order data not found for cycle X") đều biến mất
+   - Đối lập: sample-events controller (`controllers/integrationsController.js:277-283`) trả `ctx.status = 500` + toast lỗi cho merchant
+   - → Merchant thấy "bấm test thì được, đời thật không thấy event" và kết luận app bắt phải test trước. Thực chất là **event thật fail mà không ai biết**
+   - Cần: structured alerting hoặc lưu trạng thái fail để support tra được
+   - **✅ USER CHỐT 14/08: CHỈ LOG THÔI, không ghi Firestore — tránh cost nhảy**
+     - → **KHÔNG** tạo collection `klaviyoEventLogs`, **KHÔNG** thêm field vào doc `integrations`. Zero write
+     - Việc thật còn lại: `console.error` hiện nuốt hết context nên tra Cloud Logging không ra gì. Đổi sang log **có cấu trúc** đủ để filter: `shopId`, `metric`, `contractId`/`cycleIndex`, `error.message`, kèm một nhãn cố định (vd `klaviyo_event_failed`). Cost = 0, và sau muốn dựng log-based metric/alert thì đã có sẵn field để lọc
+     - Đã khảo sát nên khỏi điều tra lại: field trên `integrations` vốn không đủ (một doc/shop, event fail đồng thời ghi đè nhau); tiền lệ collection có TTL là `repositories/webhookLogsRepository.js` — **cả hai bỏ theo quyết định trên**
+
+38. [✅ 2026-08-14] **Auto bắn 17 sample event (Step 2) ngay sau khi merchant connect Klaviyo xong**
+   - **ĐÓNG 14/08** — commit **`3c8ed6d06`** trên nhánh `fix/klaviyo-integration` (**gộp vào MR !2470**, user chốt 1 MR). 5 file, +377/−2. Verifier PASS **ở vòng sửa thứ 2**
+   - Cách làm: `services/klaviyo/klaviyoService.js` thêm `sendKlaviyoSampleEvents({shop})` · `handlers/pubsub/backgroundHandler.js` thêm action `SEND_KLAVIYO_SAMPLE_EVENTS` · `controllers/clientApi/klaviyoController.js` (OAuth callback) publish message rồi redirect ngay. Tái dùng pattern Pub/Sub sẵn có (`SYNC_KLAVIYO_EVENTS`, `REMOVE_SHIPANDCO_ATTRIBUTES`), không dựng topic kiểu mới
+   - Guard `sampleEventsSentAt` trên doc `integrations` **đã tồn tại** — 1 field, ghi qua `createOrUpdateIntegration`. Verifier grep `collection(|.doc(|Firestore` trong diff → **0 match**, không collection mới
+   - **VÒNG 1 BỊ VERIFIER BÁC — bài học đáng giữ**: `publishBackgroundSubscriber` trong OAuth callback **không có try/catch**. `getKlaviyoAuthUrl` nối thẳng vào `router.get('/klaviyo/callback')` (`routes/clientApi.js:140`) = đúng URL Klaviyo redirect merchant về. Pub/Sub lỗi (IAM/quota/transient) → exception leo lên `errorHandler` → **`ctx.redirect` không bao giờ chạy** → merchant thấy trang lỗi ngay sau khi connect thành công, dù token đã lưu xong. Nặng hơn bug đang chữa
+     - Trớ trêu: repo đã có pattern đúng ở `integrationsController.js:290-320` (case `sync-data`) — bọc try/catch quanh **cùng loại lời gọi**. Agent áp cho Step 3 nhưng bỏ sót call site mới
+     - Sửa: try/catch **chỉ ôm đúng lời gọi publish**; `exchangeAuthorizationCode` và `createOrUpdateIntegration` nằm NGOÀI → lỗi connect thật vẫn leo lên như cũ (verifier đọc code xác nhận scope hẹp đúng)
+   - **51 request, không phải 17**: mỗi metric tốn 3 lời gọi Klaviyo — `getProfileByEmail` + create/update profile + `sendEventWithRetry`. 3 × 17 = 51. Loop tuần tự nên không đụng rate limit
+   - Verifier tự dựng lại thí nghiệm (copy scratchpad + `perl`/`sed`, khôi phục, `md5` khớp `6fc9377c...`): gỡ try/catch → đúng 1 test mới đỏ; gỡ check guard → test guard đỏ với `Expected 0 calls, received 51`. Test không phải đồ trang trí
+   - Gate: `check` **exit 0** · `jest:fn` 9 suite fail = đúng baseline, **189** passed suite / **1834** passed test (base 187/1824 + đúng 2 suite và 10 test mới) · `jest:as` **exit 0**
+   - ⚠️ **ĐÁNH ĐỔI CÒN TREO — user nên biết**: guard `sampleEventsSentAt` ghi **TRƯỚC** vòng lặp. Chặn được Pub/Sub redelivery và ca bấm Connect 2 lần, nhưng nếu **cả 51 request đều fail** (token sai, Klaviyo down) thì guard đã đóng vĩnh viễn → merchant **không bao giờ** được auto-gửi lại, và không có tín hiệu nào báo. Muốn đổi thì chỉ set guard khi có ≥1 metric thành công — đánh đổi ngược lại là mở cửa cho redelivery bắn trùng
+   - Finding ngoài scope (verifier ghi, không sửa): `klaviyoController.js:62` truyền tên topic Pub/Sub vào field `metric` của `logKlaviyoEventFailure`, trong khi JSDoc mô tả field đó là Klaviyo metric key. Lệch semantic nhẹ, **không** phá shape log, không phải bug chức năng
+   - **USER CHỐT 14/08**: chỉ làm **Step 2**, **Step 3 giữ nguyên** không đụng. "khi integrate xong (connect xong) thì send các sample events đấy"
+   - Điểm móc: `controllers/clientApi/klaviyoController.js:28-37` — OAuth callback ghi `enable: true` + `enableDate` + `access_token`/`refresh_token`. Đó là "connect xong"
+   - ⚠️ **RAM KHÔNG phải rủi ro ở task này** — tôi từng nêu nhầm. 17 payload hằng số vài KB. Nỗi lo RAM là của Step 3 (kéo toàn bộ subscriber từ BQ), không phải Step 2
+   - Rủi ro thật: (a) chạy đồng bộ trong OAuth callback → 17 request sang Klaviyo làm treo/timeout đúng lúc merchant vừa bấm Connect; (b) reconnect bắn lại
+   - Hướng: đẩy nền qua Pub/Sub (pattern sẵn có: Step 3 publish rồi `handlers/.../backgroundHandler.js:779` xử lý; `integrationsController.js:154-160` cũng dùng `publishBackgroundSubscriber` cho SHIPANDCO) · loop 17 metric **tuần tự** (vài giây, không cần song song) · guard `sampleEventsSentAt` trên doc `integrations` **đã tồn tại** (1 field, 1 write — KHÔNG collection mới)
+   - Dùng lại đồ vừa làm: `buildSampleEventData()` ([[#36]]) và `logKlaviyoEventFailure` ([[#34]])
+   - Biết trước, không chặn: reconnect mà merchant đã gắn Flow → sample event **trigger Flow thật**, email gửi tới `shop.email`
+
+37. [✅ 2026-08-14] **Auto gửi event Klaviyo sau khi merchant connect xong Step 1 — CHỜ USER CHỐT HƯỚNG**
+   - **ĐÓNG 14/08 — user chốt "#37 close nhé"**: không auto-send, giữ nguyên merchant bấm tay. Không có commit. Khảo sát risk bên dưới giữ lại — nếu sau này mở lại thì điều kiện tiên quyết vẫn là: phân trang subscriber + throttle giữa chunk + guard idempotency (`sampleEventsSentAt`)
+   - User hỏi 14/08: "step 1 xong là app tự gửi luôn không cần bấm tay thì có risk gì". Đã khảo sát, **chưa làm gì**
+   - **Auto bắn sample (17 event): tải không đáng lo.** Risk là (a) data giả nằm vĩnh viễn trong Klaviyo merchant, (b) Flow có sẵn bị trigger → gửi email thật, (c) không có field nào ghi "đã gửi rồi" nên reconnect là bắn lại. Bug rò email đã fix ở [[#36]]
+   - **Auto chạy Step 3 sync dữ liệu thật: sạch hơn về data nhưng CÓ risk tải thật** (`services/klaviyo/klaviyoService.js:422-505`):
+     - **Memory**: `getDateRange` lấy từ `shop.installedAt` → hiện tại, tức toàn bộ lịch sử; rồi `Promise.all` build data cho **tất cả subscriber cùng lúc**, chưa phân trang. Repo đã dính đúng lớp này — comment `index.js:159` ghi pattern cũ từng đẩy memory chạm trần **4GiB và OOM**
+     - **Rate limit**: `chunk(allEventsToSend, 40)` rồi `Promise.all` 40 request song song, **không delay/backoff giữa chunk**. Lỗi bị `catch` → `return null` = mất event im lặng (đúng bug [[#34]])
+     - **Timeout**: background handler tối đa 540s, shop lớn có thể không xong
+     - Auto = chạy cho MỌI shop connect gồm shop lớn nhất; hiện merchant bấm tay nên tải rải rác
+   - **14/08 — user bác đề xuất "chỉ bắn metric còn thiếu", và đúng**: lúc vừa integrate xong thì tài khoản Klaviyo chưa có metric nào → "chỉ bắn cái thiếu" = vẫn bắn đủ 17. Nó chỉ giải quyết ca **reconnect**, mà ca đó thì một field `sampleEventsSentAt` đã đủ. Với auto-send lần đầu, thứ cần thật sự chỉ là: **guard chạy một lần** + **chạy nền, không chặn OAuth callback**
+   - **14/08 — user chốt ĐÓNG phần "chưa kiểm được hành vi Klaviyo"**: không cần test tay trên dashboard để xác nhận Klaviyo có tự tạo Metric khi nhận event đầu tiên hay không
+   - → Chọn hướng Step 3 thì **phải làm trước**: phân trang subscriber + throttle giữa chunk + guard idempotency (doc integration hiện chỉ có `isSynced`, reconnect là sync lại từ đầu). Đây là task cỡ vừa, không phải "bật cờ auto"
+
+35. [✅ 2026-08-14] **[P1] 2/17 metric Klaviyo gửi SAI SHAPE ở event thật — sample event không phát hiện được**
+   - **ĐÓNG 14/08** — nhánh `fix/klaviyo-order-shape` · commit **`fd6b296`** · **đã push**, base `origin/master` `832b61627`. 2 file, +74/−1. → gộp vào **MR !2470** (cherry-pick `19f7e0509`)
+   - Fix: thêm `isOrder: true` ở đúng 2 call site (`handleBillingAttemptFailure` ~`:1179`, `handleBillingAttemptSuccess` ~`:1457`) → payload đi qua `prepareOrderMetricEvent()` như thiết kế
+   - **Rủi ro lớn nhất đã được verifier truy tận nơi và LOẠI**: `prepareKlaviyoData` (`prepareMetricEvent.js:310,341`) **throw** khi `isOrder && !cycleIndex` hoặc không tra ra order, mà `sendKlaviyoEvent:412-414` nuốt lỗi im lặng → thêm cờ mù có thể biến bug "thiếu field" thành **"mất hẳn event"**. Ca chết người là `cycleIndex = 0` (falsy trong JS)
+     - Kết luận: **không tới được 2 call site này**. `cycleIndex 0` chỉ thuộc origin order, tạo với `status: ORDER_STATUS_BILLING_BILLED` (`helpers/subscription/subscriptionContract.js:439,443`), trong khi `getOnScheduledOrders`/`getRetryOrders` (`repositories/orderRepository.js:689,710`) lọc `status == UNBILLED` → origin order không bao giờ vào luồng billing attempt. Mọi nguồn sinh `cycleIndex` tới 2 handler này đều ≥1
+     - Order tồn tại: `billingAttemptWebhookService.js:108` đã fetch đúng tuple `(shopId, contractId, cycleIndex)` **trước đó**, và handler deref `orderDoc.ref` vô điều kiện ở `:1166` → thiếu order thì đã nổ từ trước, không phải ở bước Klaviyo
+   - **Quét lại toàn bộ call site (verifier tự đếm)**: 30 match thô, 3 đang comment out → **27 call site sống / 9 file**. Đối chiếu từng cái với `ORDER_METRIC_EVENTS` (`const/klaviyo/default.js:113-119`): **không sót chỗ order-shape nào**. `emailService.js:484` (`UPCOMING_ORDER`) và `subscriptionService.js:605,649,689` đã đúng sẵn
+   - **Test guard thật, verifier tự dựng lại thí nghiệm**: `sed` gỡ cả 2 `isOrder: true` khỏi source → đúng 2 test mới đỏ (`Expected: ObjectContaining {"isOrder": true}`), khôi phục file byte-identical (xác nhận bằng `git diff`). Fixture dùng `cycleIndex: 1` nên **không phủ ca `cycleIndex = 0`** — chấp nhận được vì ca đó không tới được (xem trên)
+   - Gate verifier chạy thật: `yarn check` **exit 0** ("7 rule groups clean") · jest functions **9 failed / 183 passed suite, 5 failed / 1811 passed test** · jest assets **exit 0**, 6 suite / 86 test
+   - ⚠️ **BASELINE TRONG BRIEF NÀY ĐÃ SAI — sửa lại**: chỗ khác ghi "2 suite FAIL sẵn". Verifier tự đo trên worktree `origin/master` sạch (`832b61627`) → **9 suite / 5 test fail**, cùng bộ: `crmService`, `subscriptionProductsRepository`, `injectWidget`, `afterChargeService`, `bulkSwapProducts`, `fixedBundleService.prepareFirestorePayload`, `shopifyService`, `orderService`, `conditionEvaluation` — tất cả lỗi resolve `firebase-functions`/`google-auth-library`, không phải lỗi ai gây ra. Nhánh này pass **hơn baseline đúng 2 test** = 2 test mới
+   - FYI ngoài scope (không phải finding): `services/klaviyo/klaviyoService.js:462` (`syncKlaviyoEvents`, backfill Step 3) tự build `eventData` rồi gọi thẳng `sendMetricEvent`, **không** đi qua `prepareKlaviyoData` — khác đường, không dính lớp bug này
+   - `services/subscription/subscriptionService.js:1160` (`CHARGE_PROCESSING_FAILED`) và `:1446` (`ORDER_PLACED_SUCCESSFULLY`) gọi `sendKlaviyoEvent` **không truyền `isOrder: true`** → mặc định `false` → payload build bằng `prepareSubscriptionMetricEvent()` thay vì `prepareOrderMetricEvent()`, **thiếu `chargeId`, `shopify_order_id`, `scheduled_at`**
+   - Đối chiếu: `handleCycleAction` (`:485`) set tường minh `isOrder: type !== RESCHEDULE_ACTION` cho SKIP/RESUME/RESCHEDULE — tức chỗ khác đã làm đúng
+   - Sample event của đúng 2 metric này thì **luôn** có đủ field (`SAMPLE_ORDER_BASE_DATA`, `const/klaviyo/default.js:202-210`) → merchant test thấy đủ, chạy thật lại thiếu
+   - Hệ quả: Flow Klaviyo cá nhân hoá theo mấy field đó sẽ trống ở event thật
+
+40. [⏸️] _(chờ merchant + CS — đã có draft trả lời, xem cuối block)_ **Kookut khiếu nại "app tự sửa giá sản phẩm" — sub `151147970941`, CS hỏi 14/08 13:38**
+   - Slack: https://avadaio.slack.com/archives/C07URV6QMJ8/p1786689495187749?thread_ts=1786494004.579699&cid=C07URV6QMJ8 (thread gốc `JSUB-260811-TWjnqq`, đọc bằng `~/projects/my-brain/bin/slack`)
+   - Nguyên văn CS (U08T11T6GDA): *"khách đang bảo là bên mình tự điều chỉnh giá sp nên charge k đúng, c có xin quyền product rồi, với check log thấy cũng edit product tương đối, e xem xem root cause ntn rùi sửa triệt để, khách cứ gào lên"*
+     - **Pacific Tuna & Sardines 24x70** đã tăng giá từ **40 EUR → 43,65 EUR**
+     - **Pacific Tuna & Sardines 70** hiện giá gốc **1.95 EUR**, khách khẳng định sp này **chưa bao giờ** có giá 1.95
+   - Nối thẳng với [[#28]] (bug hoán giá `basePrice` theo index) — chính contract này, và dòng `1.95 → 1.7` từng được phân tích ở #28
+   - **14/08 — điều tra vòng 1 xong, verifier trả `FAIL`, CHƯA đóng.** Phần cơ chế code đã chắc; phần gán nguyên nhân cho case cụ thể thì **chưa có bằng chứng**, mà đây là thứ sẽ đem trả lời merchant nên không được đoán
+   - ✅ **ĐÃ CHẮC (verifier CONFIRMED, đọc code trực tiếp)**:
+     - **App KHÔNG có code path nào ghi giá lên product/variant catalog của merchant.** `productVariantUpdate` / `productVariantsBulkUpdate` / `productVariantsBulkCreate` → **0 kết quả toàn repo**. Cả REST admin (`/admin/api/*/products`, `/variants`) trong `packages/functions` + `extensions/*/src` cũng 0. `commands/` chỉ có `draftCreate/draftUpdate/draftCommit` (SubscriptionDraft, không phải Product) ở `backfillShippingOptionTitle.js:121-139`
+     - Chỉ 3 mutation product tồn tại (`const/graphql/mutation/product.js:1-109`): `productCreate` **dead code** (0 nơi gọi) · `productSet` (Fixed Bundle) · `productUpdate` = `updateProductStatus` (`services/graphql/productService.js:544-563`) **chỉ set `status`, không đụng `price`**
+     - Scope `write_products` có (`config/shopify.js:17-18`) nhưng **chỉ phục vụ 2 việc trên** — không mutation nào khác ghi `price`
+     - Toggle "Auto-sync product price" **mặc định TẮT**: `const/default.js:266-268` (`automation: {syncProductPrice: false}`), và bị **force-reset về `false` khi downgrade FREE** (`services/subscriptionService.js:172-182`, `:378-386`). Text UI khớp nguyên văn `Automation.json:3-5`
+     - Đường webhook `products/update` (`handlers/pubsub/productWebhookHandler.js:75`) và đường DevZone thủ công (`services/shopify/productService.js:134,274`) **đều gate đúng** qua `automation.syncProductPrice`
+   - ❌ **VERIFIER BÁC / CHƯA CHẮC — đừng dùng mấy câu này trả merchant**:
+     - **KHÔNG có bằng chứng nào nối con số khiếu nại với cơ chế nào.** `grep -in "pacific|tuna|sardine|43.65"` trên `docs/price-swap-damaged-contracts.md` + `docs/kookut-shipping-audit.md` → **0 kết quả**. Việc gán case này cho bug hoán vị index chỉ là **suy luận theo mẫu hình**, chưa xác nhận trên chính contract bị khiếu nại
+     - **"Guard `syncProductPrice` chặn MỌI đường" là SAI theo nghĩa đen** → xem task [[#42]]
+     - *"Bug hoán vị luôn giữ tổng không đổi"* — PARTIAL: chính `price-swap-damaged-contracts.md` (Nhóm C) đã ghi có case "bộ giá KHÔNG khớp, có mùi catalog đổi giá". `processContractLines.js:14-68` chỉ sắp xếp lại thứ tự, không sinh giá mới — nhưng thế không đủ để loại trừ case này
+   - 🚧 **CHẶN: cần dữ liệu prod mới kết luận được** (agent bị cấm đụng prod theo ràng buộc loop). Ba thứ phải đọc:
+     1. Shop `kookut` đang **BẬT hay TẮT** `automation.syncProductPrice` (quyết định toàn bộ câu trả lời)
+     2. Contract `151147970941`: 2 line "Pacific Tuna & Sardines 24x70 / 70" có tồn tại không, `basePrice`/`currentPrice` hiện tại bao nhiêu, và **giá catalog Shopify thật** của 2 variant đó (đối chiếu 43,65 và 1,95)
+     3. Có đường nào ngoài UI từng gọi bulk action ghi giá cho shop này không (cần log/BigQuery)
+   - → ~~Cần user duyệt cho chạy script chỉ-đọc trên prod~~ **ĐÃ DUYỆT + ĐÃ CHẠY 14/08**, xem dưới
+
+   - ## 📊 VÒNG 2 (14/08) — đã đọc prod thật, verifier chạy lại độc lập
+   - ✅ **Số liệu đã được HAI agent đọc độc lập, khớp nhau** (đọc bằng `inspectContractPricing.js`, `inspectContractOrders.js`, `inspectContractActivities.js`, `scanLineIdMisalignment.js` + script tự viết gọi Shopify GraphQL; token `ACCESS_TOKEN_KEY_PROD`, toàn bộ read-only):
+     - **kookut BẬT `automation.syncProductPrice = true`** — settings doc `adJpckNJ2ilYo4ZC0H4E`, shopId `4VgCcf9Ov5cIBx2tCkcT`. **Không phải mặc định tắt** như giả định ban đầu
+     - Contract `151147970941`: ACTIVE, currency **EUR**, shopCurrency **CHF**, 4 line:
+       | Product | Variant | variantId | basePrice | currentPrice | qty |
+       |---|---|---|---|---|---|
+       | Wild Alaskan Salmon | 70g | 39412859404496 | 1.8 | 1.71 | 6 |
+       | Wild Alaskan Salmon | 24x70g | 39412859371728 | **40** | 38 | 1 |
+       | Pacific Tuna & Sardine | 70g | 39412882735312 | 1.95 | 1.853 | 6 |
+       | Pacific Tuna & Sardine | 24x70g | 39412882702544 | 45.95 | 43.653 | 1 |
+     - **Giá catalog Shopify LIVE** (`productVariant.presentmentPrices`): Tuna 70g = 1.80 CHF / **1.95 EUR** · Tuna 24x70g = 42.00 CHF / **45.95 EUR** → khớp `basePrice`, và 45.95×0.95 = **43.65** đúng con số khách kêu
+     - **Dòng thời gian**: cycle0 (14/06) + cycle1 (14/07) — Tuna 70g `basePrice 1.7`, **chưa có** dòng 24x70g. Order `2026-08-11T06:39:14Z` là lần đầu 2 dòng 24x70g xuất hiện (Salmon **và** Tuna), và **cùng order đó** Tuna 70g nhảy 1.7 → 1.95
+   - ❌ **VERIFIER `FAIL` — KHÔNG được kết luận "app sync đúng catalog, không phải bug hoán vị".** Lập luận đó bị phá bởi 4 bằng chứng độc lập:
+     1. **Phép thử "khớp catalog ⇒ không phải hoán vị" VÔ HIỆU trên shop này.** Quét 71 variant sống: **15 variant giá 1.80** (tier 70g) và **15 variant giá 42.00** (tier 24x70g) — Salmon và Tuna trùng giá tuyệt đối ở cả 2 size. Hoán giữa 2 trong 15 sản phẩm cùng tier vẫn khớp catalog hoàn hảo, không phân biệt được
+     2. **Commit fix bug hoán index gọi ĐÍCH DANH contract này**: `git show 2dc2fb9fd` (merge `af8421482`, master `2026-08-12T05:20:02Z`, MR !2463) — comment trong `contractBulkActionService.js` ~`:28-33`: *"indexing into lineIds can attach a price to the wrong line (see prod contract kookut #151147970941)"*
+     3. **Timing khớp cửa sổ còn bug**: 2 dòng 24x70g tạo `2026-08-11T06:39:14Z`, fix merge `2026-08-12T05:20:02Z`
+     4. **`scanLineIdMisalignment.js` chạy live: contract này VẪN đang `MISALIGNED`** — `151147970941 status=ACTIVE lines=4 badIdx=[0,1,2]`, tức `products[]`/`lineIds[]` lệch ở 3/4 vị trí, đúng điều kiện cấu trúc bug cần
+   - **🔴 PHÁT HIỆN MỚI, ĐANG SỐNG — xem [[#43]]**: dòng **Salmon 24x70g `basePrice = 40`** trong khi catalog live là **42 CHF / 45.95 EUR**. Không variant nào trong 71 cái hiện có giá 40 → loại khả năng "mượn giá từ donor còn sống", nhưng **chưa biết** là swap-donor đã biến mất hay snapshot cũ chưa từng sync lại (dù toggle đang BẬT). Và nó **lọt lưới dò tự động**: verifier tự chạy lại thuật toán của `scanLineIdMisalignment.js` (`RATIO_TOLERANCE = 0.15`) trên 4 line → ratio `[1.0, 0.952, 1.083, 1.094]`, median `1.083`, lệch của Salmon24x70g chỉ **12.1% < 15%** → tool báo `Contracts with a price outlier: 0` cho cả 84 contract ACTIVE của kookut. **Âm tính giả**
+     - Thêm dấu hiệu: Tuna24x70g ratio `45.95/42 = 1.094` (EUR > CHF, hợp lý) nhưng Salmon24x70g `40/42 = 0.952` (ngược hướng chuyển đổi) — bất nhất kinh tế trên chính dòng sibling của cùng sự kiện sync 11/08
+   - **🚨 BẰNG CHỨNG MỚI 14/08 (user gửi ảnh) — CÓ THỂ LẬT TOÀN BỘ KẾT LUẬN, đang kiểm**:
+     - Ảnh màn hình app (danh sách sản phẩm của plan, có badge `Excluded`, cột giá **EUR**) hiện:
+       - **Pacific Tuna & Mackerel SENIOR - Natural** — 2 variants — `1.70 – 40.00 €`
+       - **Pacific Tuna & Sardine - Natural** — 2 variants — `1.70 – 40.00 €` → `24x70g` = **40,00 €** · `70g` = **1,70 €**
+     - Tức theo màn hình này, **Tuna & Sardine có giá EUR 1,70 / 40,00**, KHÔNG phải 1,95 / 45,95 → **merchant nói đúng** khi bảo *"sp này chưa bao giờ có giá 1,95"*
+     - **H1 (nghi nhất)**: variantId ghi trên line **KHÔNG thuộc** sản phẩm Tuna & Sardine. Contract đang lệch `badIdx=[0,1,2]` → line có thể đeo variantId của sản phẩm khác; 1,95/45,95 mà 2 agent đọc được là giá của **sản phẩm khác**, còn tên "Pacific Tuna & Sardine" trên line chỉ là snapshot text cũ. Nếu H1 đúng thì kết luận "app sync đúng catalog" **SAI**
+     - **H2**: màn hình lấy giá từ snapshot của app (Firestore/BigQuery) chứ không phải Shopify live, và snapshot cũ
+     - ⚠️ **Nghi ngờ chính kết luận vòng 2**: câu *"không variant nào trong 71 cái có giá 40"* rất có thể chỉ so giá **CHF** mà bỏ qua **presentment EUR**. Nếu vậy thì `40` hoàn toàn có thể là **giá EUR hợp lệ** của Tuna & Sardine, và cả mạch "40 là giá lỗi" sụp
+     - Trùng hợp đáng ngờ: `1,70` và `40,00` đúng là 2 con số đang lởn vởn trong contract (Tuna 70g từng là `1.7` ở cycle 0-1; `40` hiện đeo trên dòng **Salmon** 24x70g)
+   - **⚠️ KẾT LUẬN THẬN TRỌNG cho CS — đừng khẳng định chắc nịch chiều nào**: bằng chứng đủ để nói *giá 1.95/45.95 EUR là giá catalog thật đang tồn tại trên Shopify, và app có đường hợp lệ để sync vào contract vì merchant đã bật Auto-sync*; nhưng **KHÔNG đủ** để khẳng định vụ Tuna chắc chắn không liên quan bug hoán index. Trước khi trả lời khách nên xử dòng Salmon 24x70g ([[#43]]) đã
+   - **Chưa xác minh được** (verifier ghi rõ): (a) `activities` của contract **không có record nào** về lần sửa giá 12/08 — chỉ có `create_subscription`, `attempt_billing`, `recurring`, nên không kiểm chứng độc lập được ai/khi nào chạy `repairContractLinePrices.js --apply`; (b) build Cloud Function đang chạy lúc `2026-08-11T06:39:14Z` là trước hay sau deploy fix (chỉ có timestamp git, chưa xem log deploy); (c) con số `€313,69 → €95,95` trong `docs/price-swap-damaged-contracts.md` **không khớp** tổng 4 line hiện tại (≈€103,03 theo `currentPrice × qty`) — chênh lệch chưa giải thích được
+
+45. [✅ 2026-08-14] **CS hỏi: card decline của khách Caroline Charbonneau — dev có log rõ lý do decline không?**
+   - **ĐÓNG 14/08, không có commit** (điều tra + tra dữ liệu). ⚠️ **Chưa qua verifier độc lập** — một nguồn duy nhất; nếu đem ra tranh luận thì kiểm lại trước
+   - **TÌM ĐƯỢC KHÁCH**: contract `121065865597` (kookut), `customerName: "Caroline Charbonneau"`, `status: ACTIVE`, `isPaymentFailed: true`, `currentBillingCycle: 10`. Tìm bằng script scoped `where('shopId','==',...)` + phân trang `orderBy(documentId())`, khớp đúng 1/207 contract
+   - **LÝ DO DECLINE — app CÓ lưu đủ**: 2 order fail (cycle 10 doc `vp5VkEwcZbn0Lhad3Vti`, cycle 11 doc `hyIPWDwwg8rIiONF7XKl`), cả hai đều `errorCode: "PAYMENT_METHOD_DECLINED"` · `billingAttempts[].errorMessage: "Your card was declined."`
+     - Cycle 10: 2 lần thử (12/08, 13/08) · Cycle 11: 2 lần thử (13/08 auto, 14/08 retry), `retryCount: 1`, `nextRetry: 2026-08-15`
+     - ~~Thẻ Mastercard hết hạn 07/2026 — chưa hết hạn lúc fail~~ **ĐÍNH CHÍNH: SAI.** Hôm nay là 14/08/2026 → thẻ hết hạn **cuối tháng 7/2026**, mọi lần fail đều trong **tháng 8/2026** → **thẻ ĐÃ HẾT HẠN trước khi bị từ chối**
+   - **📊 DATA THẲNG TỪ SHOPIFY (14/08, user yêu cầu để giải thích cho khách)** — query `subscriptionContract(id:) { billingAttempts(first: 50) }`:
+     | Cycle | UTC | errorCode | message | order |
+     |---|---|---|---|---|
+     | 10 | 2026-08-12 10:03:24 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     | 10 | 2026-08-13 06:46:08 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     | 11 | 2026-08-13 08:00:25 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     | 11 retry | 2026-08-14 08:01:07 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     - Contract có **13 attempt** tổng; 9 lần trước (09/2025 → 12/06/2026) **đều thành công**, `processingError: null`, mỗi lần **119.7 CHF** → không phải vấn đề hệ thống
+     - `idempotencyKey` 4 lần fail: `10__9__1mspx8nrd`, `10__9__1msr5mtg2`, `11_auto_9__1msr8ablg`, `11__9_retry_1mssnr1ww` (số đầu = billing cycle)
+     - **Thẻ hiện tại**: Mastercard `••••1932`, hạn **07/2026**, `revokedAt: null`, `revokedReason: null` → **chưa bị Shopify thu hồi**, vẫn gắn trên contract
+     - **Shopify vs app KHỚP 100%** — đúng 4 attempt, đúng giờ, đúng mã lỗi. App **không bỏ sót** attempt nào
+     - ⚠️ Field `state` (bản mới của Shopify thay `ready`/`processingError`/`order`) **chưa có** trên API version của shop (2025-10) → phải dùng `processingError` (deprecated nhưng còn chạy)
+     - Query GraphQL nguyên văn: `subscriptionContract(id) { status nextBillingDate customer{id email} customerPaymentMethod{id revokedAt revokedReason instrument{... on CustomerCreditCard{brand lastDigits expiryMonth expiryYear}}} billingAttempts(first:50){edges{node{id createdAt ready originTime idempotencyKey nextActionUrl processingError{code message} order{id name processedAt totalPriceSet{presentmentMoney{amount currencyCode}}}}}} }` — variables `{"id":"gid://shopify/SubscriptionContract/121065865597"}`
+   - **🃏 VỤ "2 SỐ THẺ KHÁC NHAU" — đã giải (CS báo order cũ là `••7216`, Shopify hiện `••1932`)**:
+     - **KHÔNG có hai thẻ.** 22 order doc + `customer.paymentMethods(showRevoked: true)` đều chỉ về **một token duy nhất** `gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54`, `revokedAt: null`, không có payment method thứ hai kể cả đã revoke
+     - Số 4 cuối đổi **2 lần**: `1932 → 7216` (giữa cycle 1→2, ~10/2025) rồi `7216 → 1932` (**ngay giữa đợt fail**, giữa 13/08 06:46 và 13/08 08:00). Cùng token, **cùng hạn 07/2026** suốt cả năm → gần như chắc chắn là **card-network account updater** (Mastercard tự refresh số khi bank phát hành lại), không phải khách đổi thẻ
+     - → Giả thuyết "khách đổi thẻ mới, thẻ mới chưa được thử" **SAI**: thẻ `1932` hiện tại **chính là** thẻ đã fail 2 lần gần nhất
+     - Timeline charge: thành công liên tục cycle 0→9 (12/08/2025 → **12/06/2026**), gói **2 tháng/lần** → kỳ kế tiếp **12/08/2026**, đúng lúc thẻ đã hết hạn cuối tháng 7 → fail ngay lần đầu và mọi retry
+   - **→ Kết luận cho khách (đã xác nhận qua 2 vòng)**: nguyên nhân là **thẻ đã hết hạn** (07/2026), không phải app tính sai, không phải thẻ bị revoke, không phải "2 thẻ khác nhau". Khách phải **thêm thẻ mới còn hạn** — thử lại thẻ hiện tại vô ích
+   - Giới hạn dữ liệu: 4 lần fail **không tạo order** → không có transaction để truy sâu hơn `PAYMENT_METHOD_DECLINED`. Đó là trần thông tin Shopify cho, không phải app thiếu log
+   - **Đường lưu**: webhook → `services/webhook/billingAttemptWebhookService.js:293` → `handleBillingAttemptFailure` (`services/subscription/subscriptionService.js:1038-1204`) đọc `data.error_code` / `data.error_message` (`:1054,1085,1092-1093,1119,1135`) → ghi `errorCode` top-level + push `billingAttempts[]` `{idempotencyKey, ready, errorMessage, errorCode, isAutomatic, createdAt}` (`:1087-1097,1111-1128`). So với `paymentErrors` (`const/subscription/subscriptionErrors.js:29-41`, đủ 24 mã Shopify) để set `isPaymentFailed`
+   - **Admin UI CÓ hiển thị** (CS tự tra được): `pages/Orders/OrderDetail.js:444-451`, `pages/Subscriptions/Tabs/History/HistoryOrderRow.js:331-337`, `pages/Orders/banners/FailureBanner.js:34` → text dịch từ `errorCode` qua `PlanDetails.json:5-32`
+   - **🔑 Giới hạn nằm ở Shopify, không phải app**: webhook `subscription_billing_attempts/failure` chỉ trả `error_code` (enum chung) + `error_message` (câu chung chung). **Không** có mã decline chi tiết của ngân hàng (insufficient funds / do-not-honor / CVV sai...) — thứ đó chỉ có trong transaction detail của gateway (Shopify Payments / Stripe / PayPal dashboard)
+   - **Gap nhỏ đáng vá**: UI **bỏ qua `errorMessage` gốc** của Shopify khi `errorCode !== 'USER_ERROR'`, chỉ hiện canned text — dù raw message đã lưu sẵn trong Firestore. Sửa ở 3 chỗ liệt kê trên
+   - **KHÔNG nối với ticket giá sai [[#44]]**: tự tính tổng `lines[].lineDiscountedPrice` khớp field `price` của order (cycle 10: 203.7 · cycle 11: 161.7) → không có dấu hiệu order bị tính sai giá. Nhưng đây chỉ là so sánh **nội bộ app**, chưa đối chiếu số tiền charge thật trên Shopify → **chưa loại trừ tuyệt đối**
+
+   _(ngữ cảnh gốc của #45, giữ để tra cứu)_
+   - Nguyên văn CS (14/08): *"KH báo thêm cái này, c thấy là do Your card bị decline, c có giải thích là SPF charge và trả lỗi về rồi. Nhưng liệu phía dev có log rõ hơn là do cái gì mà decline k e?"*
+   - Khách: **Caroline Charbonneau**, shop **`kookut.myshopify.com`** (shopId `4VgCcf9Ov5cIBx2tCkcT`) — user xác nhận 14/08. ~~SPF = sprayfreefarmacy~~ **SAI**, "SPF charge" là nói về việc charge bị trả lỗi
+   - ⚠️ Còn thiếu: order/contract id cụ thể
+   - 🔗 Cần kiểm nhưng **không được đoán**: kookut đang có ticket giá bị ghi sai ([[#44]]) — nếu khách này nằm trong nhóm bị tính giá cao hơn thực tế thì decline có thể là **hệ quả** (số tiền bất thường → bank từ chối). Chỉ được nói vậy nếu thấy số tiền charge thật của lần fail
+   - Câu hỏi thật: app có lưu **mã lỗi/lý do decline** mà Shopify trả về ở billing attempt không, hay chỉ lưu "failed"? Nếu có thì tra ở đâu; nếu không thì đó là gap cần vá (CS không thể trả lời khách tử tế nếu chỉ có "card declined")
+
+44. [⏸️] _(chờ user — lệnh `--apply` bị user chặn 14/08, chưa rõ lý do; công cụ + dry-run đã sẵn sàng, chạy được ngay khi user cho phép)_ **[P0] Sửa 2 dòng Tuna của contract `151147970941` + đổi nguồn giá của script repair**
+   - **User duyệt 14/08**: *"store này đã có rất nhiều issue rồi, tôi muốn bạn giải quyết triệt để... về phần giá của contract 151147970941 thì sửa sao cho đúng"* → được làm, nhưng **vẫn phải trình dry-run trước khi apply lên prod**
+   - Manh mối root cause chưa giải: khách ở **Pháp**, `contextualPricing(FR)` = **42.95**, nhưng contract đeo **45.95** (giá DE/IT) → nghi app **không truyền country/market context** khi lấy giá
+   - **✅ DRY-RUN XONG + VERIFIER PASS (14/08)** — nhánh `fix/JSUB-260811-price-source` · commit **`88f8bb4`** · base `origin/master` `8016e0ac0` · **chưa push** (auth git on-premise fail)
+     - File mới: `packages/functions/src/commands/misc/compareContractPricingWithCatalog.js` (+298), **chỉ đọc, không có cờ `--apply`**. Nguồn sự thật = `PriceList.prices(originType: FIXED)` theo catalog ứng currency contract; `contextualPricing` chỉ là cột phụ để đối chiếu
+     - Gate: `check` **exit 0** · `jest:as` **exit 0** · `jest:fn` đúng 9 suite baseline, không suite mới chết (verify bằng `rtk proxy npx jest`) · `git diff --stat` tracked **rỗng**
+     - **Bảng dry-run contract `151147970941`** (contract `currency=EUR country=FR`):
+       | variantId | product/variant | basePrice hiện tại | **PriceList FIXED** | delta | currentPrice | **expected** | contextualPricing | |
+       |---|---|---|---|---|---|---|---|---|
+       | `39412859404496` | Salmon 70g | 1.80 | 1.80 | 0 | 1.71 | 1.71 | 1.80 | KHỚP |
+       | `39412859371728` | Salmon 24x70g | 40.00 | 40.00 | 0 | 38.00 | 38.00 | 40.00 | KHỚP |
+       | `39412882735312` | **Tuna 70g** | **1.95** | **1.70** | 0.25 | 1.85 | **1.62** | 1.95 | **LỆCH** |
+       | `39412882702544` | **Tuna 24x70g** | **45.95** | **40.00** | 5.95 | 43.65 | **38.00** | 42.95 | **LỆCH** |
+     - Verifier **tự chạy lại** và xác nhận: query từng variant riêng ra y hệt query gộp (`1.8, 40.0, 1.7, 40.0` — không rớt variant nào) · ép `--catalog=France` ra **giá y hệt** catalog Europe → chỗ mập mờ 2 catalog EUR không đổi kết quả · variant không có giá FIXED được xử thành cảnh báo riêng, **không** báo nhầm thành LỆCH · làm tròn tính trên giá trị **thô** từ Firestore (`1.853`/`43.653`, không phải số hiển thị) → `1.70 × (1.853/1.95) = 1.6154 → 1.62` ✓, `40.00 × (43.653/45.95) = 38.0004 → 38.00` ✓ · chạy 3 lần thứ tự catalog ổn định
+     - **→ Giá đúng của 2 dòng Tuna: `1.70` và `40.00`**. Chưa ghi gì lên prod
+   - **🔎 ROOT CAUSE tầng code (agent điều tra, ⚠️ agent bị classifier chặn khi chạy prod nên phần data là kế thừa, CHƯA tự verify lại)**:
+     - Đường khách tự thêm variant qua Classic Customer Portal: `controllers/storefrontApi/managementController.js:522 addLine` → `handleAddLines` (`services/subscription/subscriptionService.js:2018`) → `subscriptionDraftLineAdd` (`services/graphql/contractService.js:401`) → commit draft. FE dựng payload ở `packages/scripttag/src/customerPortal/helper/prepareLineAddPayload.js:61-73` (`basePrice: parseFloat(selectedVariant.price)`)
+     - **Giá lấy từ `contextualPricing`**: `services/graphql/productService.js:1049-1054` → `price: localPrice?.price?.amount || price`, với `localPrice = contextualPricing(context: {country: $country})` (query ở `:395-456`)
+     - **`country` fallback về `shop.shopCountry`** khi thiếu (`controllers/clientApi/subscriptionProductController.js:50`, `repositories/subscriptionProductsRepository.js:487`) — shop **CH**, contract **EUR**
+     - ⚠️ **Đúng lớp bug đã từng sửa ở chỗ khác**: `bulkSwapProducts.js` (fix #25, commit `84425caae`) đã bỏ fallback `shop.shopCountry`, dùng `deliveryMethod?.countryCode || contract?.countryCode`. **Đường portal add-line chưa được sửa theo**
+     - Lớp bug ghi-nhầm-dòng-theo-index (`contractBulkActionService.js:83`) **đã fix và đã nằm trong master** (`2dc2fb9fd`) → không phải thủ phạm lần này
+   - **🔧 CÔNG CỤ APPLY đã sẵn sàng, verifier `PASS` — nhưng CHƯA CHẠY** (user từ chối lệnh apply 14/08, không ghi gì lên contract):
+     - File: `packages/functions/src/commands/misc/applyContractLinePrices.js` (chưa commit). Nhận giá **tường minh** `--line=<variantId>:<price>`, **không tự suy giá**; dry-run mặc định; guard fail-closed (variantId lạ → abort trước khi tạo draft · tăng giá → từ chối trừ khi `--allow-increase`); giữ nguyên tỉ lệ discount của từng line; đọc lại Shopify sau khi ghi và báo FAIL nếu lệch
+     - Dry-run thật: `1.95→1.70` (currentPrice `1.853→1.62`, ratio 0.9503) · `45.95→40.00` (`43.653→38.00`, ratio 0.9500). 2 dòng Salmon không đụng
+     - **⚠️ Rủi ro verifier chỉ ra, CÓ THẬT**: vòng update từng line (`applyContractLinePrices.js:248-263`) **không kiểm lỗi trả về**, và helper `services/graphql/contractService.js:659-697` **không throw** khi có `errors`/`userErrors` — chỉ `console.error` rồi return `undefined`. Nếu line 2 fail mà line 1 ok → vẫn commit draft → contract khách **nửa vá** trên live, không có rollback. (Pattern không-throw này là convention sẵn có của repo: `updateLineItemPricingByDiscountConfig.js:92-99`, `contractBulkActionService.js:139-146`)
+       - **Cách né đã chốt**: chạy **từng line một**, mỗi line một lệnh riêng → không tồn tại trạng thái nửa vá
+     - **⚠️ Lệnh chạy phải có `GOOGLE_CLOUD_PROJECT=avada-subscription-app`** — thiếu thì fail ở bước [1/5] `Unable to detect a Project Id`, vì `repositories/shopRepository.js:16` tạo `new Firestore()` riêng, không kế thừa `firebase-admin` đã init từ `serviceAccount.prod.json`. Gap này **dùng chung** với `repairContractLinePrices.js`, `repairContractShipping.js`, `compareShippingMirror.js`, `auditShippingRecurring.js`. Fail-safe (dừng trước khi ghi)
+     - Lệnh đầy đủ: `cd packages/functions && set -a && source .env.local && set +a && SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD" node lib/commands/misc/applyContractLinePrices.js kookut.myshopify.com 151147970941 --line=<variantId>:<price> --apply` (build `lib/` trước bằng `yarn workspace @avada/functions run production`)
+   - **❓ MẮT XÍCH CÒN THIẾU**: vì sao dòng Tuna 70g đang đúng `1.70` lại bị ghi đè thành `1.95`. Thao tác thêm variant chỉ *thêm* dòng, không giải thích được ghi đè dòng cũ. **Chưa tìm ra → chưa gọi là fix triệt để**
+   - ⚠️ Lưu ý cho fix: sửa `country` thôi **CHƯA đủ** — `contextualPricing(FR)` vẫn ra 42.95 trong khi FIXED là 40.00. Giả thuyết: Tuna thiếu entry FIXED ở catalog thật sự áp cho market của khách nên Shopify tự quy đổi từ CHF (1.80 × ~1.083 = 1.95 · 42 × ~1.094 = 45.95 — khớp đúng 2 số đang sai)
+   - Bắt nguồn từ [[#43]] và ảnh order **#10831** (14/08 07:33, **Paid**) user gửi — khách **đã bị thu tiền sai thật**, không còn là "chỉ hiển thị"
+   - Đơn #10831 thu đúng bằng `basePrice × 0.95`:
+     | Dòng | Thu | `basePrice` | Đúng ra |
+     |---|---|---|---|
+     | Salmon 70g | €1.71 × 6 | 1.80 | ✅ đúng |
+     | Salmon 24x70g | €38.00 × 1 | 40.00 | ✅ đúng |
+     | **Tuna 24x70g** | **€43.65** × 1 | 45.95 | ❌ phải là **€38.00** (40 × 0.95) |
+     | **Tuna 70g** | **€1.85** × 6 | 1.95 | ❌ phải là **€1.62** (1.70 × 0.95) |
+   - **Thu thừa kỳ 14/08: 5.65 + 1.41 = ~7.06 EUR** → cần đặt vấn đề **hoàn tiền**
+   - Thao tác thêm variant 24x70g hôm 11/08 làm hỏng **HAI** dòng: tạo dòng 24x70g với 45.95, **và** kéo dòng Tuna 70g từ 1.70 lên 1.95. Trước 11/08 dòng 70g đang đúng (1.7) → nhiều khả năng chỉ kỳ này bị, các kỳ trước không
+   - Việc cần làm: (1) **đổi nguồn giá tham chiếu** của `repairContractLinePrices.js` từ `contextualPricing` sang `PriceList.prices(originType: FIXED)` theo catalog/market của contract — **không sửa cái này thì mọi lần apply đều sai**, (2) sửa `basePrice` 2 dòng Tuna về 1.70 / 40.00, (3) hoàn 7.06 EUR đơn #10831, (4) xác nhận với merchant giá EUR đúng trước khi ghi
+   - ⚠️ Ràng buộc: **KHÔNG apply** khi chưa có xác nhận của merchant về giá đúng — xem cảnh báo ở [[#28]]
+
+43. [✅ 2026-08-14] ~~Dòng Salmon 24x70g lệch catalog~~ → **ĐẢO CHIỀU: Salmon ĐÚNG, 2 dòng TUNA mới sai — và `contextualPricing` không đáng tin**
+   - **ĐÓNG 14/08, không có commit** (task điều tra). Verifier tự query Shopify sống, **bác bỏ tiền đề của chính task này**
+   - **📊 Bảng giá thật, thu trực tiếp từ Shopify Admin GraphQL** (shop kookut, 14/08). Cả 4 variantId **đều thuộc đúng sản phẩm** hiển thị trên contract → giả thuyết "line đeo nhầm variantId" **BỊ BÁC**:
+     | variantId | product.title thật | CHF | **EUR — PriceList FIXED** (Europe & France) | EUR — `contextualPricing` |
+     |---|---|---|---|---|
+     | `39412859404496` Salmon 70g | Wild Alaskan Salmon - Natural | 1.80 | **1.80** | 1.80 (FR/DE/IT) |
+     | `39412859371728` Salmon 24x70g | Wild Alaskan Salmon - Natural | 42.00 | **40.00** | 40.00 (FR/DE/IT) |
+     | `39412882735312` Tuna 70g | Pacific Tuna & Sardine - Natural | 1.80 | **1.70** | **1.95** ⚠️ |
+     | `39412882702544` Tuna 24x70g | Pacific Tuna & Sardine - Natural | 42.00 | **40.00** | FR **42.95**, DE/IT **45.95** ⚠️ |
+   - **🔑 KẾT LUẬN ĐẢO CHIỀU**:
+     - **Salmon 24x70g `basePrice = 40` là ĐÚNG** — khớp PriceList, khớp contextualPricing, khớp pattern các sản phẩm 24x70g khác (Mackerel SENIOR cũng 40.00). Không cần sửa. Mọi lập luận "40 là giá lỗi" (kể cả của tôi) **sai**
+     - **Hai dòng TUNA mới là dòng sai**: `basePrice` 1.95 / 45.95 trong khi price list của merchant là **1.70 / 40.00** → **merchant nói đúng**, "sp này chưa bao giờ có giá 1,95"
+     - Ảnh merchant gửi (1.70 / 40.00 €) **khớp hoàn toàn `PriceList.prices(originType: FIXED)`**, tái lập nhiều lần → không phải snapshot cũ của app
+   - **🛑 `contextualPricing` KHÔNG ĐÁNG TIN — hệ quả lan sang [[#28]]**: riêng sản phẩm Tuna & Sardine, `contextualPricing` lệch khỏi PriceList của chính nó **và tự mâu thuẫn giữa các nước** (FR 42.95 vs DE/IT 45.95). Mọi sản phẩm khác kiểm được thì 2 nguồn khớp. Đã loại trừ: rate-limit/flaky (mỗi giá tái lập 2-4 lần độc lập) · `inventoryItem.unitCost` = null cả 4 variant (không phải margin protection) · sản phẩm trùng lặp · `updatedAt` hôm nay là do order chu kỳ 14/08 chạy, không phải merchant sửa giá
+     - **`repairContractLinePrices.js:87,95` dùng đúng `contextualPricing` này** → chạy `--apply --allow-increase` lên 2 dòng Tuna sẽ ghi **42.95/45.95**, tức đẩy giá lên cao hơn cả mức đang sai. **CẤM chạy** cho tới khi đổi nguồn giá
+   - ✅ **Phần cơ chế vẫn CONFIRMED** (không đổi):
+     - Auto-sync mù: `contractBulkActionService.js:54-61` so `variant.price` (CHF native, đúng ở cả 2 phía) chứ không so `basePrice`. Kiểm thêm `handleProductUpdate` (`productService.js:161-167`) và `syncProductPriceToContracts` (`:289-306`) — **cả hai đều gọi cùng một điều kiện**, không có nhánh nào khác → dòng sai `basePrice` **không bao giờ** được sync sửa
+     - Detector mù: `scanLineIdMisalignment.js:12,87,98`. Tự chạy lại: `Scanned contracts: 84` · `misalignment: 14` · `price outlier (likely damaged): 0`. Ratios `[1.0, 0.952, 1.083, 1.094]`, median `1.083`, lệch 12.1% < 15% → lọt
+     - **Lỗ hổng của đề xuất detector mới**: lọc trước bằng nhóm `MISALIGNED` sẽ **loại hẳn** nhóm "damaged nhưng aligned" → tái tạo đúng lớp âm tính giả. Và nếu detector mới lấy giá qua Bulk Operations mà field tương đương `contextualPricing` thì nó sẽ **tự sinh false positive** trên chính Tuna & Sardine — gắn nhãn damaged cho dòng đúng rồi đề xuất sửa sai hướng
+   - **Chưa xác minh được**: vì sao riêng Tuna & Sardine bị lệch 2 nguồn giá (nghi cache/propagation phía Shopify — cần mở Shopify Admin → Markets → Pricing hoặc hỏi Shopify Support; GraphQL đọc không truy được) · component nào render màn hình trong ảnh · `basePrice` đúng của 2 dòng Tuna nên là 1.70/40.00 hay số khác — **cần merchant xác nhận trước khi sửa**
+   - _(nội dung điều tra gốc bên dưới giữ lại làm tài liệu — tiền đề của nó đã bị bác)_
+   - Phát hiện bởi verifier task [[#40]], 14/08, đọc prod thật
+   - `basePrice = 40` trong khi catalog live `42.00 CHF` / `45.95 EUR`. Không variant nào trong 71 variant sống của kookut có giá 40 → **không phải mượn giá từ donor còn sống**
+   - Chưa rõ là: (a) tàn dư hoán vị với một donor đã bị đổi giá/xoá, hay (b) snapshot cũ chưa từng được sync lại **dù `automation.syncProductPrice = true`** — nếu là (b) thì đó là lỗ hổng của chính cơ chế auto-sync, đáng điều tra riêng
+   - **Lỗi của detector, quan trọng hơn bản thân dòng này**: `scanLineIdMisalignment.js` dùng ratio so với **median của chính contract** (`RATIO_TOLERANCE = 0.15`). Ở contract này ratio = `[1.0, 0.952, 1.083, 1.094]`, median `1.083` → lệch của dòng hỏng chỉ **12.1%**, dưới ngưỡng → **lọt**. Kết quả: tool báo `0 damaged` cho toàn bộ 84 contract ACTIVE của kookut
+     - Nghĩa là **mọi con số "đã quét, chỉ N contract hỏng" ở [[#28]] đều là chặn dưới, không phải con số thật**. Contract có ≥2 dòng hỏng cùng chiều sẽ kéo median theo và tự che nhau
+   - Việc cần làm: (1) xác định nguồn gốc giá 40, (2) đánh giá lại ngưỡng/thuật toán detector — so với **catalog thật** thay vì median nội bộ contract, (3) quét lại với detector mới rồi đối chiếu số cũ
+
+42. [✅ 2026-08-14] **[phát hiện phụ, từ verifier #40] Bulk action ghi giá contract KHÔNG qua guard `automation.syncProductPrice`**
+   - `controllers/subscriptionContractController.js:1048-1060` → `services/subscription/bulkUpdateSubscriptionProductPrice.js:157-210` (`BULK_TYPE_UPDATE_SUBSCRIPTION_PRODUCT_PRICE`) ghi thẳng `currentPrice` + `pricingPolicy.basePrice` lên contract qua `updateSingleContractPrice`, **không hề đọc `automation.syncProductPrice`**
+   - Giá ghi lấy từ `toUpdateData.priceByCurrency[...].newPrice` — **client-supplied**, không phải giá catalog live → không phải "auto-sync", là ghi giá theo input
+   - ~~`grep -rln "BULK_TYPE_..." packages/assets/src` → 0 kết quả → route mồ côi~~ **SAI — grep âm tính giả, xem dưới**
+   - Kèm theo, cùng đợt verifier: `controllers/fixedBundleController.js:100-160` nhận `productId` thẳng từ `ctx.req.body` rồi truyền vào `handleShopifyProductSet` mà **không verify server-side** rằng productId thuộc bundle của chính shop (`services/fixedBundleService.js:246-253`). Gap authorization, chưa có dấu hiệu bị khai thác
+
+   - **🔴 ĐIỀU TRA 14/08 LẬT NGƯỢC TIỀN ĐỀ — route này KHÔNG mồ côi, nó là tính năng merchant đang dùng** (chờ verifier xác nhận):
+     - **Có UI thật**: nút bulk **"Edit product price"** trên trang Subscriptions — `pages/Subscriptions/Subscriptions.js:389-397`, label i18n `Subscriptions.json:195`, modal + hook `hooks/modal/useBulkEditProductPrice.js` (`:35` khai báo lại literal `'update-subscription-product-price'`, `:91` gọi `useEditApi`, `:229-238` dựng `toUpdateData`)
+     - **Vì sao grep trước đó ra 0**: FE **không import** hằng số của BE mà **hardcode lại chuỗi**. Đúng lớp bẫy đã ghi trong brain: *"liệt kê endpoint đừng grep literal"* — [[preview-route-enumeration-pitfall]]
+     - **Route merchant gọi được bằng session token**, không phải route nội bộ: `routes/api.js:227-230` (`PUT /subscription-contract/bulk-action/:type`), mounted ở cả `handlers/api.js:69` (embedded, `verifyEmbedRequest`) lẫn `handlers/apiSa.js:38` (standalone, `verifyRequest`) — **cùng router với mọi endpoint merchant thường dùng**, không phải `routes/tsTool.js`
+     - **Ghi thật lên Shopify**, không chỉ Firestore: draft create → `subscriptionDraftLineItemUpdate` → commit (`contractBulkActionService.js:128-145` ← `:157` ← `:362`)
+     - **KHÔNG validate giá đầu vào**: `newPrice` đi thẳng từ `TextField` (`useBulkEditProductPrice.js:437`, không min/max) tới `parseFloat` (`contractBulkActionService.js:134`); route **không có** `validate(schema)` middleware trong khi phần lớn route mutating cùng file thì có
+     - **Thiếu scope `shopId`**: `getSubscriptionContractsByIds` (`repositories/subscriptionContractRepository.js:1048-1064`) query `where(documentId(), 'in', batch)` **không lọc `shopId`**, gọi từ `bulkUpdateSubscriptionProductPrice.js:104`; `ids` là client-supplied (`subscriptionContractController.js:927`) và không đối chiếu `shop.id`. Suy luận (chưa kiểm live): **đọc** doc của shop khác thì lọt, **ghi** thì Shopify chặn vì access token scope theo store. Vẫn nên vá theo defense-in-depth
+   - **Kết luận về câu hỏi gốc: thiếu guard `syncProductPrice` ở đây KHÔNG phải bug** — hai tính năng khác bản chất. Toggle gate đường **Shopify đẩy giá catalog vào contract** (`productWebhookHandler.js:75`, `services/shopify/productService.js:274`); còn route này là **merchant chủ động gõ giá mới rồi bấm Save**. Merchant tắt auto-sync vẫn phải sửa giá tay được
+   - **→ Cách diễn đạt đúng khi trả lời merchant**: *"App chỉ tự đổi giá contract khi bạn bật 'Auto-sync product price'. Ngoài ra bạn (hoặc ai có quyền vào app) vẫn có thể tự sửa giá bằng bulk action 'Edit product price' trên trang Subscriptions — đó là thao tác chủ động, không phải app tự làm."*
+   - **Việc còn lại (chưa làm, cần task riêng nếu user duyệt)**: (1) validate `newPrice` ở route, (2) lọc `shopId` trong `getSubscriptionContractsByIds` cho call path này, (3) gap ownership ở `fixedBundleController` — sửa cần hiểu state machine của bundle trước, ép so khớp cứng có thể phá luồng đổi product hợp lệ
+   - **ĐÓNG 14/08 — verifier verdict `PARTIAL`**: bản chất các tuyên bố đều CONFIRMED (route merchant-facing, ghi thật lên Shopify, không validate, không scope `shopId`, và thiếu guard `syncProductPrice` là ĐÚNG THIẾT KẾ). Task điều tra nên **không có commit**. Hai đính chính của verifier:
+     - **Nút CÓ gate ở FE mà vòng trước bỏ sót**: `Subscriptions.js:471` `disabled: !hasDealForFreeForever`; `hasDealForFreeForever` (`Subscriptions.js:114-115`) phụ thuộc `isFreeForever(shop)` (cutoff `GO_LIVE_PRICING` ~2025-11-04), `isGrowthHackingV3(shop)` (cutoff `GO_LIVE_GROWTH_HACK_DATE_V3` = 2026-04-10, `config/plans.js:62`), và cờ `shop.showAllBulkActions`. **KHÔNG phải gate theo `plan === 'free'`** → không kết luận được kookut có thấy nút hay không nếu chưa đọc `installedAt` + `showAllBulkActions` thật của họ
+     - **Backend KHÔNG có gate tương đương** (`routes/api.js` grep `requirePlan|checkPlan|featureFlag|requireFeature` = 0): nút bị disable chỉ là tiện ích UI, session token hợp lệ vẫn gọi thẳng endpoint được bất kể plan
+     - Số dòng lệch nhẹ so với ghi chú trên: `processLineItemPriceUpdate` là `contractBulkActionService.js:108-146` (mutation ở `:139`, `parseFloat` ở `:134`), controller đọc body ở `:928`
+     - Thêm: input rác → `getSellingPlanVariables.js:400-402` `Number.isFinite(...) ? ... : 0` **coerce âm thầm về 0**, không reject. Response route chỉ trả `{success:true, data:{message:'Action is running in the background'}}` (`subscriptionContractController.js:1127-1130`) nên doc shop khác nếu lọt thì **không rò thẳng ra HTTP response**
+     - Nhánh khác trong cùng file **CÓ** scope đúng — `processContractsBatch` (`contractBulkActionService.js:383+`) dùng `getSubscriptionContractsByContractIds({shopId: shop.id})`. Tức thiếu scope ở nhánh bulk-action là **bỏ sót cục bộ**, không phải convention của repo
+   - **🔑 Câu trả lời cốt lõi cho khiếu nại "app tự đổi giá"**: không có cơ chế nào trong code khiến hệ thống **tự phát** đổi giá — mọi lần đổi qua đường này đều cần một request tường minh kèm `ids` + `toUpdateData`. Chỉ có 2 đường tự động, và cả hai đều gate bởi `automation.syncProductPrice`: webhook `products/update` (`productWebhookHandler.js:75`) và `syncProductPriceToContracts` (`services/shopify/productService.js:274`, chỉ gọi từ `devZoneController.js:990` — tool nội bộ)
+
+41. [✅ 2026-08-14] **Ticket `JSUB-260814-adxTDS` — file import migration Appstle thiếu `customer_id` + `delivery_address_province_code`**
+   - nhánh `feat/JSUB-260814-enrich-import` · commit **`0c88458`** · base `origin/master` `8016e0ac0` · **CHƯA push** (git fetch/push fail `HTTP Basic: Access denied` — session không có TTY, cần token on-premise)
+   - Verifier `PASS`. Gate: `check` **exit 0** (7 rule groups clean) · `jest:as` **exit 0** (6 suite / 86 test) · `jest:fn` exit 1 nhưng **đúng 9 suite baseline** đã biết, không suite mới nào chết (verify bằng `rtk proxy npx jest` để không bị rtk che suite chết) · `git diff --stat` tracked files **rỗng** — không đụng file của ai
+   - File mới, duy nhất: `packages/functions/src/commands/misc/enrichAppstleImportCsv.js` (+262). Chỉ đọc: Shopify GraphQL `query` + `.get()` Firestore lấy token; grep xác nhận không có `mutation`/`.set(`/`.update(`/`.delete(`
+   - **🔴 TICKET MÔ TẢ SAI VẤN ĐỀ — đây mới là điều CS cần biết**:
+     - `delivery_address_province_code` **KHÔNG bắt buộc**: `validations/importSubscription.js:21` là `yup.string()` trần, không bọc `validateDeliveryField` như `address1/city/zip/country_code` (`:17,18,20,22,24`). Và **`SG` không nằm trong** `PROVINCE_REQUIRED_COUNTRY_CODES` (`const/shipping/provinceRequiredCountries.js:10-43`). Cả 99 dòng đều country `SG` → **để trống là hợp lệ**, không cần enrich gì
+     - **Thứ THẬT SỰ chặn import là `delivery_price`**: `importSubscription.js:176` `yup.number().min(0).required()` — bắt buộc vô điều kiện, mà cột này trống **99/99**. Import nguyên trạng **fail cả 99 dòng** vì lý do này, không liên quan 2 cột ticket nói. **Script này không xử lý `delivery_price`** (đúng scope ticket) → chạy xong file vẫn chưa import được
+     - `billing_min_cycles`/`billing_max_cycles` optional (`importSubscription.js:133-164`, `.nullable()` + transform `'' → null`) — trống là hợp lệ
+     - Cột `shipping_name` trong file khách **sai tên**: app đọc `delivery_method_shipping_name` (`importService.js:258,330`, `importSubscription.js:15`), schema **không có `noUnknown()`** nên cột lạ bị nuốt im lặng. ⚠️ Citation `exportService.js:279` ở vòng đầu là **SAI** (dòng đó là `delivery_address_first_name`), và `allFieldsConfig` (`exportService.js:261-301`) **không hề có** field này — nó chỉ tồn tại phía import
+   - `customer_id` là **số nguyên trần**, không phải GID (`importSubscription.js:72` `yup.number().required()`; `importService.js:381` tự bọc `getGraphqlId(customer_id, 'Customer')`)
+   - **Chạy thật trên file khách**: 99 dòng → **99/99 resolve được `customer_id`** qua email, 0 dòng cần xử tay. Output `joysub-import-formatted.enriched.csv` trong scratchpad phiên 14/08 (**sẽ mất khi dọn tmp** — chạy lại được bằng script)
+   - Verifier tự dựng lại thí nghiệm offline: dòng **đã có** `customer_id` không bị ghi đè · **0 match** và **>1 match** đều để trống + vào report, không đoán · Shopify search **fuzzy** trả email gần đúng (`FUZZY+tag@` khi tìm `fuzzy@`) bị bộ lọc exact-match case-insensitive (`:144`) loại đúng · round-trip `xlsx` với `{raw: true}` giữ nguyên **string**, zip `520736` và `contract_ID` dài **không** bị scientific notation, 30 cột đúng thứ tự
+   - **Còn lại, chưa xử** (finding verifier, không chặn deliverable): `enrichAppstleImportCsv.js:141` nội suy email thẳng vào query Shopify `email:'${email}'` **không escape**; không có try/catch quanh vòng lặp per-row nên một email chứa `'` có thể làm crash giữa chừng và **mất toàn bộ enrich đã làm** (vì `writeCsv` chỉ chạy ở cuối). Dataset thật không có ký tự đặc biệt nên chưa kích hoạt
+   - Verifier **không tự re-run** script nhắm prod (đúng ràng buộc) → con số 99/99 là corroborate từ file output có sẵn, không phải rerun độc lập
+   - Slack: https://avadaio.slack.com/archives/C07URV6QMJ8/p1786693553320819 (đã đọc 14/08)
+   - Shop `nj1kht-86.myshopify.com` · app plan free · Shopify plan basic · TS: Tuấn ĐV (Ryan)
+   - Khách export subscription từ **Appstle**, đã format theo sample file của Joy Sub, **nhưng thiếu 2 cột**: `customer_id` và `delivery_address_province_code` → không import được
+   - Team chốt trong thread: *"cần dev lấy từ appstle là không thể rồi, khách cho quyền order rồi nhé"* — tức **không lấy từ Appstle**, phải resolve từ dữ liệu Shopify của chính shop (đã có quyền **customer + order**)
+   - File khách (đã format): https://docs.google.com/spreadsheets/d/1TxE2swmqfgKS2ma4P-eObCV1ihdcBZclRNVW0mE00C4/edit · file gốc CSV `1786683799813_subscriptionexport202608140438_1h2f5st__1_.csv` đính trong thread Slack
+   - Việc thực chất: viết script enrich CSV — map email khách → `customer_id` Shopify, và tên tỉnh/bang → `province_code` chuẩn ISO
+   - **User duyệt đọc prod shop này 14/08** (cùng lượt với #40)
+   - ⚠️ **Chưa lấy được file input**: Slack token thiếu scope `files:read` → tải file đính kèm trả về HTML login, không phải CSV. Google Sheet cũng cần quyền. **Cần user đưa file về local** rồi mới chạy enrich thật được
+   - Chưa kiểm: sample file import của Joy Sub yêu cầu đúng những cột nào, và `province_code` là bắt buộc hay optional

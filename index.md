@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-13 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 11 item ngày 08-13: 3 digest + 2 shipped + 4 decision + 1 resource + 1 feedback)_
+_Cập nhật: 2026-08-14 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-14: 3 digest + 1 shipped + 3 decision + 1 resource + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -57,6 +57,7 @@ _Cập nhật: 2026-08-13 · Trạng thái: đã seed 12 project + notes học t
 - [[chan-agent-bang-cau-hinh]] — dặn agent "chỉ đọc, đừng ghi vào DB dev" là một lời nhắc chứ không phải rào chắn — rào chắn là để default trỏ vào tài nguyên KHÔNG tồn tại, sao cho làm sai thì test skip/lỗi ồn ào thay vì ghi vào hệ thống thật.
 - [[mcp-auth-apikey-vs-oauth]] — MCP có Authorization spec chuẩn (OAuth 2.1 + RFC 9728) nên implement một lần là mọi client tuân spec dùng được — không có nhánh `if (client === 'claude')`; còn dùng nội bộ một người một máy thì API key qua header là đủ, dựng authorization server chỉ để tự login vào server của mình là thừa.
 - [[koa-yup-validator-yup029]] — middleware validate không chỉ kiểm tra mà còn GHI ĐÈ `ctx.request.body` bằng giá trị yup đã cast; với yup 0.29 điều đó sinh nested object toàn `undefined` (hỏng ồn ào 422 hoặc hỏng im lặng 200-mà-không-ghi) và `stripUnknown` âm thầm vứt field mới.
+- [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — khung phân loại 6 nhóm lỗi sync/async dùng chung cho JS, Go, Java: chậm chỉ là hệ quả nhẹ nhất, hai hệ quả thật là mất việc âm thầm và gửi trùng; kèm 4 điều kiện bắt buộc khi đẩy việc ra nền.
 - [[gate-quet-ma-nguon-bang-ast]] — một gate kiểu "không được log thứ này" viết bằng regex sẽ luôn còn khe (comment, xuống dòng, alias, camelCase) và dễ bị tự-allowlist; dựng trên AST thì cú pháp hết là biến số.
 
 **Học tập:**
@@ -176,6 +177,10 @@ _Cập nhật: 2026-08-13 · Trạng thái: đã seed 12 project + notes học t
 - [[shipped-subscriptions-2026-08-13]] — commit landed 08-12 — master nhận 3 MR / 2 tag: Volume Bundle native quantity-break SB-13947 cuối cùng cũng merge sau ~1 tháng (`v2.34.64`, `[deploy-extensions]`), và hai fix cùng một họ "ghi giá vào đúng dòng đã tính giá" (price sync `v2.34.65` + bulk swap); trên nhánh: đường token refresh-aware bật mặc định + fix parse cờ đóng đúng mục treo của digest 08-12; không revert, không migration.
 - [[digest-subscriptions-2026-08-13]] — bug lệch index khi bulk-swap làm 19/26.338 contract ACTIVE thu sai tiền thật; mirror Firestore lệch Shopify nên audit đọc sai; spike cost $3→$4 là burst traffic 1 ngày, tăng maxInstances chỉ làm đắt thêm.
 - [[digest-ticket-mcrsv-2026-08-13]] — một loạt tính năng chưa bao giờ chạy được (capture payment sai ID, check-in gọi RPC chưa implement, migration chưa từng áp), 11+ route IDOR, và CI của 2 service Node chưa từng chạy vì gitignore mọi lockfile.
+- [[shipped-pdf-2026-08-14]] — commit landed 08-13 — master KHÔNG nhận gì (không MR, không tag, không version bump); toàn bộ nằm trên 3 nhánh — `feature/payment-reminder` đóng 3 bug SB-15545/SB-15554/SB-15496 (đáng kể nhất: race hai webhook tạo đơn trùng, vá bằng transaction), sidekick chiếm hẳn slot staging 4 và đẩy master về staging 3, SB-14329 customer card actions tách `.gitlab-ci.yml` thành `.gitlab/ci/*`; không revert, không cờ deploy, không migration.
+- [[digest-subscriptions-2026-08-14]] — sample event Klaviyo mutate const module-level nên email shop A rò sang shop B; CI `publish-fe` chết vì clone repo artifacts gitlab.com bằng token đã hết hạn; và chuỗi đảo kết luận khi truy "app tự sửa giá" ở kookut — chốt được là app ghi sai `basePrice` lúc tạo dòng, khách bị thu sai tiền thật.
+- [[digest-joy-subscription-artifacts-2026-08-14]] — lần chạy `/clean-artifacts` này lộ ra hai thứ đáng nhớ hơn cả việc dọn: remote `onprem` lag 1755 commit nên tuyệt đối không được coi là nguồn, và hook chặn `main` chặn nhầm ở đúng repo mà `main` là nhánh làm việc.
+- [[digest-ticket-mcrsv-2026-08-14]] — một phiên `/looptasks` chạy gần trọn ngày đóng ~40 task; đáng giữ nhất là bộ ba migration lỗi chữ hoa/thường của `V5`, 11+ route IDOR, `try/catch` bọc promise không `await` là vô dụng, và ba lần chính tôi báo sai bị verifier bác bằng thí nghiệm.
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
@@ -208,6 +213,9 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-13-khong-validate-button-url-pdf]] — đóng SB-15563 không sửa — nút CTA dẫn ra ngoài là do merchant/tester tự gõ chuỗi không phải URL vào ô Button URL, không phải lỗi app (review 2026-11-13).
 - [[2026-08-13-tach-gate-khoi-cham-tung-bug]] — khi một task sửa nhiều bug, chạy gate MỘT lần cho cả cụm rồi để mỗi verifier chỉ chấm phần bug của mình, thay vì mỗi verifier chạy lại nguyên gate (review 2026-11-13).
 - [[2026-08-13-commit-lockfile-ticket-mcrsv]] — bỏ dòng gitignore mọi lockfile, commit lockfile thật của từng service Node và đổi CI từ `npm ci` sang `yarn install --immutable`; lint tạm thời chưa chặn để CI không đỏ vĩnh viễn (review 2026-11-13).
+- [[2026-08-14-artifacts-onprem-seed-khong-lich-su]] — job `publish-fe` đổi sang clone `joy-subscription-artifacts` trên git.avada.net; bản on-prem bị force push về một commit gốc không cha mang đúng cây thư mục hiện tại — bỏ toàn bộ lịch sử ở phía on-prem, giữ gitlab.com làm đường lùi (review 2026-11-14).
+- [[2026-08-14-staging-4-cho-nhanh-sidekick]] — PDF Invoice gỡ master khỏi `deploy_staging_4` để nhánh `feature/sidekick-agent-extensions` sở hữu trọn slot đó; master chỉ còn `deploy_staging_3` — đổi lại mất một môi trường có sẵn của master và nhánh sidekick vừa mất slot staging 2 trong một merge (review 2026-11-14).
+- [[2026-08-14-verifier-va-agent-mutation-tach-doi]] — giữ nguyên verifier context sạch không sửa file, nhưng chuyển phần "phá code để đo test có bắt lỗi không" sang một agent riêng có Edit + kỷ luật `cp`/`md5` khôi phục, thay vì nới quyền cho verifier (review 2026-11-14).
 - [[2026-08-12-va-triet-de-saga-ticket]] — `ticket-mcrsv` cho phép sửa business logic trong vùng Spec #1 tuyên bố off-limits — vá `LazyStringArrayList`→Hibernate và hoàn thiện reservation ở ticket-service theo hướng đúng nghiệp vụ (partial unique index thay unique toàn cục), thay vì vá tối thiểu để đo hay đẩy G0 xuống sau F1 (review 2026-11-12).
 
 ## 💬 Feedback (feedback/)
@@ -224,6 +232,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-feature-moi-mac-dinh-opt-in]] — default của một feature mới là `enabled: false`; khách cũ không bao giờ được tự nhiên bật một hành vi gửi mail ra ngoài mà họ chưa đồng ý.
 - [[feedback-dung-loop-khi-rong]] — khi `/loop` hoặc `/looptasks` báo "không thay đổi" khoảng 15 lượt liên tiếp thì tự huỷ cron và tổng kết, thay vì tiếp tục fire vô hạn chờ user quay lại.
 - [[feedback-git-guard-chi-chan-master]] — hook chặn `git push` của repo được nới lại: chỉ chặn khi đích là `master`/`main`, còn push nhánh feature thì agent làm thẳng, không phải nhờ người dán lệnh.
+- [[feedback-debug-phai-query-data-that]] — khi truy root cause một ca production, không được dừng ở "đọc code rồi kết luận" — phải query dữ liệu prod để chứng minh, vì code chỉ dựng được giả thuyết.
 - [[feedback-khong-khep-viec-khi-con-khe-ho]] — khi còn một lỗ đã biết, không được đề xuất đóng task bằng lý lẽ "đủ tốt rồi" — làm chuẩn để dự án là một standard, không làm ít cho xong.
 
 ## 📦 Sources (sources/) — nguồn thô immutable

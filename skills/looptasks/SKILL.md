@@ -1,6 +1,6 @@
 ---
 name: looptasks
-description: Nhặt task từ file task list (mặc định BRIEF.md của project), implement từng cái bằng subagent Sonnet 5, mark done, ghi changelog. Chạy song song các task độc lập. Dùng khi user muốn tự động xử lý một danh sách task, hoặc gọi qua /loop để lặp định kỳ tự nhặt task mới.
+description: Nhặt tối đa 4 task một lượt từ file task list (mặc định BRIEF.md của project), giao subagent Sonnet 5 chạy SONG SONG trong worktree riêng, verify bằng agent verifier độc lập, mark done, ghi changelog. Dùng khi user muốn tự động xử lý một danh sách task, hoặc gọi qua /loop để lặp định kỳ tự nhặt task mới.
 ---
 
 # looptasks — nhặt task từ file, giao subagent làm, mark done
@@ -36,11 +36,25 @@ Task list dùng chung với đồng đội thì là ngoại lệ: để trong re
 1. [ ] làm xyz
 2. [⏳ 14:32] đang làm abc
 3. [✅ 2026-08-02] đã xong kkk
+4. [⏸️] chờ user/shop trả lời — đừng nhận
 ```
 
 - `[ ]` / `[]` → chưa done, cần làm
 - `[⏳ HH:MM]` → đang có agent nhận (xem mục Lock bên dưới)
+- `[⏸️]` → **chờ người**, không phải chờ agent → **bỏ qua** (xem dưới)
 - `[✅ YYYY-MM-DD]` / `[✅]` / `[x]` → xong, **bỏ qua**
+
+### `[ ]` và `[⏸️]` khác nhau ở chỗ nào
+
+`[ ]` = chưa ai làm, agent nhận được. `[⏸️]` = **đã chặn bởi một người**, agent nhận vào là sai:
+
+- user chốt "để đấy đã, sau check thêm"
+- chờ bên thứ ba trả lời (shop, team khác, reviewer)
+- thiếu ngữ cảnh mà chỉ user cung cấp được (link, ảnh, credential)
+
+Trước khi đảo `[⏸️]` → `[ ]` phải có **user nói rõ**. Agent tự gỡ pause là làm lại việc
+người ta đã bảo dừng. Ngược lại, khi gặp task `[ ]` mà thực chất đang chờ người,
+sửa nó thành `[⏸️]` kèm một dòng ghi **chờ ai / chờ cái gì** rồi đi tiếp.
 
 Task có thể có dòng con (bullet, sub-detail) — đọc hết block thuộc task đó làm context.
 
@@ -50,6 +64,23 @@ Task có thể có dòng con (bullet, sub-detail) — đọc hết block thuộc
 
 Liệt kê task chưa done. **Không còn task nào → report "no pending tasks" và dừng.**
 Đang trong `/loop` thì chờ lần sau. **Tuyệt đối không tự bịa việc, không mở rộng scope.**
+
+### Chọn lô — nhặt NHIỀU task một lượt, không phải một
+
+Nhận **tối đa 4 task** mỗi lượt. Có 1 task thì làm 1; có 4 task hợp lệ thì nhận cả 4 và
+chạy theo nhóm chia ở Bước 2.
+
+Trần 4 chọn theo harness: tối đa 16 agent đồng thời, mỗi task cần 1 agent code + 1 verifier,
+cộng agent `Explore` lúc recon — 4 task là mức còn chừa chỗ, không phải mức tối đa lý thuyết.
+
+Thứ tự ưu tiên: `[P0]` → `[P1]` → task không nhãn. Nhãn nằm trong tiêu đề dạng `**[P0]**`,
+không phải trường riêng.
+
+**Bỏ qua task đang chờ người** (`[⏸️]`, xem dưới). Đó không phải task rảnh — nhận nó là
+tạo lock giả và làm việc user đã bảo dừng.
+
+⚠️ Một task nặng vẫn tốt hơn bốn task nhặt bừa. Không đủ 4 task **hợp lệ** thì nhận ít hơn,
+đừng vơ task đang chờ người hay task thiếu ngữ cảnh cho đủ lô.
 
 ### Lock — chống hai iteration chồng nhau
 
@@ -70,18 +101,50 @@ Task có build + test + 2 vòng verifier vượt 30 phút là chuyện thường
 
 ## Bước 2 — Xác định task nào chạy song song được
 
-Mặc định **chạy song song các task độc lập**. Nhưng "độc lập" phải *xác định*, không phán từ tiêu đề.
+**Mặc định là song song.** Tuần tự là ngoại lệ, và ngoại lệ đó phải có bằng chứng va chạm —
+không phán từ tiêu đề, mà cũng không lùi về tuần tự chỉ vì chưa recon ra.
 
 Với mỗi task, xác định **vùng file nó sẽ chạm** — đọc mô tả task, rồi grep/glob để tìm file liên quan.
-Việc này rẻ (đọc + tìm, không sửa gì); nếu nhiều task thì spawn agent `Explore` chạy song song để recon.
+Việc này rẻ (đọc + tìm, không sửa gì); nhiều task thì spawn agent `Explore` recon — **tất cả trong
+một message** để chúng chạy cùng lúc.
+
+Recon là để **tìm va chạm**, không phải để xin phép song song. Recon xong không thấy gì → song song.
 
 Dựng ma trận va chạm:
 
 - **Không giao nhau** → song song, mỗi agent một worktree
-- **Giao nhau**, hoặc **không xác định được** vùng chạm → **tuần tự** (mặc định an toàn khi thiếu thông tin)
+- **Không xác định được** vùng chạm → **vẫn song song, worktree bắt buộc**
+- **Giao nhau CÓ BẰNG CHỨNG** (đã thấy cùng một file cụ thể, hoặc cùng file config/schema/type
+  dùng chung) → tuần tự
 - Task nói "refactor toàn bộ", "đổi tên xuyên repo", đụng file config/schema/type dùng chung → luôn tuần tự
 
 Log cho user biết đã chia nhóm thế nào trước khi chạy.
+
+### Vì sao "không chắc" KHÔNG còn nghĩa là tuần tự
+
+Bản cũ ghi *"giao nhau **hoặc không xác định được** → tuần tự (mặc định an toàn khi thiếu thông tin)"*.
+Nghe hợp lý, nhưng đo thật thì nó giết toàn bộ song song: với repo cỡ `subscriptions`,
+"không xác định được" gần như luôn đúng, nên nhánh tuần tự thắng mọi lượt.
+
+Số đo 30 ngày (2026-07-15 → 08-14), dedupe theo `tool_use.id`:
+
+| | |
+|---|---|
+| Lời gọi `Agent` | 622 |
+| Assistant message có ≥2 `Agent` (fan-out thật) | **0** |
+| `Agent` call có `isolation: "worktree"` | **0** |
+
+Nhánh song song là **code chết** — viết ra nhưng chưa từng chạy lần nào.
+
+Rủi ro mà quy tắc cũ phòng là *hai agent đè file nhau*. Rủi ro đó **worktree đã xoá rồi**
+(xem Bước 4: "đoán sai độ độc lập thì vẫn không ai đè lên ai"). Tức là quy tắc đang phòng
+hai lớp cho cùng một rủi ro, và lớp thứ hai trả giá bằng toàn bộ thông lượng.
+
+Cái còn lại khi đoán sai chỉ là **merge conflict lúc gộp nhánh** — hiện ngay, sửa được,
+rẻ hơn nhiều so với mất song song. Vì vậy: thiếu thông tin thì **chạy song song trong worktree**,
+đừng lùi về tuần tự. Chỉ bằng chứng va chạm mới ép tuần tự, không phải sự thiếu chắc chắn.
+
+⚠️ Đừng đảo lại quy tắc này vì "cho an toàn" — bản cũ chính là bản an toàn, và cái giá của nó là 0/622.
 
 ## Bước 3 — Nhận task
 
@@ -90,9 +153,20 @@ mark hết. Đây là bước đầu tiên, trước khi spawn agent — nếu s
 
 ## Bước 4 — Giao subagent
 
-Mỗi task một agent, `model: "sonnet"`. Nhóm song song → thêm `isolation: "worktree"` để agent
-có checkout riêng; đoán sai độ độc lập thì vẫn không ai đè lên ai. Nhóm tuần tự chạy thẳng
-trong thư mục hiện tại, lần lượt.
+Mỗi task một agent, `model: "sonnet"`.
+
+**Nhóm song song — hai ràng buộc CỨNG, không phải gợi ý:**
+
+1. Mọi `Agent` call trong nhóm **phải** có `isolation: "worktree"`. Đây là thứ cho phép Bước 2
+   dám song song khi không chắc — thiếu nó thì cả quy tắc đó sụp. Đoán sai độ độc lập mà có
+   worktree thì vẫn không ai đè lên ai.
+2. **Spawn cả nhóm trong MỘT message**, nhiều tool call cùng lượt. Spawn từng cái rồi chờ
+   kết quả là tuần tự trá hình — đúng lỗi đã làm số đo ra 0/622.
+
+Spawn xong, gọi `ListAgents` xác nhận thấy **đủ số agent `running`**. Không đủ → nói ra,
+đừng lặng lẽ chạy tiếp như thể đã song song.
+
+Nhóm tuần tự chạy thẳng trong thư mục hiện tại, lần lượt.
 
 Brief phải đủ:
 
@@ -135,7 +209,12 @@ Rào này xoá nguyên lớp rủi ro agent này `checkout` phá việc agent kh
 ## Bước 5 — Verify (giao agent `verifier`, KHÔNG tự chấm)
 
 Chờ agent xong. **Đừng tự verify** — bạn là đứa vừa spawn ra code đó, chấm bài của mình thì
-không còn là gate. Giao cho subagent `verifier` (`~/.claude/agents/verifier.md`): context sạch,
+không còn là gate.
+
+Chạy nhiều task song song thì **verify task nào xong task đó** — đừng chờ cả lô xong rồi mới verify.
+Nhiều task cùng xong một lúc → spawn các `verifier` trong **một message**. Verifier là chặng tốn
+thời gian nhất của gần như mọi task (có lần **7,7 phút** cho delta một file), nên xếp chúng
+nối đuôi nhau là trả lại đúng phần wall-clock vừa tiết kiệm được ở Bước 4. Giao cho subagent `verifier` (`~/.claude/agents/verifier.md`): context sạch,
 không có Edit/Write, chạy done-criteria thật và trả verdict kèm bằng chứng.
 
 Brief cho `verifier` gồm:
