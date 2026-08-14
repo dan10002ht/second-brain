@@ -73,7 +73,7 @@ trong prompt và gửi đi bản khuyết chữ suốt nhiều tuần mà không
 | Lệnh | Kiểm cái gì |
 |------|-------------|
 | `bin/brain-lint` | **tri thức** — link hỏng, thiếu summary, orphan, tag ngoài taxonomy |
-| `bin/brain-doctor` | **bộ máy** — job có chạy không, có lỗi mới không, doc có nói dối không, inbox có kẹt không, decision có quá hạn không |
+| `bin/brain-doctor` | **bộ máy** — job có chạy không, có lỗi mới không, doc có nói dối không, inbox có kẹt không, decision có quá hạn không, **BRIEF có mục ruỗng không** (lock ⏳ treo, task [P0]/[P1] nằm lì, tỉ lệ FAIL của verifier) |
 
 `bin/brain-graph` không kiểm gì cả — nó ĐẾM (cụm chủ đề, note lạnh, cặp trùng, hub)
 để `brain-compact` có dữ liệu thật thay vì để LLM đoán.

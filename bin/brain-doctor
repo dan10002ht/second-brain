@@ -19,7 +19,10 @@ Kiểm:
               script nhắc tới phải TỒN TẠI thật. Doc nói dối là bug.
   3. Tồn đọng — file nằm lì trong 00-inbox/ quá lâu = brain-learn đang hỏng.
   4. Quyết định — decision quá hạn `review:` mà chưa ai xem lại.
-  5. Semantic index — tuỳ chọn; báo trạng thái thật thay vì im lặng.
+  5. BRIEF   — lock ⏳ treo, task [P0]/[P1] nằm lì, và tỉ lệ FAIL của verifier.
+              Brain ghi tốt nhưng không có edge nào biến ghi chép thành hành
+              động: task #27 nằm im 2 ngày dù đã ghi đủ nguyên nhân. Đây là edge đó.
+  6. Semantic index — tuỳ chọn; báo trạng thái thật thay vì im lặng.
 
 Dùng:
   brain-doctor              # in báo cáo
@@ -391,7 +394,129 @@ def check_reviews(rep: Report) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# 5. Semantic index (tuỳ chọn — báo trạng thái thật, không im lặng)
+# 5. BRIEF mục ruỗng — lock chết, task ưu tiên nằm lì, verdict verifier
+# --------------------------------------------------------------------------- #
+# Vì sao có mục này: brain ghi rất tốt nhưng KHÔNG có edge nào biến ghi chép
+# thành hành động. Task #27 của subscriptions ghi đủ nguyên nhân, đánh dấu [P1],
+# đã chặn agent 3 lần — rồi nằm im 2 ngày tới khi có người tình cờ đụng vào.
+# Capture không phải improvement. Mục này là cái edge còn thiếu.
+#
+# Tuổi đo từ LẦN ĐẦU DOCTOR THẤY, không phải lúc task được tạo: `[ ]` không mang
+# ngày, `[⏳ HH:MM]` chỉ có giờ. Nên mọi con số dưới đây đều là "ít nhất", và
+# phải nói đúng như vậy — báo cáo đoán ra ngày là báo cáo bịa.
+TASK_RE = re.compile(r"^(\d+)\.\s+\[([^\]]*)\]\s*(.*)$")
+PRIORITY_RE = re.compile(r"\[P([012])\]")
+VERDICT_RE = re.compile(r"verifier\s+(PASS|FAIL|UNVERIFIED)", re.IGNORECASE)
+
+# Lock của /looptasks là 30 phút. Quá 2h mà vẫn ⏳ thì hoặc agent chết giữa
+# chừng, hoặc đã xong mà quên nhả — cả hai đều là lock chết (đã dính ở task #14).
+DEAD_LOCK_HOURS = 2
+# 3 ngày: đủ để một task ưu tiên trượt qua vài lượt loop mà không ai đụng.
+STALE_PRIORITY_DAYS = 3
+
+
+def scan_brief(path: Path) -> tuple[list[dict], dict[str, int]]:
+    """Trả (task đang mở/đang chạy, đếm verdict theo ngày task được đóng).
+
+    Verdict bám vào task chứa nó — quét tuần tự, mỗi dòng task mới thì đổi ngày
+    quy chiếu. Verdict nằm dưới task chưa đóng thì không có ngày, bỏ khỏi thống
+    kê theo tuần thay vì gán bừa ngày hôm nay.
+    """
+    open_tasks: list[dict] = []
+    verdicts: dict[str, int] = {}
+    cur_date: str | None = None
+    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        m = TASK_RE.match(line)
+        if m:
+            num, raw, title = m.group(1), m.group(2).strip(), m.group(3)
+            cur_date = raw[1:].strip() if raw.startswith("✅") else None
+            if not raw.startswith("✅"):
+                prio = PRIORITY_RE.search(title)
+                open_tasks.append({
+                    "key": f"{path.parent.name}#{num}",
+                    "num": num,
+                    "running": raw.startswith("⏳"),
+                    "priority": f"P{prio.group(1)}" if prio else None,
+                    "title": re.sub(r"[*`_]", "", title)[:70],
+                })
+            continue
+        v = VERDICT_RE.search(line)
+        if v and cur_date:
+            verdicts[f"{cur_date}|{v.group(1).upper()}"] = \
+                verdicts.get(f"{cur_date}|{v.group(1).upper()}", 0) + 1
+    return open_tasks, verdicts
+
+
+def check_briefs(rep: Report, state: dict) -> None:
+    briefs = sorted((ROOT / "10-projects").glob("*/BRIEF.md"))
+    if not briefs:
+        return
+
+    seen: dict = state.setdefault("briefs", {})
+    now = dt.datetime.now()
+    stamp = now.isoformat(timespec="seconds")
+    dead, stale, alive = [], [], set()
+    verdicts: dict[str, int] = {}
+
+    for brief in briefs:
+        tasks, v = scan_brief(brief)
+        for k, n in v.items():
+            verdicts[k] = verdicts.get(k, 0) + n
+        for t in tasks:
+            if not t["running"] and t["priority"] not in ("P0", "P1"):
+                continue  # task thường để mở là bình thường, không phải bệnh
+            alive.add(t["key"])
+            mark = "run" if t["running"] else "open"
+            prev = seen.get(t["key"])
+            # Đổi trạng thái (mở -> chạy) thì đếm lại từ đầu, không cộng dồn.
+            if not prev or prev.get("mark") != mark:
+                seen[t["key"]] = {"mark": mark, "since": stamp}
+                continue
+            try:
+                since = dt.datetime.fromisoformat(prev["since"])
+            except (ValueError, KeyError):
+                seen[t["key"]] = {"mark": mark, "since": stamp}
+                continue
+            hours = (now - since).total_seconds() / 3600
+            label = f"{brief.parent.name} #{t['num']} {t['title']}"
+            if t["running"] and hours > DEAD_LOCK_HOURS:
+                dead.append((label, hours))
+            elif not t["running"] and hours > STALE_PRIORITY_DAYS * 24:
+                stale.append((label, hours))  # nhãn [P0]/[P1] đã nằm sẵn trong tiêu đề
+
+    # Task đã đóng thì bỏ theo dõi, nếu không state phình mãi và một task mở lại
+    # sau này sẽ mang theo tuổi của kiếp trước.
+    for key in [k for k in seen if k not in alive]:
+        del seen[key]
+
+    if dead:
+        rep.add(FAIL, "brief",
+                f"{len(dead)} lock ⏳ treo quá {DEAD_LOCK_HOURS}h (lock của looptasks là 30 phút) — "
+                "agent chết giữa chừng hoặc quên nhả: " +
+                "; ".join(f"{n} (từ ít nhất {fmt_age(h)})" for n, h in dead[:3]))
+    if stale:
+        rep.add(WARN, "brief",
+                f"{len(stale)} task ưu tiên nằm lì quá {STALE_PRIORITY_DAYS} ngày mà chưa ai đụng: " +
+                "; ".join(f"{n} (từ ít nhất {fmt_age(h)})" for n, h in stale[:3]))
+
+    # Verdict verifier 30 ngày gần nhất. Đây là phép đo DUY NHẤT nói được vòng
+    # lặp có đang cải thiện không — không có nó thì "self-improving" là niềm tin.
+    cutoff = (dt.date.today() - dt.timedelta(days=30)).isoformat()
+    tally: dict[str, int] = {}
+    for key, n in verdicts.items():
+        day, _, verdict = key.partition("|")
+        if day >= cutoff:
+            tally[verdict] = tally.get(verdict, 0) + n
+    if tally:
+        total = sum(tally.values())
+        rep.add(INFO, "brief",
+                f"verifier 30 ngày: " +
+                " · ".join(f"{k} {v}" for k, v in sorted(tally.items())) +
+                f" (tỉ lệ FAIL {tally.get('FAIL', 0) / total:.0%} trên {total} lượt chấm)")
+
+
+# --------------------------------------------------------------------------- #
+# 6. Semantic index (tuỳ chọn — báo trạng thái thật, không im lặng)
 # --------------------------------------------------------------------------- #
 def check_index(rep: Report) -> None:
     db = ROOT / ".index" / "brain.db"
@@ -424,6 +549,7 @@ def main() -> int:
     check_contracts(rep)
     check_inbox(rep)
     check_reviews(rep)
+    check_briefs(rep, state)
     check_index(rep)
 
     fails, warns = rep.count(FAIL), rep.count(WARN)
