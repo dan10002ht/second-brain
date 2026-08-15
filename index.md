@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-14 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-14: 3 digest + 1 shipped + 3 decision + 1 resource + 1 feedback)_
+_Cập nhật: 2026-08-15 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 08-15: 1 digest + 1 shipped + 1 resource)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -58,6 +58,7 @@ _Cập nhật: 2026-08-14 · Trạng thái: đã seed 12 project + notes học t
 - [[mcp-auth-apikey-vs-oauth]] — MCP có Authorization spec chuẩn (OAuth 2.1 + RFC 9728) nên implement một lần là mọi client tuân spec dùng được — không có nhánh `if (client === 'claude')`; còn dùng nội bộ một người một máy thì API key qua header là đủ, dựng authorization server chỉ để tự login vào server của mình là thừa.
 - [[koa-yup-validator-yup029]] — middleware validate không chỉ kiểm tra mà còn GHI ĐÈ `ctx.request.body` bằng giá trị yup đã cast; với yup 0.29 điều đó sinh nested object toàn `undefined` (hỏng ồn ào 422 hoặc hỏng im lặng 200-mà-không-ghi) và `stripUnknown` âm thầm vứt field mới.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — khung phân loại 6 nhóm lỗi sync/async dùng chung cho JS, Go, Java: chậm chỉ là hệ quả nhẹ nhất, hai hệ quả thật là mất việc âm thầm và gửi trùng; kèm 4 điều kiện bắt buộc khi đẩy việc ra nền.
+- [[du-lieu-hong-song-sot-vi-ba-lop-nhin-cho-khac]] — một trường dữ liệu hỏng tồn tại lâu không phải vì khó phát hiện, mà vì lớp ghi sai trường A, lớp đồng bộ đối chiếu trường B (luôn đúng ở cả hai phía), và lớp dò tìm lấy chính dữ liệu hỏng làm chuẩn kèm ngưỡng dung sai — mỗi lớp đều "chạy đúng" và báo sạch.
 - [[gate-quet-ma-nguon-bang-ast]] — một gate kiểu "không được log thứ này" viết bằng regex sẽ luôn còn khe (comment, xuống dòng, alias, camelCase) và dễ bị tự-allowlist; dựng trên AST thì cú pháp hết là biến số.
 
 **Học tập:**
@@ -182,6 +183,8 @@ _Cập nhật: 2026-08-14 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-joy-subscription-artifacts-2026-08-14]] — lần chạy `/clean-artifacts` này lộ ra hai thứ đáng nhớ hơn cả việc dọn: remote `onprem` lag 1755 commit nên tuyệt đối không được coi là nguồn, và hook chặn `main` chặn nhầm ở đúng repo mà `main` là nhánh làm việc.
 - [[digest-ticket-mcrsv-2026-08-14]] — một phiên `/looptasks` chạy gần trọn ngày đóng ~40 task; đáng giữ nhất là bộ ba migration lỗi chữ hoa/thường của `V5`, 11+ route IDOR, `try/catch` bọc promise không `await` là vô dụng, và ba lần chính tôi báo sai bị verifier bác bằng thí nghiệm.
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
+- [[shipped-subscriptions-2026-08-15]] — commit landed 08-14 — master nhận 4 MR dưới 2 tag (`v2.34.68` onboarding v5 UI + `v2.34.69` boot tips, kèm 2 MR tooling không tag): gate commit soi đúng repo đang commit và bộ gate/audit-sweep/security-review trước MR; toàn bộ cụm Klaviyo (5 nhánh, restack) + 2 script chỉ-đọc + fix CI artifacts on-prem còn trên nhánh; không revert trên master, không cờ deploy, không migration.
+- [[digest-subscriptions-2026-08-15]] — dữ liệu giá hỏng ở kookut sống sót vì cả ba lớp đều nhìn chỗ khác (ghi sai `basePrice`, sync so `variant.price`, detector dung sai 15% bỏ lọt lệch 12.1%); nguồn giá đáng tin là `PriceList.prices(originType: FIXED)` chứ không phải `contextualPricing`; kèm ticket import Appstle mô tả sai blocker và ca decline thẻ do account updater đổi 4 số cuối.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
