@@ -33,6 +33,9 @@ updated: 2026-08-15
 - [[2026-08-14-verifier-va-agent-mutation-tach-doi]] — mở khi định nới quyền cho verifier để nó
   tự "phá code xem test có bắt không": brief vừa cấm sửa file vừa đòi thí nghiệm ngược là brief
   tự mâu thuẫn, và agent trung thực sẽ báo "chưa xác minh" thay vì FAIL ồn ào.
+- [[brief-state-agent-loop]] — mở khi một session sau sắp tin `BRIEF.md` như tin sự thật: file
+  task list là shared state bền của agent loop và nó thối theo bốn kiểu (checkbox nói dối, lock
+  treo, con số cũ bị đọc như phép đo, doc lạc hậu ở đầu file).
 - [[feedback-debug-phai-query-data-that]] — mở khi một kết luận root cause chỉ dựa vào đọc code:
   code cho biết đường đi *có thể* xảy ra, chỉ dữ liệu prod mới cho biết đường nào **đã** xảy ra.
 - [[du-lieu-hong-song-sot-vi-ba-lop-nhin-cho-khac]] — mở khi một dữ liệu sai nằm im hàng tháng mà

@@ -4,7 +4,7 @@ title: Shopify app development (AVADA)
 summary: Phát triển & bảo trì các app Shopify embedded tại AVADA — mảng công việc chính.
 tags: [shopify, avada, career, area]
 created: 2026-07-06
-updated: 2026-08-09
+updated: 2026-08-16
 ---
 
 # Shopify app development (AVADA)
@@ -15,7 +15,11 @@ thuật lặp lại xuyên suốt các project.
 
 ## Stack lõi (dùng chung hầu hết app)
 
-- **Framework**: `@avada/core` — auth Shopify + Firebase, dùng chung mọi app.
+- **Framework**: `@avada/core` — auth Shopify + Firebase. Mặc định là một dòng dùng chung,
+  nhưng **không còn đúng tuyệt đối**: Joy Subscription đang chạy dòng riêng
+  `5.0.0-joysub.N` publish với npm dist-tag `joysub`, tách khỏi `latest` của CTO
+  ([[2026-08-11-dong-core-rieng-joysub]]). Trước khi kết luận "app X dùng bản nào", **hỏi
+  registry** chứ đừng đọc changelog.
 - **Backend**: Node.js + Koa + Firebase Functions, kiến trúc [[controller-service-repository]].
   Validate request bằng `koa-yup-validator` — xem [[koa-yup-validator-yup029]] trước khi thêm field.
 - **Data**: Firestore multi-tenant theo `shopId` ([[firestore-multitenant]]) + BigQuery (analytics) + Redis (cache).
@@ -26,7 +30,17 @@ thuật lặp lại xuyên suốt các project.
   availability → [[storefront-vs-admin-availability]].
 - **Cấu trúc repo**: [[monorepo-yarn-workspaces]].
 - **Nền tảng**: [[app-development]] (extensions, billing, embedded).
-- CI trên GitLab (gitlab.com/avada/*).
+- **Git & CI: GitLab on-premise `git.avada.net`.** `subscriptions`, `pdf` và
+  `joy-subscription-artifacts` đã chuyển; gitlab.com giữ lại dưới remote tên `saas` để đối
+  chiếu delta ([[2026-08-10-remote-gitlab-on-premise]] · thao tác:
+  [[migrate-repo-gitlab-on-prem]]). Ba cái bẫy đang sống:
+  - nhánh cũ vẫn `branch.<name>.remote = saas` ⇒ `git push` trần đẩy nhầm lên gitlab.com;
+  - push **tag** lên on-prem chạy job deploy **production**;
+  - remote `onprem` của repo artifacts là **mirror cũ lag hàng nghìn commit**, không phải
+    nguồn — đo trước khi lấy làm mốc so sánh ([[digest-joy-subscription-artifacts-2026-08-14]]).
+  `CI_JOB_TOKEN` chỉ đọc; CI muốn **ghi** sang repo khác thì phải PAT/Project Access Token riêng.
+  ⚠️ *chưa xác minh*: `crm`, `backup`, `joy`, `shipping-labels` đã chuyển on-prem hay chưa —
+  chưa có note nào nói, phạm vi ghi ở đây là phạm vi đã biết.
 
 ## Các app đang phụ trách
 
@@ -36,12 +50,17 @@ thuật lặp lại xuyên suốt các project.
 - [[joy-subscription-artifacts]] — kho build/CDN của Joy Subscription.
 - [[crm]] — marketing automation.
 - [[backup]], [[shipping-labels]].
+- [[avada-core]] — thư viện lõi. Đang ở `40-archive/` với lý do "repo không còn trên máy";
+  lý do đó **không còn đúng** từ 2026-08-11 (repo có mặt lại, đang làm thật). Cần quyết định
+  đưa về `10-projects/` hay `20-areas/`.
 
-_(đã archive 2026-08-04: [[avada-core]], [[headless-demo]] — repo không còn trên máy)_
+_(đã archive 2026-08-04: [[headless-demo]] — repo không còn trên máy)_
 
 ## Nguyên tắc/gotcha xuyên suốt
 
-- **Multi-tenant nghiêm ngặt**: mọi query validate `shopId` — rule số 1.
+- **Multi-tenant nghiêm ngặt**: mọi query validate `shopId` — rule số 1. Kênh rò không chỉ là
+  query thiếu filter: **state dùng chung ở tầng module** (const bị mutate) cũng đưa dữ liệu
+  shop A sang shop B ([[digest-subscriptions-2026-08-14]]).
 - **"Ask first"** trước khi đổi schema DB, thêm collection/webhook, sửa shared helper.
 - Nhiều môi trường staging (`shopify.app.*.toml`) — link đúng config trước khi deploy.
 - Query mới thường cần thêm composite index Firestore.
@@ -50,16 +69,24 @@ _(đã archive 2026-08-04: [[avada-core]], [[headless-demo]] — repo không cò
 - **Không nhận lời khai thay bằng chứng.** "Gate đỏ là pre-existing", "không thấy log",
   "đo ra 0", "verifier PASS" đều cần một bằng chứng phân biệt được →
   [[bang-chung-phan-biet-duoc]].
+- **Email notification của Shopify không phải thứ app điều khiển được**, và dev store /
+  order `test: true` thì Shopify cố ý không gửi → [[digest-subscriptions-2026-08-16]].
 
 ## Cách làm việc đã ổn định
 
 - **Auto-merge MR tài liệu của BA** chạy ở cả `subscriptions` và `pdf`: diff nằm trọn
   trong `product-team/` + author trong whitelist → job pipeline tự merge
   ([[2026-08-06-auto-merge-mr-tai-lieu-ba]]).
-- **Hook chặn `git push` tự động** ở repo app — hàng rào cố ý, agent đưa lệnh cho người
-  thật chạy chứ không lách. Xem [[feedback-git-branch-discipline]].
+- **Hook chặn `git push` chỉ chặn `master`/`main`** — nhánh feature agent push thẳng, không
+  phải nhờ người dán lệnh ([[feedback-git-guard-chi-chan-master]] ·
+  [[feedback-git-branch-discipline]]). Repo mà `main` *là* nhánh làm việc (kho artifacts,
+  repo học tập) thì thêm vào `EXEMPT_REPOS`, không gỡ lưới chung.
 - Verify sau khi implement giao cho agent `verifier` context sạch, chọn hạng theo độ rộng
   diff → [[2026-08-04-looptasks-verifier-doc-lap]] · [[2026-08-07-phan-tang-verifier]].
+  Khi một task sửa nhiều bug: chạy gate **một lần** cho cả cụm
+  ([[2026-08-13-tach-gate-khoi-cham-tung-bug]]).
+- Task list của loop sống trong `BRIEF.md` của từng repo và **phải được dọn định kỳ** →
+  [[brief-state-agent-loop]].
 
 ## Liên quan
 - [[dev-skills]]

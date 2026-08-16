@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-15 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 08-15: 1 digest + 1 shipped + 1 resource)_
+_Cập nhật: 2026-08-16 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 08-16: 1 digest + 1 resource + 1 proposal cập nhật area)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -59,6 +59,7 @@ _Cập nhật: 2026-08-15 · Trạng thái: đã seed 12 project + notes học t
 - [[koa-yup-validator-yup029]] — middleware validate không chỉ kiểm tra mà còn GHI ĐÈ `ctx.request.body` bằng giá trị yup đã cast; với yup 0.29 điều đó sinh nested object toàn `undefined` (hỏng ồn ào 422 hoặc hỏng im lặng 200-mà-không-ghi) và `stripUnknown` âm thầm vứt field mới.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — khung phân loại 6 nhóm lỗi sync/async dùng chung cho JS, Go, Java: chậm chỉ là hệ quả nhẹ nhất, hai hệ quả thật là mất việc âm thầm và gửi trùng; kèm 4 điều kiện bắt buộc khi đẩy việc ra nền.
 - [[du-lieu-hong-song-sot-vi-ba-lop-nhin-cho-khac]] — một trường dữ liệu hỏng tồn tại lâu không phải vì khó phát hiện, mà vì lớp ghi sai trường A, lớp đồng bộ đối chiếu trường B (luôn đúng ở cả hai phía), và lớp dò tìm lấy chính dữ liệu hỏng làm chuẩn kèm ngưỡng dung sai — mỗi lớp đều "chạy đúng" và báo sạch.
+- [[brief-state-agent-loop]] — `BRIEF.md` là shared state duy nhất sống ngoài mọi context window, nên nó là thứ session sau tin tuyệt đối — và nó thối theo bốn kiểu (checkbox nói dối, lock treo, con số cũ bị đọc như phép đo, doc lạc hậu ở đầu file); dọn nó là một bước của loop chứ không phải việc phụ.
 - [[gate-quet-ma-nguon-bang-ast]] — một gate kiểu "không được log thứ này" viết bằng regex sẽ luôn còn khe (comment, xuống dòng, alias, camelCase) và dễ bị tự-allowlist; dựng trên AST thì cú pháp hết là biến số.
 
 **Học tập:**
@@ -185,6 +186,7 @@ _Cập nhật: 2026-08-15 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-avada-project-2026-07-23]] — app Next.js nội bộ: `NODE_ENV=production` trong `.env` làm `next dev` 404 mọi route (route manifest không compile) + cookie OAuth secure fail trên http; wedged dev server giữ `.next/dev/lock`; setup Google OAuth Internal cho email tổ chức chạy localhost.
 - [[shipped-subscriptions-2026-08-15]] — commit landed 08-14 — master nhận 4 MR dưới 2 tag (`v2.34.68` onboarding v5 UI + `v2.34.69` boot tips, kèm 2 MR tooling không tag): gate commit soi đúng repo đang commit và bộ gate/audit-sweep/security-review trước MR; toàn bộ cụm Klaviyo (5 nhánh, restack) + 2 script chỉ-đọc + fix CI artifacts on-prem còn trên nhánh; không revert trên master, không cờ deploy, không migration.
 - [[digest-subscriptions-2026-08-15]] — dữ liệu giá hỏng ở kookut sống sót vì cả ba lớp đều nhìn chỗ khác (ghi sai `basePrice`, sync so `variant.price`, detector dung sai 15% bỏ lọt lệch 12.1%); nguồn giá đáng tin là `PriceList.prices(originType: FIXED)` chứ không phải `contextualPricing`; kèm ticket import Appstle mô tả sai blocker và ca decline thẻ do account updater đổi 4 số cuối.
+- [[digest-subscriptions-2026-08-16]] — charge recurring tạo order nhưng khách không nhận "Order confirmed" là hành vi đúng của Shopify chứ không phải bug app — `SubscriptionBillingAttemptInput` không có field nào điều khiển email, còn development store (`plan.partnerDevelopment: true`) và order `test: true` thì Shopify cố ý không gửi notification.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
