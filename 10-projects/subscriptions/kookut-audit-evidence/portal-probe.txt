@@ -1,0 +1,77 @@
+shopId 4VgCcf9Ov5cIBx2tCkcT
+shopInfo.id undefined
+extensionPageUuid undefined
+customerAccountsVersion undefined
+menus undefined
+
+--- customerAccountPages ---
+{
+ "data": {
+  "customerAccountPages": {
+   "nodes": [
+    {
+     "handle": "orders",
+     "title": "Orders"
+    },
+    {
+     "handle": "profile",
+     "title": "Profile"
+    },
+    {
+     "handle": "settings",
+     "title": "Settings"
+    },
+    {
+     "handle": "9e804f0e-00c0-431a-9fe4-f7e74f29e11c",
+     "title": "Subscriptions",
+     "appExtensionUuid": "9e804f0e-00c0-431a-9fe4-f7e74f29e11c"
+    },
+    {
+     "handle": "83c32665-6c37-4ad0-a13c-bd21069b037f",
+     "title": "View my Reviews page",
+     "appExtensionUuid": "83c32665-6c37-4ad0-a13c-bd21069b037f"
+    }
+   ]
+  }
+ },
+ "extensions": {
+  "cost": {
+   "requestedQueryCost": 7,
+   "actualQueryCost": 3,
+   "throttleStatus": {
+    "maximumAvailable": 4000,
+    "currentlyAvailable": 3997,
+    "restoreRate": 200
+   }
+  }
+ }
+}
+
+--- shop metafield value present? ---
+metafield exists: true len 1100
+metafield keys: shopId,customCSS,customerPortal,subscriptionPriceByQuantity,accessLink,variantChangeTimeout,newPlanVersion,isBlockedLogin
+metafield.customerPortal: {"pauseSubscription":true,"resumeSubscription":true,"reactivateSubscription":true,"editDeliveryFrequency":true,"editShippingAddress":true,"editPaymentInformation":true,"productSwapOptions":true,"editQuantityOfProducts":true,"changeProductVariant":true,"cannotEditSubscriptionProduct":false,"orderNowOption":true,"skipUpcomingOrders":true,"cannotSkipUpcomingOrder":false,"rescheduleUpcomingOrders":true,"addOrRemoveNewSubscription":true,"addOrRemoveOneTimePurchase":true,"editShippingAddressUpcomming":true,"editPaymentInformationUpcomming":true,"addProducts":true,"removeProducts":true,"cancelSubscription":true,"allowStoreCreditForUpcomingOrders":false,"editPaymentInformationUpcoming":false,"addNewSubscription":true,"editShippingOption":true,"editShippingAddressUpcoming":true}
+metafield.shopId: 4VgCcf9Ov5cIBx2tCkcT
+metafield.newPlanVersion: true
+
+--- metafield definitions (SHOP) access ---
+mm_google_shopping_extension.show_store_widget_app_embed_block storefront=NONE customerAccount=NONE
+mm_google_shopping_extension.merchant_id storefront=NONE customerAccount=NONE
+samita_wholesale.shop storefront=PUBLIC_READ customerAccount=NONE
+samita_wholesale.themeInfo_176903324029 storefront=PUBLIC_READ customerAccount=NONE
+samita_wholesale.theme_176903324029 storefront=PUBLIC_READ customerAccount=NONE
+avada_subscription_settings.blockBundle storefront=PUBLIC_READ customerAccount=READ
+avada_subscription_settings.blockBox storefront=PUBLIC_READ customerAccount=READ
+avada_subscription_plan_v2.statuses storefront=PUBLIC_READ customerAccount=READ
+avada_widget_settings.data storefront=PUBLIC_READ customerAccount=READ
+avada_translation.data storefront=PUBLIC_READ customerAccount=READ
+avada_product_bundle_settings.data storefront=PUBLIC_READ customerAccount=READ
+avada_fixed_bundle.data storefront=PUBLIC_READ customerAccount=READ
+avada_subscription_box.data storefront=PUBLIC_READ customerAccount=READ
+avada_subscription_cod_settings.data storefront=PUBLIC_READ customerAccount=READ
+avada_product_handles_bundle_settings.data storefront=PUBLIC_READ customerAccount=READ
+avada_subscription_settings.data storefront=PUBLIC_READ customerAccount=READ
+avada_subscription_settings.blockWidget storefront=PUBLIC_READ customerAccount=READ
+
+--- translation metafield ---
+{"shop":{"metafield":{"id":"gid://shopify/Metafield/181832756232573"}}}

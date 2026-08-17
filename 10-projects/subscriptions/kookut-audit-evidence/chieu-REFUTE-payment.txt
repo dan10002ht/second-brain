@@ -1,0 +1,47 @@
+=== CHIEU DOI KHANG: payment-billing (kookut) — 2026-08-17 ===
+Scripts (read-only, chay lai duoc):
+  NODE_PATH=<fn>/node_modules:<root>/node_modules SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app \
+  SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD" node scratchpad/refute-payment.js   -> refute-payment.txt
+  ... node scratchpad/refute-payment2.js  -> refute-payment3.txt
+
+[BAC BO LON] ••••7216 LA CARD CO THAT.
+Shopify order transactions cua contract 121065865597:
+  #6705 2025-08-12 SALE SUCCESS number=•••• 1932 bin=516882 Mastercard exp 7/2026
+  #6988 2025-09-12 SALE SUCCESS number=•••• 1932 bin=516882
+  #7266 2025-10-12 ... #10041 2026-06-12  SALE SUCCESS number=•••• 7216 bin=516882 Mastercard exp 7/2026
+=> 8 giao dich thanh cong tren ••••7216. Order doc cycle 1..10 luu maskedNumber=7216 la KHOP voi the
+   thuc su bi charge; chinh lastDigits=1932 moi la gia tri bi ghi de tu contract hien tai.
+Doi chung thu 2: contract 129462731133 (stored masked 2034 / last 8906):
+  #7562 2025-11-16 number=•••• 8906 bin=485411 Visa; #7842/#8175/#8629 number=•••• 2034 bin=485411
+=> lai dung y het: maskedNumber = the thuc te charge.
+BIN giong nhau ca 2 case => nhieu kha nang la network-token rotation cua Shopify Payments,
+Shopify tra lastDigits (the goc) khac maskedNumber (token) — KHONG phai app ghi bay.
+
+[DE-XUAT CUA HO LA NGUY HIEM] "doi UI hien lastDigits truoc + backfill maskedNumber tu contract hien tai"
+se XOA du lieu lich su dung va hien the SAI cho order cu.
+
+[CON SO TU RE-DERIVE — khop]
+  orders kookut=1476, withMasked=1248, mismatch=190, contracts=38
+  billingAttempts=722, isCreateAttemptFailed=0
+  contracts=209 (ACTIVE 86 / PAUSED 73 / CANCELLED 50), isPaymentFailed=20, isMaximumRetry=0, pm.revoked=8
+  ACTIVE + the da het han = 4 (119254778237, 119901487485, 121065865597, 135604175229)
+[MOI] nguon goc masked-tail lech: sameContractOldCard=0, otherContract=3, nowhereInShop=187
+  -> phu dinh gia thuyet "maskedNumber cu ket lai cua chinh contract do"
+[MOI] "7216" khong xuat hien lam lastDigits o bat ky order kookut nao (do la ly do ho ket luan nham)
+[MOI] Caroline cycle 1..10 va 11..21 co CUNG pmId 974f317d0b54, cung updatedAt 2026-08-14T08:32:29
+  -> ca 2 gia tri duoc ghi trong CUNG mot dot rewrite
+
+[BAC BO] isMaximumRetry=0 KHONG phai bug.
+  settings.paymentRecovery = {actionWhenMaximum:"doNothing", maximumRetryAttempts:3, delayBeforeRetry:1, sendEmail:true, enabled:true}
+  services/subscription/subscriptionService.js:2237 actionAfterReachMaximumRetry -> case DO_NOTHING: return
+  => co dinh khong set flag. Ngoai ra subscriptionService.js:1417 reset ve false sau moi lan bill thanh cong.
+
+[CONFIRM] GraphQL hong that: query cua customerService.js:361 chay live tra
+  PARSE_ERROR "syntax error, unexpected IDENTIFIER (\"showRevoked\")" -> data undefined -> return {}.
+
+[MOI — chua ai kiem] retry vuot cau hinh: 13 cap (contract,cycle) co >4 lan fail du maximumRetryAttempts=3
+  123521991037|6=13, |5=13, |4=12, 119901487485|7=11, 129462731133|5=10, 117661663613|5=8 ...
+  sendEmail=true => kha nang khach nhan hang chuc email fail cho 1 ky.
+
+[NOTE] settings.customerPortalVersion = NEW_CUSTOMER_ACCOUNTS => claim "khach thay trong classic
+  customer portal (scripttag OrderDetails.js)" khong ap dung cho shop nay.

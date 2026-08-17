@@ -1,0 +1,280 @@
+scanned=209 status=ANY
+
+=== RATIO HISTOGRAM (currentPrice/basePrice, all lines) ===
+  ratio=0.9500  lines=595
+  ratio=0.9503  lines=1
+  ratio=0.9529  lines=8
+  ratio=1.0000  lines=22
+
+=== LINES WITH ratio != 0.95 (tol 0.002) ===
+
+contract 140259131773 CANCELLED EUR country=FR doc=H0fhKeR0LsrYkpDtAnNO ratios=[0.9500,0.9500,0.9500,0.9500,1.0000]
+   [4] Free Run Chicken & Zucchini - Natural / 70g qty=7 base=1.7 current=1.7 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.7 spid=34a59c24-a522-4dd6-ae26-650a9cc1e543
+
+contract 149541781885 ACTIVE EUR country=undefined doc=JsACHu0JO1dBjbVOmg46 ratios=[1.0000,1.0000,1.0000]
+   [0] Pacific Tuna & Seaweed - Natural / 70g qty=11 base=1.7 current=1.7 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.7 spid=
+   [1] Pacific Tuna & Baby Clams - Natural / 70g qty=11 base=1.7 current=1.7 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.7 spid=
+   [2] Pacific Tuna & Green Mussels - Natural / 70g qty=11 base=1.7 current=1.7 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.7 spid=
+
+contract 117174239613 PAUSED CHF country=undefined doc=MVznXqf3Ny6X8N8D8bbf ratios=[1.0000,1.0000,1.0000,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+   [0] Free Run Chicken & Pumpkin - Natural / 70g qty=3 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=710589645181
+   [1] Free Run Chicken & Pacific Tuna - Natural / 70g qty=4 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=710589186429
+   [2] Pacific Tuna & Green Mussels - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=710589841789
+
+contract 153490162045 ACTIVE EUR country=null doc=NkdEhOeHo5Pe0IaZfL6n ratios=[1.0000]
+   [0] Kookut wet food discovery set / null qty=1 base=18 current=18 variantPrice=18 ratio=1 afterCycle=null afterCyclesPrice=18 spid=03cf171f-e921-4ab2-ba9a-c0522bc72ca1
+
+contract 131312353661 CANCELLED EUR country=FR doc=SQeYjggG7yhjNHjANAFI ratios=[0.9500,0.9500,0.9500,0.9500,0.9529,0.9500,0.9500]
+   [4] Wild Alaskan Salmon - Natural / 70g qty=8 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=710588957053
+
+contract 121601032573 PAUSED EUR country=undefined doc=T4CJN89BXkQtAihtxeO0 ratios=[0.9529,0.9500]
+   [0] Wild Alaskan Salmon - Natural / 70g qty=16 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=710588957053
+
+contract 127202525565 PAUSED EUR country=undefined doc=VbTL5pMKhq0d1QhyZWJS ratios=[0.9500,0.9500,0.9500,0.9529,0.9500]
+   [3] Wild Alaskan Salmon - Natural / 70g qty=7 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=710588891517
+
+contract 125123395965 PAUSED EUR country=undefined doc=Y7MHzySJQpIZGIzM96Fp ratios=[0.9500,0.9529,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+   [1] Wild Alaskan Salmon - Natural / 70g qty=3 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=710588891517
+
+contract 121413828989 CANCELLED CHF country=undefined doc=cETApzQCtKhDpx3YIg6G ratios=[1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000]
+   [0] Pacific Tuna - Natural / 70g qty=6 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=4f2081c4-d4b4-406d-8883-a9fcdb89d26c
+   [1] Free Run Chicken & Pacific Tuna - Natural / 70g qty=6 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=6b572db8-52ac-4d00-8f4e-b5912d1237da
+   [2] Pacific Tuna & Sardine - Natural / 70g qty=6 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=f0359842-0e09-465d-875a-1f0749d1737d
+   [3] Wild Alaskan Salmon - Natural / 70g qty=6 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=48a6469d-2405-4f99-8700-ae707dedbf70
+   [4] Pacific Tuna & Seaweed - Natural / 70g qty=6 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=27e96c60-e9bb-44be-b1c6-d3aea8779e93
+   [5] Free Run Chicken & Shrimps - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=62741f6c-e958-4c46-a781-30963ce99ecd
+   [6] Pacific Tuna & Green Mussels - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=d8a03739-a1e9-4a2c-9833-608b258b662a
+   [7] Free Run Chicken & Duck - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=0f6e7f62-0cb7-4daf-8f82-c545f67df125
+   [8] Free Run Chicken & Zucchini - Natural / 70g qty=6 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=df163e40-10af-4ea1-999b-db0ece4ddcce
+   [9] Free Run Chicken - Natural / 70g qty=6 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=79b75dad-0c25-4f8b-b7d7-75e417ffb840
+   [10] Pacific Tuna & Baby Clams - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=006db4a0-f431-4550-bf41-14e97a4b65cc
+   [11] Free Run Chicken & Pumpkin - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=f443d09b-b67b-4d4a-a758-5bfd65646204
+   [12] Mackerel & Zucchini - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=c8e4819c-1f9f-4f8d-b344-e379c94fecbc
+
+contract 119537664381 CANCELLED EUR country=undefined doc=cxKmYgPjMduloEviy3F4 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9529]
+   [8] Wild Alaskan Salmon - Natural / 70g qty=4 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=710588891517
+
+contract 116934836605 PAUSED CHF country=undefined doc=lQYnVNkJt4RYHz2jIHkd ratios=[1.0000]
+   [0] Pacific Tuna - Natural / 70g qty=5 base=1.8 current=1.8 variantPrice=1.8 ratio=1 afterCycle=null afterCyclesPrice=1.8 spid=710589120893
+
+contract 119156867453 PAUSED EUR country=undefined doc=tBd9SvrC8GAugCzidyct ratios=[0.9500,0.9500,0.9500,0.9500,0.9529,0.9500,0.9500,0.9500,0.9500,0.9500]
+   [4] Wild Alaskan Salmon - Natural / 70g qty=2 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=710588957053
+
+contract 158172316029 ACTIVE EUR country=FR doc=y9rSnLi9eBMvbnM31JmO ratios=[0.9529,0.9500,0.9529]
+   [0] Chicken & Duck SENIOR - Natural / 70g qty=6 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=8af92add-91c9-4d95-88ec-720c2a3a63e0
+   [2] Pacific Tuna & Baby Clams - Natural / 70g qty=6 base=1.7 current=1.62 variantPrice=1.8 ratio=0.9529 afterCycle=null afterCyclesPrice=1.62 spid=51b8ad6b-e4d1-4404-a8db-c19ff2f3383a
+
+=== MIXED-RATIO CONTRACTS (some line 1.0 while sibling 0.95) ===
+  140259131773 CANCELLED ratios=[0.9500,0.9500,0.9500,0.9500,1.0000]
+  117174239613 PAUSED ratios=[1.0000,1.0000,1.0000,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+
+=== ALL CONTRACTS SUMMARY ===
+126360224125 PAUSED CHF lines=1 ratios=[0.9500]
+151260234109 ACTIVE CHF lines=1 ratios=[0.9500]
+127336219005 PAUSED CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+156384657789 ACTIVE EUR lines=1 ratios=[0.9500]
+130903671165 CANCELLED CHF lines=1 ratios=[0.9500]
+142220886397 CANCELLED CHF lines=1 ratios=[0.9500]
+142987559293 ACTIVE CHF lines=1 ratios=[0.9500]
+144516907389 PAUSED CHF lines=1 ratios=[0.9500]
+138922721661 CANCELLED CHF lines=1 ratios=[0.9500]
+134230442365 CANCELLED CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+132862902653 CANCELLED CHF lines=1 ratios=[0.9500]
+144954655101 ACTIVE EUR lines=2 ratios=[0.9500,0.9500]
+149369225597 PAUSED CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+117269365117 ACTIVE CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+152031887741 ACTIVE CHF lines=1 ratios=[0.9500]
+155757052285 ACTIVE EUR lines=1 ratios=[0.9500]
+119399743869 PAUSED CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+142532804989 CANCELLED CHF lines=1 ratios=[0.9500]
+123476083069 ACTIVE CHF lines=1 ratios=[0.9500]
+127919194493 PAUSED EUR lines=2 ratios=[0.9500,0.9500]
+124460204413 ACTIVE EUR lines=3 ratios=[0.9500,0.9500,0.9500]
+142490108285 PAUSED CHF lines=1 ratios=[0.9500]
+142538670461 ACTIVE EUR lines=2 ratios=[0.9500,0.9500]
+128696680829 CANCELLED EUR lines=1 ratios=[0.9500]
+122475282813 PAUSED EUR lines=1 ratios=[0.9500]
+128490733949 PAUSED EUR lines=1 ratios=[0.9500]
+157283811709 ACTIVE CHF lines=12 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+155757019517 ACTIVE EUR lines=1 ratios=[0.9500]
+119254778237 ACTIVE CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+133730107773 PAUSED EUR lines=1 ratios=[0.9500]
+148527022461 CANCELLED EUR lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+151193911677 CANCELLED EUR lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+129000407421 PAUSED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+119901487485 ACTIVE CHF lines=1 ratios=[0.9500]
+155113881981 ACTIVE EUR lines=3 ratios=[0.9500,0.9500,0.9500]
+118311879037 PAUSED EUR lines=1 ratios=[0.9500]
+134230475133 CANCELLED CHF lines=2 ratios=[0.9500,0.9500]
+147888865661 ACTIVE CHF lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+153400541565 ACTIVE EUR lines=1 ratios=[0.9500]
+118869197181 PAUSED CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+144430989693 ACTIVE CHF lines=1 ratios=[0.9500]
+150309437821 CANCELLED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+148858962301 ACTIVE EUR lines=2 ratios=[0.9500,0.9500]
+120547639677 PAUSED EUR lines=1 ratios=[0.9500]
+152561516925 CANCELLED EUR lines=2 ratios=[0.9500,0.9500]
+149971370365 ACTIVE CHF lines=8 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+148527055229 CANCELLED EUR lines=1 ratios=[0.9500]
+125403431293 ACTIVE EUR lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+127538102653 PAUSED EUR lines=1 ratios=[0.9500]
+120694505853 ACTIVE EUR lines=1 ratios=[0.9500]
+118220980605 ACTIVE CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+138947199357 CANCELLED CHF lines=2 ratios=[0.9500,0.9500]
+116862943613 PAUSED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+149454029181 CANCELLED CHF lines=1 ratios=[0.9500]
+129162609021 PAUSED EUR lines=1 ratios=[0.9500]
+143805874557 PAUSED CHF lines=1 ratios=[0.9500]
+125161177469 PAUSED CHF lines=9 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+127423086973 ACTIVE CHF lines=1 ratios=[0.9500]
+152572723581 ACTIVE CHF lines=8 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+146666324349 PAUSED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+154109116797 ACTIVE CHF lines=1 ratios=[0.9500]
+140259131773 CANCELLED EUR lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,1.0000]
+122343686525 PAUSED CHF lines=1 ratios=[0.9500]
+123526316413 CANCELLED CHF lines=2 ratios=[0.9500,0.9500]
+132683104637 ACTIVE EUR lines=1 ratios=[0.9500]
+138065936765 PAUSED CHF lines=1 ratios=[0.9500]
+144211050877 ACTIVE EUR lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+149541781885 ACTIVE EUR lines=3 ratios=[1.0000,1.0000,1.0000]
+156072575357 ACTIVE EUR lines=3 ratios=[0.9500,0.9500,0.9500]
+151147970941 ACTIVE EUR lines=4 ratios=[0.9500,0.9500,0.9503,0.9500]
+141028327805 PAUSED CHF lines=1 ratios=[0.9500]
+132830658941 PAUSED EUR lines=1 ratios=[0.9500]
+128696648061 CANCELLED EUR lines=1 ratios=[0.9500]
+136357544317 CANCELLED EUR lines=1 ratios=[0.9500]
+126139892093 CANCELLED CHF lines=1 ratios=[0.9500]
+125523001725 PAUSED EUR lines=1 ratios=[0.9500]
+118600270205 CANCELLED CHF lines=1 ratios=[0.9500]
+117174239613 PAUSED CHF lines=10 ratios=[1.0000,1.0000,1.0000,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+117483110781 CANCELLED CHF lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+146903925117 ACTIVE EUR lines=1 ratios=[0.9500]
+155055489405 ACTIVE EUR lines=8 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+117302198653 ACTIVE CHF lines=1 ratios=[0.9500]
+122251772285 PAUSED CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+148748665213 CANCELLED CHF lines=1 ratios=[0.9500]
+118553739645 PAUSED CHF lines=1 ratios=[0.9500]
+153490162045 ACTIVE EUR lines=1 ratios=[1.0000]
+127795102077 PAUSED CHF lines=1 ratios=[0.9500]
+157835723133 ACTIVE CHF lines=1 ratios=[0.9500]
+117502050685 CANCELLED EUR lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+131715629437 PAUSED EUR lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+129462731133 ACTIVE CHF lines=2 ratios=[0.9500,0.9500]
+144996204925 ACTIVE CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+156914844029 ACTIVE EUR lines=1 ratios=[0.9500]
+142623801725 PAUSED CHF lines=1 ratios=[0.9500]
+153328157053 CANCELLED CHF lines=1 ratios=[0.9500]
+133127799165 PAUSED CHF lines=1 ratios=[0.9500]
+131312353661 CANCELLED EUR lines=7 ratios=[0.9500,0.9500,0.9500,0.9500,0.9529,0.9500,0.9500]
+121601032573 PAUSED EUR lines=2 ratios=[0.9529,0.9500]
+119399776637 PAUSED CHF lines=1 ratios=[0.9500]
+128167674237 ACTIVE EUR lines=1 ratios=[0.9500]
+121496043901 PAUSED CHF lines=1 ratios=[0.9500]
+147972751741 ACTIVE CHF lines=1 ratios=[0.9500]
+142398423421 ACTIVE CHF lines=1 ratios=[0.9500]
+127202525565 PAUSED EUR lines=5 ratios=[0.9500,0.9500,0.9500,0.9529,0.9500]
+155848802685 ACTIVE EUR lines=1 ratios=[0.9500]
+127309513085 PAUSED EUR lines=3 ratios=[0.9500,0.9500,0.9500]
+119850303869 PAUSED EUR lines=1 ratios=[0.9500]
+117966569853 CANCELLED CHF lines=1 ratios=[0.9500]
+123521991037 ACTIVE CHF lines=2 ratios=[0.9500,0.9500]
+117124989309 PAUSED EUR lines=20 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+118543614333 ACTIVE EUR lines=1 ratios=[0.9500]
+142473494909 CANCELLED CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+145084875133 PAUSED CHF lines=2 ratios=[0.9500,0.9500]
+131706454397 PAUSED CHF lines=1 ratios=[0.9500]
+154299138429 ACTIVE CHF lines=1 ratios=[0.9500]
+132241260925 CANCELLED EUR lines=1 ratios=[0.9500]
+125123395965 PAUSED EUR lines=9 ratios=[0.9500,0.9529,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+125471490429 PAUSED EUR lines=1 ratios=[0.9500]
+118510846333 ACTIVE EUR lines=3 ratios=[0.9500,0.9500,0.9500]
+137888989565 PAUSED EUR lines=1 ratios=[0.9500]
+155222278525 ACTIVE CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+117505720701 PAUSED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+153346408829 ACTIVE EUR lines=3 ratios=[0.9500,0.9500,0.9500]
+126643536253 PAUSED CHF lines=1 ratios=[0.9500]
+139969659261 ACTIVE EUR lines=9 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+151469523325 CANCELLED EUR lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+154185236861 ACTIVE EUR lines=1 ratios=[0.9500]
+141951172989 ACTIVE CHF lines=1 ratios=[0.9500]
+130226651517 PAUSED CHF lines=8 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+132447240573 PAUSED EUR lines=1 ratios=[0.9500]
+121413828989 CANCELLED CHF lines=13 ratios=[1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000]
+121424478589 PAUSED CHF lines=1 ratios=[0.9500]
+119537664381 CANCELLED EUR lines=9 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9529]
+153431114109 ACTIVE EUR lines=2 ratios=[0.9500,0.9500]
+151563338109 ACTIVE CHF lines=2 ratios=[0.9500,0.9500]
+156072542589 ACTIVE EUR lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+117927674237 CANCELLED EUR lines=3 ratios=[0.9500,0.9500,0.9500]
+139674878333 ACTIVE EUR lines=2 ratios=[0.9500,0.9500]
+123423588733 PAUSED CHF lines=1 ratios=[0.9500]
+150173548925 CANCELLED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+150579708285 ACTIVE CHF lines=1 ratios=[0.9500]
+155037434237 CANCELLED EUR lines=1 ratios=[0.9500]
+140389712253 ACTIVE CHF lines=1 ratios=[0.9500]
+142715650429 ACTIVE EUR lines=1 ratios=[0.9500]
+147652182397 CANCELLED EUR lines=1 ratios=[0.9500]
+137936142717 CANCELLED EUR lines=1 ratios=[0.9500]
+128382566781 PAUSED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+153505399165 ACTIVE EUR lines=13 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+117206647165 PAUSED EUR lines=1 ratios=[0.9500]
+158029119869 ACTIVE EUR lines=1 ratios=[0.9500]
+150985212285 ACTIVE EUR lines=11 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+141388218749 CANCELLED CHF lines=1 ratios=[0.9500]
+140947784061 CANCELLED CHF lines=1 ratios=[0.9500]
+151474471293 ACTIVE CHF lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+134381273469 PAUSED CHF lines=1 ratios=[0.9500]
+117977317757 PAUSED CHF lines=1 ratios=[0.9500]
+121065865597 ACTIVE CHF lines=1 ratios=[0.9500]
+139046748541 CANCELLED CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+153310101885 CANCELLED EUR lines=1 ratios=[0.9500]
+135590543741 CANCELLED EUR lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+126862066045 ACTIVE CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+148748632445 ACTIVE CHF lines=7 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+156485321085 ACTIVE EUR lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+116934836605 PAUSED CHF lines=1 ratios=[1.0000]
+148935999869 PAUSED EUR lines=8 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+147905085821 ACTIVE EUR lines=10 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+135141818749 CANCELLED EUR lines=2 ratios=[0.9500,0.9500]
+140586680701 ACTIVE CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+127324094845 PAUSED CHF lines=2 ratios=[0.9500,0.9500]
+135604175229 ACTIVE CHF lines=1 ratios=[0.9500]
+116999324029 PAUSED EUR lines=1 ratios=[0.9500]
+140656443773 ACTIVE EUR lines=1 ratios=[0.9500]
+117131379069 PAUSED CHF lines=7 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+118354313597 PAUSED EUR lines=1 ratios=[0.9500]
+117687419261 ACTIVE CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+143067480445 CANCELLED EUR lines=11 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+130859991421 PAUSED CHF lines=1 ratios=[0.9500]
+117661663613 CANCELLED CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+149454061949 CANCELLED CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+141318652285 PAUSED CHF lines=1 ratios=[0.9500]
+153432359293 ACTIVE EUR lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+119272440189 ACTIVE CHF lines=2 ratios=[0.9500,0.9500]
+149075001725 PAUSED CHF lines=4 ratios=[0.9500,0.9500,0.9500,0.9500]
+130418442621 PAUSED CHF lines=5 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500]
+156537913725 ACTIVE EUR lines=2 ratios=[0.9500,0.9500]
+133664407933 PAUSED EUR lines=1 ratios=[0.9500]
+147315327357 PAUSED EUR lines=2 ratios=[0.9500,0.9500]
+155756986749 ACTIVE EUR lines=1 ratios=[0.9500]
+119156867453 PAUSED EUR lines=10 ratios=[0.9500,0.9500,0.9500,0.9500,0.9529,0.9500,0.9500,0.9500,0.9500,0.9500]
+155848769917 ACTIVE EUR lines=7 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+157303243133 ACTIVE CHF lines=1 ratios=[0.9500]
+127397659005 ACTIVE EUR lines=1 ratios=[0.9500]
+118053044605 ACTIVE CHF lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+138085138813 ACTIVE CHF lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+137506062717 PAUSED CHF lines=1 ratios=[0.9500]
+137810739581 PAUSED CHF lines=1 ratios=[0.9500]
+155542454653 ACTIVE CHF lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+140236423549 CANCELLED CHF lines=1 ratios=[0.9500]
+116972159357 PAUSED EUR lines=1 ratios=[0.9500]
+118512550269 PAUSED CHF lines=1 ratios=[0.9500]
+116920877437 CANCELLED CHF lines=1 ratios=[0.9500]
+117138063741 CANCELLED CHF lines=1 ratios=[0.9500]
+134406635901 PAUSED EUR lines=1 ratios=[0.9500]
+119768351101 ACTIVE CHF lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+158172316029 ACTIVE EUR lines=3 ratios=[0.9529,0.9500,0.9529]
+120464900477 ACTIVE CHF lines=3 ratios=[0.9500,0.9500,0.9500]
+151103537533 CANCELLED EUR lines=6 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+125391667581 PAUSED EUR lines=8 ratios=[0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500,0.9500]
+139056447869 ACTIVE EUR lines=3 ratios=[0.9500,0.9500,0.9500]

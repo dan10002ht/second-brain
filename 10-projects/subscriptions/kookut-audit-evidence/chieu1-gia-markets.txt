@@ -1,0 +1,186 @@
+CHIEU 1/6 — GIA & MARKETS/CATALOG — kookut.myshopify.com — 2026-08-17
+READ-ONLY. Khong co mutation nao chay.
+
+============================================================
+0. LENH CHAY LAI (cwd = packages/functions)
+============================================================
+PRE='set -a && . ./.env.local && set +a && SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD"'
+SCRATCH=/private/tmp/claude-501/-Users-dantt1002-projects-subscriptions/ae2ad0b1-3f96-44cd-95d5-e9f7a8d44e1b/scratchpad
+
+1) $PRE node $SCRATCH/scanAllPricing.js kookut.myshopify.com      -> chieu1-pricing-raw.txt
+2) $PRE node $SCRATCH/probeMarkets.js                              -> chieu1-markets-raw.txt
+3) $PRE node $SCRATCH/probePublication.js                          -> chieu1-publication-raw.txt
+4) SA_ENV=prod GOOGLE_CLOUD_PROJECT=... node $SCRATCH/bgActivities.js -> chieu1-bgactivities-raw.txt
+5) SA_ENV=prod GOOGLE_CLOUD_PROJECT=... node $SCRATCH/timeline.js 4VgCcf9Ov5cIBx2tCkcT <contractIds...>
+6) $PRE node lib/commands/misc/inspectContractOrders.js 4VgCcf9Ov5cIBx2tCkcT 151147970941 30
+
+============================================================
+1. CAU HINH MARKET CUA KOOKUT (verified)
+============================================================
+Markets:
+  Europe (other currencies)  base=CHF localCurrencies=true  regions BG,PL,CZ,DK,SE,HU,RO   catalogs=1
+  Europe EUR                 base=EUR                       regions ES,IT,BE,NL,LU,DE,PT,AT,BG,PL,CZ,DK,SE,VA,SK,SI  catalogs=2 (!)
+  France                     base=EUR                       regions FR                     catalogs=1
+  Switzerland                base=CHF                       regions CH                     catalogs=1
+MarketCatalog -> PriceList:
+  Switzerland  PriceList/37466079613 CHF —  4 gia FIXED
+  Europe       PriceList/20665794768 EUR — 58 gia FIXED
+  France       PriceList/20665860304 EUR — 62 gia FIXED
+
+Doi chieu 2 price list EUR: 56 variant giong nhau, 4 variant chi co o France,
+va **2 variant LECH HAN**:
+  39404525027536 Chicken & Turkey Dry Food for Puppy 6kg   : Europe=92  France=48
+  42888438022352 Chicken & Turkey Dry Food for Puppy 2*6kg : Europe=48  France=93
+=> Merchant tu dat nham (hoan vi) 2 gia nay giua 2 catalog EUR. Hien chua contract nao
+   dinh 2 variant do, nhung no chung minh gia dinh "1 currency = 1 gia" cua code la SAI.
+
+============================================================
+2. PHAT HIEN LON NHAT — contextualPricing != gia catalog vi PRODUCT KHONG DUOC PUBLISH
+============================================================
+probeMarkets.js:
+  Tuna & Sardine 70g   variant.price(CHF)=1.80  contextual(FR/DE/IT/BE/ES/NL)=1.95 EUR  PriceList Europe/France FIXED=1.70
+  Tuna & Sardine 24x70 variant.price(CHF)=42.00 contextual(FR)=42.95 · (DE/IT/BE/ES/NL)=45.95  FIXED=40.00
+  Salmon 70g           contextual = 1.80 = FIXED 1.80         (khop)
+  Salmon 24x70g        contextual = 40.00 = FIXED 40.00        (khop)
+  Discovery set        contextual = 17.00 = FIXED 17.00        (khop)
+  Kitten dry 5kg       contextual(EUR)=58 = FIXED 58 · contextual(CH)=62 = FIXED CHF 62
+
+probePublication.js (publishedOnPublication cua chinh catalog do):
+  Tuna & Sardine (ca 70g lan 24x70g): Switzerland=false  Europe=false  France=false
+  Free Run Chicken & Duck 70g       : Switzerland=true   Europe=false  France=false
+  Salmon 70g / Discovery set / Kitten 5kg: true / true / true
+
+=> QUY LUAT KHOP 100%: variant KHONG publish vao catalog thi gia FIXED cua price list
+   VO HIEU, Shopify roi ve gia tu quy doi (CHF -> EUR, lam tron duoi .95) = 1.95 / 45.95.
+   Variant co publish thi contextualPricing == PriceList FIXED.
+=> "contextualPricing khong dang tin" (BRIEF #28/#44) khong phai loi cua Shopify:
+   no phan anh dung mot cau hinh Markets bi hong ben merchant.
+=> Ket luan "gia dung cua 2 dong Tuna la 1.70 / 40.00" (BRIEF #44) la Y DINH cua merchant,
+   KHONG phai gia dang co hieu luc tren Shopify. Muon 1.70 co hieu luc thi merchant phai
+   PUBLISH san pham Tuna & Sardine vao catalog Europe + France.
+
+============================================================
+3. QUET TOAN BO CONTRACT (ACTIVE + PAUSED)
+============================================================
+209 doc contract cua shop: ACTIVE 86 · PAUSED 73 · CANCELLED 50 (bo qua).
+Quet 159 contract ACTIVE+PAUSED, so basePrice tung line vs PriceList FIXED cua MOI catalog
+cung currency (line chi bi gan co khi lech voi CA HAI catalog EUR).
+
+KET QUA: 28 contract / 36 line lech.
+  ACTIVE  15 contract: thu thua +35.73 / ky · thu thieu -12.35 / ky
+  PAUSED  13 contract: thu thua +45.27 / ky · thu thieu -58.15 / ky
+
+Gom theo variant:
+  Tuna & Sardine 24x70g  EUR base=45.95 (dung 40.00)   9 line  +62.17/ky
+  Tuna & Sardine 70g     EUR base=1.95  (dung 1.70)   14 line  +16.64/ky
+  Free Run Chicken&Duck 70g EUR base=1.95 (dung 1.70)  1 line   +1.19/ky
+  Discovery set          EUR base=18.00 (dung 17.00)   1 line   +1.00/ky   <- ghi thang gia CHF vao contract EUR
+  Kitten dry 5kg         EUR base=31.00 (dung 58.00)   1 line  -25.65/ky   <- gia CHF trong contract EUR
+  Kitten dry 5kg         CHF base=31.00 (dung 62.00)   1 line  -29.45/ky   <- bo qua catalog Switzerland
+  Kitten dry 1.5kg       CHF base=11.90 (dung 23.80)   1 line  -11.30/ky   <- bo qua catalog Switzerland
+  Salmon 70g             EUR base=1.70  (catalog 1.80) 8 line   -4.10/ky   <- kha nang cao la price-lock hop le
+
+242 line KHAC khong co gia FIXED trong catalog nao khop currency — TAT CA deu la contract CHF
+(catalog Switzerland chi override 4 variant). Khong phai loi.
+
+============================================================
+4. ROOT CAUSE TANG CODE (doc code, verified)
+============================================================
+(a) Duong auto-sync gia san pham — services/shopify/productService.js
+    getContractsNeedPriceUpdate (:54-119):
+      - lay contextualPricing theo TUNG countryCode cua contract (getProductVariantsByProductId,
+        productService.js:1494-1543 -> contextualPricing(context:{country}))
+      - NHUNG luu vao `variantPricesMap[variantId][currency]` (:78-101) — KEY THEO CURRENCY,
+        khong phai theo COUNTRY. FR va DE cung EUR => ghi de nhau, LAST WRITE WINS.
+      => contract 151147970941 country=FR dang deo 45.95 (gia DE/IT/ES/NL) trong khi
+         contextual(FR) = 42.95. **Day dung la loi "market" ma CS chi dich danh.** CHUA FIX.
+      - fallback `variantPricesMap[variantId]?.[contract.currency] || parseFloat(variant.price)`
+        (:110): khi khong lay duoc gia theo market -> ghi thang gia SHOP CURRENCY vao contract.
+        => discovery set 18 CHF trong contract EUR, kitten 31 CHF trong contract EUR.
+      - contract CUNG currency voi shop (CHF) thi khong bao gio goi market: dung
+        parseFloat(variant.price) => bo qua han catalog Switzerland (11.90 thay vi 23.80,
+        31 thay vi 62). Merchant mat ~50% tren cac dong nay.
+
+(b) contractBulkActionService.findContractsNeedPriceUpdate (:38-93)
+      dieu kien update: `shopifyPrice !== Number(p.variant.price)`.
+      Voi contract khac currency shop, shopifyPrice la gia EUR con p.variant.price la snapshot
+      CHF => LUON khac nhau => moi lan sync deu ghi lai basePrice, va snapshot variant.price
+      khong duoc cap nhat => lap vo han.
+      => Cau "sync khong ghi de vi no so variant.price" trong BRIEF #28 / §4 report CS la SAI
+         voi contract khac currency. Bang chung o muc 5.
+
+(c) getProductVariants (services/graphql/variantService.js:25) hardcode
+    `contextualPricing(context:{country: ${shop.shopCountry}})` — khong nhan tham so country.
+    Duoc dung boi services/shopify/productService.js, autoSwapService, billingCycleService,
+    subscriptionContractService.
+    Cac cho khac con fallback shop.shopCountry (deu la duong doc/hien thi, chua chung minh
+    ghi vao contract): controllers/clientApi/subscriptionProductController.js:50 ·
+    controllers/subscriptionProductController.js:351 · controllers/shopifyController.js:128 ·
+    controllers/volumeBundleController.js:153 · repositories/subscriptionProductsRepository.js:225,487 ·
+    services/bigQuery/productBundleBQService.js:23 · services/bigQuery/subscriptionProdBQService.js:49 ·
+    services/graphql/productService.js:399 · services/subscription/subscriptionProductService.js:664 ·
+    services/subscription/subscriptionService.js:738
+    Chi bulkSwapProducts.js:223-231 la da sua dung (deliveryMethod.countryCode || contract.countryCode).
+
+(d) BAC BO gia thuyet BRIEF #44 ve duong Classic Customer Portal addLine:
+    handleAddLines (subscriptionService.js:2018-2112) CHI goi subscriptionDraftLineAdd cho cac
+    line MOI. Khong co doan nao ghi lai gia cac line CU. Nen thao tac them variant KHONG the
+    la nguyen nhan lam dong Tuna 70g cu nhay 1.70 -> 1.95.
+
+============================================================
+5. MAT XICH CON THIEU — DA GIAI, VA MOT REGRESSION DANG SONG
+============================================================
+Toan hoc chot lai moc thoi gian (contract 151147970941, giam gia 5%):
+  313.69 = 38.00x6 (Salmon70g dang deo gia pack) + 38.00 + 1.615x6 (Tuna70g) + 38.00 (Tuna24x70)
+   95.95 =  1.71x6 (Salmon70g da sua)             + 38.00 + 1.615x6            + 38.00
+=> CA HAI con so 12/08 chi khop khi 2 dong TUNA dang o gia catalog dung (base 1.70 / 40.00).
+   Tuc ngay 12/08 Tuna VAN DUNG. Hien tai la 1.95 / 45.95.
+   (Giai luon thac mac "95.95 khong khop 103.03" trong BRIEF #40: 103.03 la tong SAU khi Tuna hong.)
+
+backgroundActivities cua kookut (bgActivities.js, 620 doc):
+  productId 6576443031760 = Pacific Tuna & Sardine  -> sync-product-price DONE, updatedAt 2026-08-13T15:09:50Z
+  productId 6576427466960 = Wild Alaskan Salmon     -> sync-product-price DONE, updatedAt 2026-08-14T19:29:59Z
+  productId 15674750927229 = Free Run Chicken&Duck  -> sync-product-price DONE, updatedAt 2026-08-12T05:27:11Z
+  productId 6574718648528 = Kitten dry food         -> sync-product-price DONE, updatedAt 2025-12-30T11:34:02Z
+Doi chieu updatedAt cua contract:
+  147905085821 updated 2026-08-13T15:09:17Z  (cung run sync Tuna 13/08)
+  116972159357 updated 2026-08-13T15:09:17Z
+  151147970941 updated 2026-08-14T19:29:32Z  (cung run sync Salmon 14/08)
+  155113881981 updated 2026-08-14T19:29:01Z
+  116999324029 updated 2025-12-30T11:33:31Z  (cung run sync Kitten 30/12 — dong 31 EUR sinh ra o day)
+
+=> REGRESSION DA XAC MINH: BRIEF #28 ghi "✅ KOOKUT XONG (12/08) — apply 147905085821
+   (2 dong: 23->1.7, 1.95->1.7 EUR)". Hom nay contract 147905085821 line[2]
+   Pacific Tuna & Sardine 70g **lai la 1.95**. Sua tay bi job sync ngay 13/08 ghi de.
+   Cac dong Salmon (co publish, gia catalog = gia sync) thi song sot -> dung voi co che (b).
+
+=> Vay MAT XICH CON THIEU cua BRIEF #44 (vi sao dong Tuna 70g cu bi ghi de) = **auto-sync gia
+   san pham**, khong phai thao tac them variant. Sync chay theo PRODUCT nen no sua MOI line
+   cua san pham do trong MOI contract cua shop — dung ca dong cu lan dong moi.
+
+============================================================
+6. PHAT HIEN PHU — auto-sync dang BI KHOA VINH VIEN tren kookut
+============================================================
+backgroundActivities co dung 1 doc status=PENDING:
+  id=n484GjaS3QWsjS09Tknt  bulkActionType=sync-product-price-to-subscription-contract
+  productId=15247427436925 (Free Run Chicken & Zucchini)  createdAt 2025-12-31  updatedAt 2026-08-14T19:28:40Z
+handleProductUpdate (services/shopify/productService.js:135-152) truoc khi sync se
+getBackgroundActivityByFields({type: BULK_ACTION_SUBSCRIPTION, status:'PENDING'}) — KHONG loc
+theo bulkActionType — thay la log "[syncProductPrice][skip]" va return.
+=> Chung nao doc PENDING nay con, MOI lan webhook products/update cua kookut deu bi bo qua.
+   Vua la "phanh an toan" tinh co, vua co nghia: dung ky vong "deploy fix roi sync se tu chua".
+   (Duong DevZone syncProductPriceToContracts cung bi chan boi cung doc nay.)
+
+============================================================
+7. CAI DA BI BAC BO / DINH CHINH SO VOI BRIEF
+============================================================
+- SAI: "thao tac them variant 24x70g ngay 11/08 lam hong CA hai dong Tuna" (BRIEF #44).
+  handleAddLines khong dung dong cu; va 12/08 Tuna van dung (toan hoc 313.69/95.95).
+- SAI: "sync khong ghi de vi no so variant.price" (BRIEF #28, §4 report CS).
+  Voi contract khac currency shop, dieu kien so sanh luon dung -> sync ghi de moi lan.
+  Da co bang chung regression tren 147905085821.
+- CHUA DU: "gia dung la 1.70/40.00" — do la gia merchant CAU HINH, nhung san pham khong duoc
+  publish vao catalog nen gia do dang khong co hieu luc. Phai bao merchant publish truoc.
+- KHONG PHAI VAN DE: 2 catalog EUR mo ho (Europe vs France) — 56/58 variant giong het nhau,
+  2 variant lech la do merchant dat nham va hien khong contract nao dung. Ket qua muc 3
+  khong phu thuoc vao viec chon catalog nao.

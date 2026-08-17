@@ -1,0 +1,85 @@
+CHIEU DOI KHANG — REFUTE "pricing-markets" (kookut.myshopify.com) — 2026-08-17
+Tat ca lenh duoi day CHI DOC. Khong mutation, khong git.
+
+ENV mau:
+set -a && . ./.env.local && set +a && \
+  SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD" node <script>
+
+[A] CODE — tu doc lai, so khop line number
+  src/services/shopify/productService.js
+    :81   variantPricesMap[variantId] = {[storeCurrency]: parseFloat(variant.price)}
+    :86-88 .filter(cc => COUNTRY_TO_CURRENCY[cc] && currency !== storeCurrency)   <- bo qua country cung currency shop
+    :100  variantPricesMap[variantId][currency] = parseFloat(variant.price)       <- KEY = CURRENCY (last-write-wins)
+    :110  price: variantPricesMap[variantId]?.[contract.currency] || parseFloat(variant.price)
+    :137-141 guard getBackgroundActivityByFields({type: BULK_ACTION_SUBSCRIPTION, status:'PENDING'}) — KHONG loc bulkActionType
+    :264-269 guard tuong tu trong syncProductPriceToContracts
+    :437-455 createOrUpdateBackgroundActivityByFields fields = {type,bulkActionType,productId,chunkIndex}  <- UPSERT, doc duoc TAI SU DUNG
+  src/repositories/backgroundActivitiesRepository.js:248-272  createdAt chi set khi doc.empty -> createdAt cua doc cu KHONG doi khi update
+  src/services/subscription/contractBulkActionService.js:38-93 findContractsNeedPriceUpdate
+    so shopifyPrice (gia theo market) vs contractPrice = Number(p.variant.price) (SNAPSHOT shop-currency)
+    -> contract khac currency shop: 1.95 !== 1.8 LUON dung -> sync ghi lai moi lan
+    -> contract CUNG currency shop: bang nhau -> KHONG BAO GIO sync (BRIEF #28 dung o nhanh nay)
+    snapshot p.variant.price khong bao gio duoc cap nhat
+  src/services/subscription/subscriptionService.js:2018-2112 handleAddLines
+    chi subscriptionDraftLineAdd cho line moi — NHUNG :2020 subscriptionBillingCycleEditsDelete
+    va :2044 removeDiscountExpired VAN dong toi line cu (xoa cycle edit / discount)
+
+[B] PROD — probeMarkets.js (re-run, scratchpad/REFUTE-markets.txt)
+  shopCountry=CH. Markets: Switzerland(CHF) · Europe EUR(EUR, catalogs=2) · France(EUR) · Europe other currencies
+  39412882735312 Tuna&Sardine 70g   variant.price=1.80  ctx FR=1.95 DE=1.95 IT/BE/ES/NL=1.95 CH=1.8  | PL Europe=1.7 France=1.7
+  39412882702544 Tuna&Sardine 24x70 variant.price=42.00 ctx FR=42.95 DE=45.95 IT/BE/ES/NL=45.95 CH=42 | PL Europe=40 France=40
+  39412859404496 Salmon 70g         ctx FR/DE=1.8   | PL Europe=1.8 France=1.8
+  43340379422928 discovery set      ctx EUR=17      | PL 17 ; variant.price=18
+  39404501663952 Kitten 1.5kg       ctx CH=23.8     | PL Switzerland FIXED=23.8 ; variant.price=11.90
+  39404501696720 Kitten 5kg         ctx CH=62 EUR=58| variant.price=31
+  39404525027536 Puppy 6kg          PL Europe=92 France=48 -> ctx DE=48 FR=48
+  42888438022352 Puppy 2*6kg        PL Europe=48 France=93 -> ctx DE=48 FR=93
+
+[C] PROD — refuteCatalogs.js (moi viet): LIET KE HET catalog + price list
+  Chi co 3 MarketCatalog / 3 price list. NHUNG:
+    MarketCatalog "France" (22293053648) gan cho 3 MARKET: Europe (other currencies), Europe EUR, France
+    MarketCatalog "Europe" (22292398288) gan cho 1 market: Europe EUR
+  => Market "Europe EUR" co 2 catalog. Gia hieu luc = THAP NHAT trong 2 (6kg: min(92,48)=48 ✓ ; 2*6kg: min(48,93)=48 ✓)
+  => Gia dinh "Europe price list = market Europe / France price list = market France" cua bao cao la SAI
+
+[D] PROD — probePublication.js (re-run, REFUTE-pub.txt) — TAI HIEN Y NGUYEN
+  Tuna&Sardine 70g + 24x70g : Switzerland=false Europe=false France=false
+  Salmon 70g / discovery set / Kitten 5kg : true / true / true
+  Free Run Chicken & Duck 70g : Switzerland=true, Europe=false, France=false
+  (autoPublish=true tren ca 3 publication, nhung Salmon van tra true -> khong phai artifact)
+
+[E] PROD — scanAllPricing.js kookut.myshopify.com (re-run, REFUTE-scan.txt) — TAI HIEN Y NGUYEN
+  209 doc / by status {PAUSED:73, ACTIVE:86, CANCELLED:50} -> scanned ACTIVE+PAUSED = 159
+  LINES basePrice != PriceList FIXED : 36 · Contracts affected: 28
+  OVERCHARGE total/cycle = 80.99 · UNDERCHARGE total/cycle = -70.50
+  Country cua 28 contract: 24 EUR/FR · 1 EUR/DE · 1 EUR/CH · 2 CHF/CH
+  >>> 144211050877 country=DE cung dinh Tuna 70g basePrice=1.95 (cung product 6576443031760)
+      => co contract DE tren product do => vong lap fetch DE -> ghi de key 'EUR' -> FR nhan 45.95 (gia DE). Chuoi nhan qua collision DAY DU.
+  >>> "LINES WITH NO FIXED PRICE IN ANY MATCHING CATALOG : 242"  <- bao cao KHONG he nhac
+      Switzerland price list chi co 4 FIXED (con lai RELATIVE) -> gan het contract CHF (da so shop) KHONG duoc kiem tra
+  8 dong Salmon 70g base=1.7 vs catalog 1.8, tong delta = -4.10/ky (khop bao cao)
+
+[F] PROD — timeline.js (re-run, REFUTE-timeline.txt)
+  151147970941 ACTIVE EUR country=FR created 2026-06-14 updated 2026-08-14T19:29:32Z
+     line[2] Tuna 70g base=1.95 · line[3] Tuna 24x70g base=45.95
+  147905085821 ACTIVE EUR FR updated 2026-08-14T16:14:21Z   (bao cao ghi 2026-08-13T15:09:17Z -> SAI)
+     line[2] Tuna 70g base=1.95   ; line[9] Chicken&Duck Dry Cat 1.5kg base=23 (catalog EUR=23 -> DUNG)
+     BRIEF ghi ban sua tay 12/08 doi "23 -> 1.7" tren chinh contract nay => ban sua tay da HA MOT DONG DUNG,
+     hien no lai la 23. Tuc regression khong don thuan la "sua dung bi sync xoa".
+  155113881981 updated 2026-08-14T19:29:01Z · 153432359293 08-14T14:36:26Z · 139056447869 08-13T15:46:47Z
+  153490162045 EUR/FR discovery set base=18 (catalog 17) · 116999324029 PAUSED EUR Kitten5kg base=31 (EUR 58)
+  117269365117 ACTIVE CHF Kitten1.5kg base=11.9 (CH FIXED 23.8) · 121496043901 PAUSED CHF Kitten5kg base=31 (CH 62)
+  => 2/4 contract trong finding "that thu" dang PAUSED (116999324029, 121496043901): khong charge -> khong that thu thuc
+
+[G] PROD — bgActivities.js (re-run, REFUTE-bg.txt): 620 doc
+  DUNG 1 PENDING: n484GjaS3QWsjS09Tknt createdAt 2025-12-31T12:20:32Z updatedAt 2026-08-14T19:28:40Z productId=15247427436925
+  NHUNG doc bi UPSERT tai su dung (xem [A] :437-455 + repo :263-271) => createdAt VO NGHIA
+  Bang chung sync VAN CHAY sau 31/12:
+    2026-08-09T11:23:38 -> DONE 11:23:50 (productId 15745177977213)  [doc MOI, tao va xong trong 12s]
+    2026-08-09T11:24:17 -> DONE 11:24:28 (productId 15745113817469)
+    RHXjFCQk8DPigyAu4njm updatedAt 2026-08-13T15:09:50 DONE (productId 6576443031760)
+    zld3yr4LWiPGoglqqXMb updatedAt 2026-08-13T15:20:55 DONE
+    ByfDDJun0se3NN5Yw3W7 updatedAt 2026-08-14T16:15:15 DONE (productId 6576417243344)
+    TDUZhYL3OPx... updatedAt 2026-08-14T17:20:35 DONE
+  => "auto-sync bi khoa vinh vien tu 31/12/2025" SAI. Ket PENDING chi tu <= 2026-08-14T19:28:40 (~3 ngay).
+  Khong co sync activity nao update sau 2026-08-14T19:28 -> guard dang chan TU 14/08, khong phai tu 31/12.

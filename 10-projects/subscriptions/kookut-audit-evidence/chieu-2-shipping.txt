@@ -1,0 +1,157 @@
+# CHIEU 2/6 — SHIPPING & RECURRING RATE — kookut.myshopify.com — 2026-08-17
+# Toan bo READ-ONLY. Khong ghi Firestore/Shopify. Khong git.
+
+shopId kookut = 4VgCcf9Ov5cIBx2tCkcT
+setting: {"recurringOption":"lowest","updateOnItemsChange":true,"updateOnAddressChange":true}
+
+## LENH DA CHAY (cwd = packages/functions)
+BASE='set -a && . ./.env.local && set +a && SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD"'
+
+1) $BASE node lib/commands/misc/auditShippingRecurring.js kookut.myshopify.com 300
+   -> shipping-audit-raw.txt  (86 contract ACTIVE)
+2) $BASE node lib/commands/misc/compareShippingMirror.js kookut.myshopify.com ALL
+   -> shipping-mirror-raw.txt (86 contract, 41 mirror lech)
+3) $BASE node lib/commands/misc/auditShippingRecurring.js kookut.myshopify.com 5 --only=<id>
+4) $BASE node lib/commands/misc/inspectContractActivities.js 4VgCcf9Ov5cIBx2tCkcT 153505399165 60
+5) script tam _tmpCartProbe.js (da xoa) — dung lai cartCreateMutation nhung xin THEM
+   `deliveryOptions{title estimatedCost{...}}` (prod comment field nay ra) -> cart-summary.txt
+
+## A. AUDIT LAI (so voi docs/kookut-shipping-audit.md ngay 13/08)
+13/08: 83 contract -> 9 lech / 49 khop / 25 khong xac dinh
+17/08: 86 contract ACTIVE. Phan lop lai theo DU LIEU THAT:
+  D_MISMATCH (Firestore != probe)          9
+  E_match                                  29
+  C_hasFSprice_noRate (probe n/a)          12
+  B_noFSprice_HASrate (Firestore THIEU field deliveryPrice, probe co rate)  25
+  A_noFSprice_noRate                       11
+=> "49 khop" cua ban 13/08 la SAI PHAN LOAI: 36/86 contract KHONG CO field
+   `deliveryPrice` trong Firestore; script tinh Number(undefined)=NaN, phep so sanh
+   |NaN - x| > 0.01 = false nen KHONG bao giai LECH -> bi don vao nhom "khop".
+   Xac minh shape: {'OBJECT{amount,currencyCode}': 50, UNDEFINED: 36}
+
+9 contract D_MISMATCH (theo Firestore):
+156384657789 EUR FS=10   probe=5.9   "Home Delivery 3-7 days"
+155757052285 EUR FS=0    probe=5.9
+155757019517 EUR FS=0    probe=5.9
+154109116797 CHF FS=0    probe=10
+153490162045 EUR FS=5.42 probe=5.9
+155222278525 CHF FS=0    probe=10
+154185236861 EUR FS=0    probe=5.9
+150579708285 CHF FS=0    probe=10
+155756986749 EUR FS=0    probe=5.9
+
+## B. DOI CHIEU VOI SHOPIFY LIVE (compareShippingMirror) — SUA LAI KET LUAN 13/08
+Cap (Firestore, Shopify) dem duoc: (none,0.0)x30 (none,10.0)x4 (0.0,10.0)x2
+  (10.0,5.9)x1 (0.0,9.83)x1 (5.42,4.7)x1 (none,5.9)x1 (none,6.69)x1
+TONG 41/86 (48%) contract ACTIVE co mirror Firestore != Shopify.
+
+SAI trong docs/kookut-shipping-audit.md:
+ - 150579708285 "shop dang mat phi ship, dang thu 0" -> SAI. Shopify = 10.0 CHF.
+   Chi Firestore = 0. Khong mat tien.
+ - 156384657789 "KHACH bi thu du 4.10/ky (10 vs 5.90)" -> SAI. Shopify = 5.9 EUR
+   (dung). Firestore stale 10. Khong ai bi thu du.
+ - 153490162045 "5.42 vs 5.90, chenh 0.48" -> so that la Shopify 4.70 vs probe 5.90.
+ - 154109116797 da sua 13/08: Shopify = 10.0 CHF (fix con nguyen sau 4 ngay). Firestore van 0.0.
+ - 144211050877: Firestore 0.0 nhung Shopify 9.83 EUR — app hien free ship, khach bi thu 9.83.
+
+Con THAT SU dang thu 0 tren Shopify trong khi probe ra >0 (shop mat phi ship):
+ 155222278525 (CHF 0 vs 10) · 154185236861 · 155756986749 · 155757019517 · 155757052285 (EUR 0 vs 5.9)
+ => 5 contract, KHONG phai 7.
+
+Gia tri la khong khop bat ky rate nao merchant cau hinh (5.90/6.90/10.00 EUR, 10.00 CHF):
+ 144211050877 = 9.83 EUR · 153490162045 = 4.70 EUR · 118510846333 = 6.69 EUR
+ KHONG con contract ACTIVE nao mang 7.99. Nguyen nhan 3 gia tri le: CHUA GIAI THICH DUOC
+ (thu ap bang FX hien tai _latest.json: EUR->CHF 0.9334, CHF->EUR 1.0714 — khong ra
+ duoc 9.83/4.70/6.69 tu 10/5.9/6.9). Dung khang dinh la du chan cua bug rescale.
+
+## C. BUG #32 — `lowest` khong tinh lai moi ky: VAN CON, chua sua
+grep toan bo call site `autoUpdateShippingRate` (8 cho):
+  controllers/subscriptionContractController.js:558
+  services/shopifyService.js:1363, :1598
+  services/subscription/contractService.js:408
+  services/subscription/subscriptionService.js:2093, :2209
+  services/subscription/subscriptionUpdateLine.js:234, :334
+=> TAT CA deu la duong sua contract. `ls services/cron/` + grep
+   "deliveryPrice|ShippingRate|shippingOption" trong services/cron/ = 0 match.
+   Khong co duong tinh lai o moi ky. UI hua "Apply the lowest available rate on each
+   renewal" (pages/Settings/Tabs/ShippingProfile/ShippingProfile.json:
+   recurringShipping.options.lowest.helpText). Van trai UI.
+   Guard tai shippingProfileService.js:754 `if (!settings.shippingProfile[event]) return`
+   nen ke ca co event cung phai bat dung o.
+
+## D. BUG MOI — getLowestShippingRate KHONG tra ve rate thap nhat
+services/graphql/shippingProfileService.js:500
+  const lowestRate = cart?.deliveryGroups?.edges?.[0]?.node?.selectedDeliveryOption;
+const/graphql/mutation/cart.js: khoi `deliveryOptions{...}` bi COMMENT OUT; chi query
+`selectedDeliveryOption`. => lay option Shopify tu chon o delivery group DAU TIEN,
+khong so sanh gi.
+
+Bang chung prod (probe cart co xin them deliveryOptions):
+ 154109116797 (CH): 2 delivery group — group0 "Standard - SwissPost Economy" 10.00 CHF,
+                    group1 "Standard - SwissPost Economy" 0.00 CHF
+ 150579708285 (CH): group0 10.00 / group1 0.00
+ 155222278525 (CH): group0 10.00 / group1 0.00
+ 156384657789 (BE): group0 "Home Delivery 3-7 days" 5.90 / group1 same 0.00
+ 153490162045 (FR): 1 group, 5 option: DPD 5.90 · Mondial Relay 5.90 · Shop2Shop 5.90 ·
+                    DPD Predict 6.90 · Chronopost 10.00 ; selected = 5.90
+=> Ket luan 13/08 trong BRIEF #32 ("goi that getLowestShippingRate ra 10 CHF => rate
+   khuyen mai KHONG duoc chao cho recurring => cau hinh merchant hoan toan dung")
+   la SAI: rate 0.00 VAN duoc chao, no chi nam o delivery group thu HAI. Ham tra 10
+   chi vi lay edges[0]. Neu sua thanh "lowest" dung nghia thi ket qua se la 0.00 —
+   tuc khach lai free ship mai. Thu tu edges khong co gi bao dam on dinh => day la ung
+   vien manh cho chuoi "fix roi lai bi" cua nhom free-shipping (report CS #1, 18 luot).
+
+## E. 12 contract probe tra "no shipping rates found" — audit KHONG kiem duoc
+155113881981 149971370365 144211050877 151147970941 155055489405 153346408829
+153505399165 150985212285 148748632445 147905085821 153432359293 155542454653
+Probe cart cho 151147970941 / 153505399165 / 149971370365 / 155542454653:
+  moi line deu availableForSale=true, khong line nao bi drop, userErrors=[],
+  nhung deliveryGroups.edges = [] (rong).
+Gia thuyet "thieu shopifySellingPlanId lam line thanh one-time" -> BI BAC:
+  quet 86 contract, 11/12 contract no-rate co DU plan id.
+  (noRate+missingPlan 1 | noRate+allPlansOK 11 | hasRate+missingPlan 5 | hasRate+allPlansOK 69)
+=> nguyen nhan CHUA XAC DINH. He qua chac chan: voi 12 contract nay
+   `autoUpdateShippingRate` luon thoat o shippingProfileService.js:765
+   (`if (!isNumber(newShippingRate?.amount)) return`) — nghia la ngay ca khi khach sua
+   items/dia chi, phi ship cung KHONG BAO GIO duoc tinh lai. Trong nhom nay co
+   151147970941 va 147905085821 (2 contract dang khieu nai gia).
+
+Ghi chu phu: 6 contract co lines KHONG co shopifySellingPlanId ->
+  helpers/subscription/getLineShopifyPlanId.js:26 tra '' -> cart line gui di nhu mua le,
+  quote sai delivery profile. 153490162045 (1 line, missing plan) chinh la ca "probe 5.90"
+  => con so 5.90 do la quote cua gio hang MUA LE, khong dang tin.
+
+## F. MR !2344 / SB-14315 (7.99 vs 10 EUR): fix DA NAM TRONG MASTER
+services/graphql/shippingProfileService.js:515-517
+  if (rateCurrency === contractCurrency) return {title, amount: Number(rateAmount)};
+FX fallback (convertBaseCurrencyToSpecificCurrency) chi chay khi currency THAT SU khac,
+kem log canh bao :522. => same-currency rescale khong con xay ra.
+Khong con contract ACTIVE nao mang 7.99.
+
+## G. MIRROR (BRIEF #32 gach dau dong "mirror chua bat kip") — VAN CON, va rong hon
+154109116797: Firestore deliveryPrice 0.0 / Shopify 10.0 sau 4 ngay -> khong phai webhook tre.
+36/86 contract khong he co field deliveryPrice (vd 117269365117, updatedAt 2026-05-31).
+Trong 36 do co 6 contract Shopify dang thu > 0 (4x 10 CHF, 1x 5.9, 1x 6.69 EUR).
+Cho tieu thu doc field nay (fallback 0 im lang):
+  helpers/subscription/prepareEmailData.js:951-953  (email hien shipping = 0, total thieu)
+  helpers/subscription/buildMockOriginOrder.js:9-11
+  services/subscription/exportService.js:326 delivery_price: sub.deliveryPrice?.amount
+=> merchant/khach nhin thay "free shipping" trong khi Shopify thu tien that.
+
+## H. Doi chieu 2 contract duoc hoi
+154109116797 (sua 13/08): Shopify 10.0 CHF, option "Standard - SwissPost Economy" — fix con.
+                          Firestore van 0.0 -> app UI/email hien 0.
+153505399165 (doi chung): Firestore 0.0, Shopify 0.0, probe = n/a (no shipping rates found).
+                          activities chi co 1 record `create_subscription` 2026-07-06.
+  => Cau trong BRIEF #32 "contract nay CO bi sua nen autoUpdateShippingRate chay -> ra 5.90"
+     KHONG con dung o thoi diem hom nay: deliveryPrice tren Shopify la 0, va probe khong
+     ra duoc rate nao. Doi chung nay khong con dung de chung minh gi.
+
+## I. RUI RO KEM (doc code, chua do prod)
+shippingProfileService.js:781-790 so `currentOption.presentmentTitle === optionInput.presentmentTitle`.
+getLowestShippingRate chi tra {title, amount} (KHONG co presentmentTitle);
+helpers/shipping/buildShippingOptionInput.js:27 set presentmentTitle = title.
+Contract cua kookut dang giu presentmentTitle ban dia hoa (vd "Standard - SwissPost Economy -
+Premiere livraison offerte") -> dieu kien skip gan nhu khong bao gio dung -> moi lan sua
+contract deu commit draft, ma commit draft XOA billing cycle edit (comment :667-669).
+=> ung vien cho "sua xong lai revert" (report CS #8 / #51-E). CHUA do bang du lieu prod.

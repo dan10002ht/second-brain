@@ -1,0 +1,11 @@
+
+getSubscriptionContractById error AggregateError
+
+noRate+missingPlan 1 | noRate+allPlansOK 11 | hasRate+missingPlan 5 | hasRate+allPlansOK 69
+--- contracts with missing plan ids ---
+144954655101 lines=2 missingPlan=1 has_rate
+149541781885 lines=3 missingPlan=3 has_rate
+151147970941 lines=4 missingPlan=3 NO_RATE
+153490162045 lines=1 missingPlan=1 has_rate
+140586680701 lines=5 missingPlan=1 has_rate
+118053044605 lines=6 missingPlan=4 has_rate

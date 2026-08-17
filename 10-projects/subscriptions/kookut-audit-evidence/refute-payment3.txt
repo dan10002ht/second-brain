@@ -1,0 +1,17 @@
+=== Caroline shopify orders (oldest first) ===
+#10041 2026-06-12T14:00:10Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#9271 2026-04-12T14:00:10Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#8894 2026-03-12T12:00:09Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026 | REFUND/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#8535 2026-02-12T12:00:09Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#8119 2026-01-12T12:00:09Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#7808 2025-12-12T12:00:08Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#7541 2025-11-12T12:00:08Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#7266 2025-10-12T11:00:09Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 7216|bin:516882 Mastercard exp=7/2026
+#6988 2025-09-12T11:00:12Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 1932|bin:516882 Mastercard exp=7/2026
+#6705 2025-08-12T11:51:08Z gw=shopify_payments :: SALE/SUCCESS last4=•••• •••• •••• 1932|bin:516882 Mastercard exp=7/2026
+
+=== 129462731133 shopify orders (stored masked 2034 / last 8906) ===
+#8629 2026-02-17T16:01:11Z :: SALE/SUCCESS last4=•••• •••• •••• 2034|bin:485411 Visa
+#8175 2026-01-16T16:00:13Z :: SALE/SUCCESS last4=•••• •••• •••• 2034|bin:485411 Visa
+#7842 2025-12-16T16:00:08Z :: SALE/SUCCESS last4=•••• •••• •••• 2034|bin:485411 Visa
+#7562 2025-11-16T16:09:24Z :: SALE/SUCCESS last4=•••• •••• •••• 8906|bin:485411 Visa

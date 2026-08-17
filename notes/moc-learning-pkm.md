@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-15
+updated: 2026-08-17
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -38,6 +38,9 @@ updated: 2026-08-15
   treo, con số cũ bị đọc như phép đo, doc lạc hậu ở đầu file).
 - [[feedback-debug-phai-query-data-that]] — mở khi một kết luận root cause chỉ dựa vào đọc code:
   code cho biết đường đi *có thể* xảy ra, chỉ dữ liệu prod mới cho biết đường nào **đã** xảy ra.
+- [[feedback-audit-code-doc-tu-nhanh-prod]] — mở khi sắp kết luận "code hiện đang thế nào" từ
+  worktree đang mở: đọc đúng file nhưng sai **phiên bản** thì bằng chứng không phân biệt được gì;
+  đo độ lệch nhánh trước, rồi đọc bằng `git show origin/master:<path>`.
 - [[du-lieu-hong-song-sot-vi-ba-lop-nhin-cho-khac]] — mở khi một dữ liệu sai nằm im hàng tháng mà
   job đồng bộ và detector đều báo sạch: hỏi lớp đồng bộ đang so *trường nào*, detector lấy chuẩn
   từ đâu, và ngưỡng dung sai đang che mất dải hỏng nào.
@@ -73,6 +76,9 @@ updated: 2026-08-15
   chạy: repo ignore mọi lockfile thì `npm ci` chết ngay từ bước cài.
 - [[digest-ticket-mcrsv-2026-08-14]] — mở khi một migration "đã chạy rồi" mà truy vấn vẫn trả rỗng:
   lỗi chữ hoa/thường của `V5` sinh ba hệ quả che nhau, và không bao giờ sửa migration đã chạy.
+- [[digest-ticket-mcrsv-2026-08-17]] — mở khi định vá một lỗ rò tài nguyên bằng cách quét từng call
+  site: ở đây vá cơ học đổi lỗ rò lấy oversell, và lời giải là một chokepoint kèm test tự grep
+  source để chặn call site mới đi vòng.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 

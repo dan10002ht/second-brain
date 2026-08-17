@@ -1,0 +1,61 @@
+# CHIEU DOI KHANG — REFUTE "portal" (read-only, 2026-08-17)
+
+## Lenh da tu chay lai
+1) NODE_PATH=/Users/dantt1002/projects/subscriptions/node_modules:/Users/dantt1002/projects/subscriptions/packages/functions/node_modules \
+   node <scratchpad>/contractPlanProbe.js
+   OUT:
+     ACTIVE contracts: 86
+     25 x enabledMinimumOrder=false minOrderCancel=1 hideSubActions=undefined paymentType=pay-as-you-go
+     53 x enabledMinimumOrder=false minOrderCancel=1 hideSubActions=false  paymentType=pay-as-you-go
+     7  x enabledMinimumOrder=undefined minOrderCancel=1 hideSubActions=undefined
+     1  x enabledMinimumOrder=false minOrderCancel=null hideSubActions=false
+   => khop bao cao. (Luu y: bao cao KHONG luu file output cho probe nay; toi da chay lai.)
+
+2) Doc lai portal-probe.txt + kookut-settings.json (co san) — cac so lieu la THAT.
+
+## Doc code truc tiep
+- extensions/customer-account-ui/src/index.jsx:9-18   (id = pathParts[last])
+- extensions/customer-account-ui/src/hooks/api/useFetchApi.js:57-66 (setFetched trong if(success))
+- extensions/customer-account-ui/src/helpers/fetchApi.js:24-25 (khong check response.ok)
+- extensions/customer-account-ui/src/pages/Subscriptions.js:35-51 (fetchData khong try/catch)
+- extensions/customer-account-ui/src/constants/config.js:4 (api/unstable)
+- packages/functions/src/controllers/clientApi/subscriptionContractController.js:145-149 ({status:false})
+- .../subscriptionContractController.js:158-171 (parseInt(contractId), contract.customerId)
+- .../subscriptionContractController.js:219-221 (catch -> {success:false, error}) <- bo sung, bao cao khong cite
+- packages/functions/src/helpers/checkPermissionCustomerPortal.js:59-72 + :355-361 (shouldHideSubActions)
+- packages/functions/src/helpers/getCustomerPortalUrl.js:26-52 (NEW branch, Priority 1/2/3)
+- packages/assets/src/pages/Subscriptions/Edit.js:435-441, Subscribers/Edit.js:148-154 (ep CLASSIC)
+- packages/functions/src/const/default.js:227 (editPaymentInformationUpcoming: false)
+- packages/functions/src/helpers/orderDetailHelper.js:137-139
+- packages/scripttag/src/customerPortal/pages/OrderDetails/OrderDetails.js:192-194
+- packages/scripttag/src/customerPortal/managers/CustomerPortalManager.js:41-43
+- extensions/customer-account-ui-block/src/ViewSubscriptionExtension.jsx:37 (Link to `extension:customer-account-ui`)
+- grep 'editPaymentInformationUpcomming' packages/ extensions/ => 0 matches (dead key: DUNG)
+
+## Phan bac chinh — Finding 1
+Tien de "navigation.currentEntry.url = URL trinh duyet /account/pages/<uuid>" KHONG duoc chung minh o bat ky dau.
+- Shopify docs (customer-account-ui-extensions / Navigation API + targets/full-page, moi ban 2025-07..2026-10):
+  "Use custom protocols instead of absolute URLs: Always use extension://..." va vi du chinh chu
+  dung `navigation.navigate('extension://settings')` roi doc lai bang `new URL(currentEntry.url).pathname`.
+  Neu currentEntry.url la URL noi bo cua extension thi landing pathname = '/' -> pathParts=[] -> id='' -> render <Subscriptions/>. Khong co bug.
+- Neu gia thuyet cua bao cao dung thi trang danh sach (SubscriptionManagement: tabs, grid/list, analytics,
+  pagination), nut back `to="extension:customer-account-ui/"`, va block "View Subscription"
+  (ViewSubscriptionExtension.jsx:37 link `extension:customer-account-ui`) SE CHET voi 100% shop
+  NEW_CUSTOMER_ACCOUNTS ke tu ngay launch — khong phai loi rieng cua kookut. Khong co dau hieu nao cua mot su co dien rong nhu vay.
+- Bao cao tu ghi "CHUA chay runtime" nhung van dat verified:true + status NOT_FIXED + goi la "nguyen nhan goc toan bo main issue #2".
+- Cite "dist/customer-account-ui.js:275 = ban build da deploy" KHONG hop le: dist/ la artifact build local.
+  Bang chung: extensions/customer-account-ui-{order,history,upcoming,subscription}/ chi con moi thu muc dist/
+  (khong con src, khong con toml) -> dist trong repo la rac cu, khong phan anh ban dang live tren kookut.
+
+## Bo sot dang ke (chinh output cua ho in ra ma khong doc)
+portal-probe.txt dong 2-3:
+    shopInfo.id undefined
+    extensionPageUuid undefined
+    menus undefined
+=> getCustomerPortalUrl (nhanh NEW) voi kookut: Priority 1 fail (extensionPageUuid undefined),
+   Priority 2 fail (menus undefined), roi ve Priority 3 = `https://shopify.com/undefined/account/pages`.
+   Bat ky cho nao build link portal New-CA runtime cho kookut deu ra URL co chu "undefined".
+   (Link trong email hien dung duoc chi vi settings.customizeEmail.subscriptionUrlButton da duoc go tay.)
+
+metafield keys cua kookut co `isBlockedLogin` — CustomerPortalManager.js:249 chan portal classic theo co nay,
+backgroundHandler.js:235 set no theo plan tier. Gia tri chua bao gio duoc in ra.

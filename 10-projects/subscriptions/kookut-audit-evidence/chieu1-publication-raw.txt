@@ -1,0 +1,15 @@
+Switzerland publication=gid://shopify/Publication/86481305808 autoPublish=true
+Europe publication=gid://shopify/Publication/100482613456 autoPublish=true
+France publication=gid://shopify/Publication/100483825872 autoPublish=true
+
+39412882735312 Pacific Tuna & Sardine - Natural / 70g  Switzerland:published=false  Europe:published=false  France:published=false
+
+39412882702544 Pacific Tuna & Sardine - Natural / 24x70g  Switzerland:published=false  Europe:published=false  France:published=false
+
+39412859404496 Wild Alaskan Salmon - Natural / 70g  Switzerland:published=true  Europe:published=true  France:published=true
+
+57407416893821 Free Run Chicken & Duck - Natural / 70g  Switzerland:published=true  Europe:published=false  France:published=false
+
+43340379422928 Kookut wet food discovery set / Default Title  Switzerland:published=true  Europe:published=true  France:published=true
+
+39404501696720 Chicken & Turkey Dry Food for Kitten / 5kg  Switzerland:published=true  Europe:published=true  France:published=true

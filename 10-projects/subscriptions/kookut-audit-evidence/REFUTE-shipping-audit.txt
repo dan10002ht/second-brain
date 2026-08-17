@@ -1,0 +1,165 @@
+shippingProfile setting: {"recurringOption":"lowest","updateOnItemsChange":true,"updateOnAddressChange":true}
+
+ACTIVE contracts: 86
+deliveryPrice hiện tại: {
+ "0.0": 43,
+ "10.0": 3,
+ "none": 36,
+ "5.42": 1,
+ "5.9": 3
+}
+
+--- gọi getLowestShippingRate cho 86 contract ---
+Error getting lowest shipping rate: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13502:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async createCart (/Users/dantt1002/projects/subscriptions/packages/functions/lib/services/graphql/cartService.js:38:7)
+    at async getLowestShippingRate (/Users/dantt1002/projects/subscriptions/packages/functions/lib/services/graphql/shippingProfileService.js:516:18)
+    at async run (/Users/dantt1002/projects/subscriptions/packages/functions/lib/commands/misc/auditShippingRecurring.js:72:20) {
+  [cause]: AggregateError [ETIMEDOUT]: 
+      at internalConnectMultiple (node:net:1122:18)
+      at internalConnectMultiple (node:net:1190:5)
+      at Timeout.internalConnectMultipleTimeout (node:net:1716:5)
+      at listOnTimeout (node:internal/timers:583:11)
+      at process.processTimers (node:internal/timers:519:7) {
+    code: 'ETIMEDOUT',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+151260234109  CHF  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+156384657789  EUR  đang thu=10  lowest=5.9  "Home Delivery 3-7 days"  (option hiện tại: "Home Delivery 3-7 days")  <<< LỆCH
+142987559293  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+144954655101  EUR  đang thu=0  lowest=0  "Chronopost - Livraison à domicile"  (option hiện tại: "Chronopost - Livraison à domicile")
+117269365117  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+152031887741  CHF  đang thu=10  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+155757052285  EUR  đang thu=0  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")  <<< LỆCH
+123476083069  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+Error when creating cart [
+  {
+    field: [ 'input', 'lines', '1', 'sellingPlanId' ],
+    message: 'Cannot apply selling plan to variant'
+  }
+] undefined
+⏭️ Skip: no shipping rates found
+124460204413  EUR  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Chronopost - Livraison à domicile")
+142538670461  EUR  đang thu=NaN  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "DPD Predict - Livraison à domicile")
+157283811709  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+155757019517  EUR  đang thu=0  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")  <<< LỆCH
+⏭️ Skip: no shipping rates found
+119254778237  CHF  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+119901487485  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+⏭️ Skip: no shipping rates found
+155113881981  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Chronopost - Livraison à domicile")
+147888865661  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+153400541565  EUR  đang thu=0  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")
+144430989693  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+148858962301  EUR  đang thu=0  lowest=0  "DPD 2-7 days"  (option hiện tại: "Home Delivery 3-7 days")
+⏭️ Skip: no shipping rates found
+149971370365  CHF  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+⏭️ Skip: no shipping rates found
+125403431293  EUR  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Livraison en point de retrait Mondial Relay (choix après le paiement)")
+120694505853  EUR  đang thu=NaN  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Livraison DPD Predict à domicile")
+118220980605  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+127423086973  CHF  đang thu=NaN  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard: SwissPost Economy")
+152572723581  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+154109116797  CHF  đang thu=0  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")  <<< LỆCH
+132683104637  EUR  đang thu=NaN  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Livraison DPD Predict à domicile")
+⏭️ Skip: no shipping rates found
+144211050877  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Home Delivery 3-7 days")
+149541781885  EUR  đang thu=0  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "-")
+156072575357  EUR  đang thu=0  lowest=0  "Chronopost - Livraison à domicile"  (option hiện tại: "Chronopost - Livraison à domicile")
+⏭️ Skip: no shipping rates found
+151147970941  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "DPD - Livraison en point de retrait")
+146903925117  EUR  đang thu=0  lowest=0  "Chronopost - Livraison à domicile"  (option hiện tại: "Chronopost - Livraison à domicile")
+⏭️ Skip: no shipping rates found
+155055489405  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Livraison en relais Pickup")
+117302198653  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+153490162045  EUR  đang thu=5.42  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "Livraison en relais Pickup")  <<< LỆCH
+157835723133  CHF  đang thu=10  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+129462731133  CHF  đang thu=NaN  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+144996204925  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+156914844029  EUR  đang thu=5.9  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "DPD - Livraison en point de retrait")
+128167674237  EUR  đang thu=NaN  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "Livraison en point de retrait Mondial Relay (choix après le paiement)")
+147972751741  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+142398423421  CHF  đang thu=NaN  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+155848802685  EUR  đang thu=0  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")
+123521991037  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+118543614333  EUR  đang thu=NaN  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")
+154299138429  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+118510846333  EUR  đang thu=NaN  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "DPD Predict - Livraison à domicile")
+155222278525  CHF  đang thu=0  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")  <<< LỆCH
+⏭️ Skip: no shipping rates found
+153346408829  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Livraison en relais Pickup")
+⏭️ Skip: no shipping rates found
+139969659261  EUR  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Chronopost - Livraison à domicile")
+154185236861  EUR  đang thu=0  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "Livraison en relais Pickup")  <<< LỆCH
+141951172989  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+153431114109  EUR  đang thu=0  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "DPD - Livraison en point de retrait")
+151563338109  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+156072542589  EUR  đang thu=0  lowest=0  "Chronopost - Livraison à domicile"  (option hiện tại: "Chronopost - Livraison à domicile")
+139674878333  EUR  đang thu=NaN  lowest=0  "DPD 2-7 days"  (option hiện tại: "DPD 2-7 days")
+150579708285  CHF  đang thu=0  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")  <<< LỆCH
+140389712253  CHF  đang thu=NaN  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+142715650429  EUR  đang thu=NaN  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Livraison DPD Predict à domicile")
+⏭️ Skip: no shipping rates found
+153505399165  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "DPD Predict - Livraison à domicile")
+158029119869  EUR  đang thu=5.9  lowest=5.9  "Home Delivery 3-7 days"  (option hiện tại: "Home Delivery 3-7 days")
+⏭️ Skip: no shipping rates found
+150985212285  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Chronopost Shop2Shop France - Livraison en point relais")
+151474471293  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+Error when creating cart [
+  {
+    field: [ 'input', 'lines', '0', 'sellingPlanId' ],
+    message: 'Cannot apply selling plan to variant'
+  }
+] undefined
+⏭️ Skip: no shipping rates found
+121065865597  CHF  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+126862066045  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+⏭️ Skip: no shipping rates found
+148748632445  CHF  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+156485321085  EUR  đang thu=0  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "DPD - Livraison en point de retrait")
+⏭️ Skip: no shipping rates found
+147905085821  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "DPD Predict - Livraison à domicile")
+⏭️ Skip: no shipping rates found
+140586680701  CHF  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+135604175229  CHF  đang thu=NaN  lowest=10  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+140656443773  EUR  đang thu=NaN  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost Shop2Shop France - Livraison en point relais")
+⏭️ Skip: no shipping rates found
+117687419261  CHF  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+⏭️ Skip: no shipping rates found
+153432359293  EUR  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Chronopost - Livraison à domicile")
+119272440189  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+156537913725  EUR  đang thu=5.9  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "DPD - Livraison en point de retrait")
+155756986749  EUR  đang thu=0  lowest=5.9  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")  <<< LỆCH
+155848769917  EUR  đang thu=0  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")
+157303243133  CHF  đang thu=0  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+127397659005  EUR  đang thu=NaN  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Livraison en point de retrait Mondial Relay (choix après le paiement)")
+Error when creating cart [
+  {
+    field: [ 'input', 'lines', '1', 'sellingPlanId' ],
+    message: 'Cannot apply selling plan to variant'
+  }
+] undefined
+⏭️ Skip: no shipping rates found
+118053044605  CHF  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+Error when creating cart [
+  {
+    field: [ 'input', 'lines', '4', 'sellingPlanId' ],
+    message: 'Cannot apply selling plan to variant'
+  },
+  {
+    field: [ 'input', 'lines', '5', 'sellingPlanId' ],
+    message: 'Cannot apply selling plan to variant'
+  }
+] undefined
+⏭️ Skip: no shipping rates found
+138085138813  CHF  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+⏭️ Skip: no shipping rates found
+155542454653  CHF  đang thu=0  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+⏭️ Skip: no shipping rates found
+119768351101  CHF  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Standard - SwissPost Economy")
+158172316029  EUR  đang thu=0  lowest=0  "DPD - Livraison en point de retrait"  (option hiện tại: "Chronopost - Livraison à domicile")
+120464900477  CHF  đang thu=NaN  lowest=0  "Standard - SwissPost Economy"  (option hiện tại: "Standard - SwissPost Economy")
+⏭️ Skip: no shipping rates found
+139056447869  EUR  đang thu=NaN  lowest=n/a  "-"  (option hiện tại: "Chronopost - Livraison à domicile")

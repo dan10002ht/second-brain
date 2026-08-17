@@ -1,0 +1,61 @@
+2798:        window.AVADA_SUBSCRIPTION = {
+2799-          customer: {
+2800-            id: null,
+2801-            email: null,
+2802-            first_name: null,
+2803-            last_name: null,
+2804-            tags: []
+2805-          },
+2806-          shopId: shopId ? shopId : false,
+2807-          subscriptionProduct: subscriptionProduct ? subscriptionProduct : false,
+2808-          subscriptionPlans: subscriptionPlanV2Metafield,
+2809-          product: {
+2810-            available: null,
+2811-            id: null,
+2812-            title: null,
+2813-            variants: null,
+2814-            selectedVariant: null,
+2815-            hasOnlyDefaultVariant: null,
+2816-            requiresSellingPlan: null,
+2817-            featureImage: null,
+2818-            compareAtPrice: null,
+2819-          },
+2820-          page: "page",
+2821-          shopCurrency: "CHF",
+2822-          subscriptionPriceByQuantity: subscriptionPriceByQuantity ?? false,
+2823-          translation,
+2824-          customCSS,
+2825-          customerPortal,
+2826-          codSettings,
+2827-          customSelector,
+2828-          accessLink,
+2829-          enabledCustomCurrency,
+2830-          customDisplayCurrency,
+2831-          newPlanVersion,
+2832-          statusesMetafield,
+2833-          widgetSettings,
+2834-          newGetPriceVersion,
+2835-          isBlockedLogin: isBlockedLogin ?? false,
+2836-          isBlockWidget: false,
+2837-          isBlockBundle,
+2838-          isBlockBox,
+2839-          isV5SubCapReached: isV5SubCapReached === 'true' || isV5SubCapReached === true,
+2840-          enableSubDiscountForBundle,
+2841-          variantChangeTimeout,
+2842-          customCurrency: useCustomCurrency ? customCurrency : null,
+2843-          numberOfUpcomingOrders,
+2844-          useBillingPriceForPrepaid,
+2845-          showPrepaidPerDeliveryHint,
+2846-          enabledAddProductCard,
+2847-          forceOneTimeAddProduct: forceOneTimeAddProduct ?? false,
+2848-          defaultBundleId: defaultBundleId || '',
+2849-          enabledBoxSwapRequest: enabledBoxSwapRequest ?? false
+2850-        };
+2851-      }
+2852-    } catch (error) {
+2853-      console.error('Avada Subscription Error:', error);
+2854-    }
+2855-    try {
+2856-      if (!window.AVADA_FIXED_BUNDLE_BOX) {
+2857-        const fixedBundleData = false;
+2858-        window.AVADA_FIXED_BUNDLE_BOX = {

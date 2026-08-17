@@ -1,0 +1,196 @@
+CHIEU 6/6 — "FIX DA TRIET DE CHUA" (doc code master hien tai, khong git, khong chay prod)
+cwd: /Users/dantt1002/projects/subscriptions/packages/functions/src
+Ngay: 2026-08-17
+
+=========================================================
+1. MR !2322 — double charge / trigger 2 lan (redis lock per-cycle)
+=========================================================
+FIX CON SONG. File: helpers/cache/billingAttemptLock.js (moi), helpers/cache/orderCreationLock.js
+Key: `lock:billing:{shopId}:{contractId}:{cycleIndex}` TTL 120s, SET NX.
+Call site duy nhat: services/shopifyService.js:1802-1807 (handleAutomaticBillingAttempt).
+Release chi o nhanh VARIANT_NOT_EXIST (shopifyService.js:1900) -> dung y do.
+Lop bao ve thu 2: withOrderLock + re-check trong lock:
+  - shopifyService.js:2000-2021 (auto)
+  - shopifyService.js:984-996  (handleBillingAttempt / manual retry)
+  ca 2 dung CUNG key format `lock:order:{shop}:{contract}:{cycleIndex}` -> loai tru lan nhau. OK.
+Cron: services/cron/automaticBillingAttemptService.js:32 batchMarkOrdersProcessed chay TRUOC vong xu ly
+  -> scheduled orders khong bi tick sau nhat lai. retryOrders KHONG duoc mark -> phu thuoc redis lock.
+
+LO HONG CON LAI (doc code, chua chay prod):
+ (a) FAIL-OPEN khi Redis khong san sang. billingAttemptLock.js:45 (`if (!r) return NO_REDIS`),
+     :55-58 catch -> NO_REDIS. orderCreationLock.js:57 `if (acquired === 'no-redis') return fn()`.
+     redisClient.js:24-25 dat commandTimeout: 500ms, enableOfflineQueue:false, maxRetriesPerRequest:1
+     -> mot lan Redis cham >500ms la CA HAI lop lock bien mat, chi con guard doc-roi-ghi tren Shopify.
+     Day la duong tai dien double charge ma khong de lai dau vet nao ngoai log warn.
+ (b) orderCreationLock.js:70-71 — het MAX_RETRIES (10 x 100ms = 1s) thi CHAY KHONG LOCK.
+     Mot billing attempt that co the lau hon 1s -> tick thu 2 di qua.
+ (c) Guard dedupe scope theo APP cycleIndex, khong theo Shopify billing cycle
+     (helpers/subscription/billingAttemptGuard.js:52-59 + generateUniqueId.js:50-55).
+     Comment o billingAttemptGuard.js:18-23 noi ro day la CO Y (cho phep reschedule).
+     He qua: neu ton tai 2 order doc khac cycleIndex cung tro toi 1 Shopify billing cycle
+     -> lock key khac nhau, filter khac nhau -> CA HAI charge. Dung mo ta "2 don giong het cung ngay"
+     (#139674878333, 02/03/26). Chua verify tren prod co ton tai cap order doc nhu vay khong.
+ (d) filterBillingAttemptsByCycleIndex parse cycleIndex tu prefix idempotencyKey.
+     Attempt nao khong do generateUniqueId sinh ra -> parseInt = NaN -> khong khop -> KHONG chan.
+     getFailedData (automaticBillingAttemptService.js:114-117) hardcode shopifyCycleIndex: 1
+     -> key sinh ra o nhanh loi khong dung dinh dang thuc te (BRIEF da ghi nhan, van chua sua).
+
+=========================================================
+2. Fix sellingPlanId — discount khi swap product (16/06)
+=========================================================
+FIX CON SONG, PHAM VI DU cho 2 duong swap/update line.
+  services/subscription/ensureLineOwnsPlan.js (fork-on-write: cap UUID rieng cho line qua
+  attribute __selling_plan_id, clone plan entry, giu originSellingPlanId).
+  Call site: shopifyService.js:1349, :1439, services/subscription/subscriptionUpdateLine.js:306
+  Duong bulk swap dung co che tuong duong rieng: bulkSwapProducts.js:333 resolveSwapLineKey + buildSwappedPlans.
+KHONG tim thay call-site sot cho lop nay.
+RUI RO KE THUA: ensureLineOwnsPlan.js:72 goi subscriptionDraftLineItemUpdate — ham nay NUOT LOI
+  (xem muc 7). Neu buoc stamp attribute that bai, ham van tra ve lineKey/forked:true nhu da thanh cong
+  -> plan entry moi duoc ghi vao Firestore trong khi Shopify line khong co attribute
+  -> line quay ve dung plan chung -> discount lai sai. Day la co che "fix roi lai bi" cho chinh #2.
+
+=========================================================
+3. Fix currency CHF->EUR "chon currency theo Markets" (06/07, MR 2284/2293)
+=========================================================
+FIX CON SONG NHUNG PHAM VI RAT HEP — day la manh moi lon nhat cua chieu nay.
+Fix that su: services/graphql/shopService.js:118-... getMarketCountryCurrencyMap
+  (markets(type: REGION) -> baseCurrency), cache o helpers/cache/marketCurrencyCache.js.
+CHI CO 2 NOI GOI:
+  - controllers/subscriptionContractController.js:1316 -> resolveManualContractCurrency
+    (manualCreate: TAO contract thu cong tu admin)
+  - controllers/shopController.js:181 (endpoint tra map cho FE)
+=> Markets KHONG duoc dung o BAT KY duong ghi gia nao vao contract dang ton tai.
+
+CAC CALL-SITE VAN CHON COUNTRY/CURRENCY KIEU CU (deu doc truc tiep tren master):
+ 3.1 services/graphql/variantService.js:25
+     `contextualPricing(context: {country: ${shop.shopCountry}})` — HARDCODE shop country,
+     khong nhan tham so country. Importer:
+       services/shopify/productService.js:205 (webhook products/update)
+       services/autoSwapService.js:127        (auto swap — CO ghi gia len contract)
+       services/graphql/billingCycleService.js:36
+       services/graphql/subscriptionContractService.js:58
+     Kookut shopCountry = CH -> moi gia doc qua day la CHF, du contract la EUR.
+ 3.2 services/shopify/productService.js:54-118 getContractsNeedPriceUpdate (duong auto-sync gia,
+     kookut DANG BAT automation.syncProductPrice):
+       - :87,:91 map currency bang BANG TINH const/countries.js COUNTRY_TO_CURRENCY, khong phai Markets.
+       - :110 `variantPricesMap[variantId]?.[contract.currency] || parseFloat(variant.price)`
+         -> neu khong lay duoc gia theo currency cua contract thi LAY LUON GIA STORE-CURRENCY
+         va ghi vao contract voi currencyCode = contract.currency
+         (contractBulkActionService.js:85-88). Ghi so CHF vao contract EUR, im lang.
+         Kich hoat khi: contract.countryCode rong + khong co first order (:71),
+         hoac COUNTRY_TO_CURRENCY[country] === storeCurrency,
+         hoac getProductVariantsByProductId tra [] vi GraphQL loi (productService.js:1534-1537).
+ 3.3 services/graphql/productService.js:1542
+     `price: isPreview ? x.price : x.contextualPricing?.price?.amount ?? x.price`
+     -> contextualPricing null (market khong phu country) thi AM THAM ve gia store currency.
+     Va :1503 noi suy `country` tho vao enum; country undefined -> query loi -> return [] (fail open).
+ 3.4 Cac fallback `shop.shopCountry` con lai:
+     controllers/clientApi/subscriptionProductController.js:50
+     controllers/subscriptionProductController.js:351
+     repositories/subscriptionProductsRepository.js:225, :487
+     services/graphql/productService.js:399
+     services/subscription/subscriptionProductService.js:664
+     services/subscription/subscriptionService.js:738 (createSubscriptionProduct — snapshot shopifyVariants)
+     services/bigQuery/subscriptionProdBQService.js:49, services/bigQuery/productBundleBQService.js:23
+     commands/sync/syncShopifyVariant.js:196
+ 3.5 services/subscription/subscriptionProductService.js:706 `country = 'US'` — default cung hon ca
+     shopCountry. FE co truyen country (scripttag AddProductCard.js:76
+     `deliveryMethod?.countryCode || ''`), nhung neu deliveryMethod thieu countryCode thi gui chuoi RONG;
+     destructuring default chi ap cho undefined -> '' di thang xuong contextualPricing.
+ 3.6 DUONG DA DUOC SUA DUNG (doi chung): services/subscription/bulkSwapProducts.js:223-233
+     `const country = contract?.deliveryMethod?.countryCode || contract?.countryCode;` + bo qua line
+     neu khong resolve duoc gia. Day la mau chuan; cac cho o 3.1-3.5 chua theo.
+
+KET LUAN 3: fix "chon currency theo Markets" chi cham vao manualCreate. Duong auto-sync gia —
+dung duong da lam hong contract kookut 11/08 — van dung contextualPricing theo shopCountry/bang tinh,
+co nhieu nhanh fallback im lang ve gia store-currency. Ho "van chon currency kieu cu" o gan nhu moi cho.
+
+=========================================================
+4. MR !2398 — company name khong luu (24/07)
+=========================================================
+FIX CON SONG. helpers/shipping/buildMailingAddressInput.js — 'company' nam trong
+MAILING_ADDRESS_INPUT_FIELDS (:18). Call site: controllers/subscriptionContractController.js:1287,
+services/subscription/manualSubscriptionService.js:178. Field `company` cung co trong query doc
+contract (services/graphql/contractService.js:505, :549) va snapshot (contractSnapshotService.js:177,:209).
+LO HONG NHO (chua verify tren prod): buildMailingAddressInput.js:40 goi cleanEmptyField(picked)
+-> gia tri RONG bi loai khoi input. Merchant XOA company (de trong) thi field khong duoc gui,
+Shopify giu nguyen gia tri cu -> nhin nhu "khong luu duoc". Sua company thanh chuoi khac thi OK.
+
+=========================================================
+5. Fix line-price index misalignment (contractBulkActionService.js)
+=========================================================
+FIX CON SONG. contractBulkActionService.js:77-83
+  `id: p.contractLineId || contract.lineIds?.[idx] || contract.lineId`
+Kiem "co phu moi duong ghi gia theo index khong":
+  - grep `lineIds` toan repo (src, tru commands/): CHI 1 cho index vao lineIds la dong :83 tren.
+    Cac cho con lai deu la GHI `lineIds` (shopifyService.js:2132, contractService.js:969,
+    subscriptionContractUpdateService.js:116, helpers/subscription/subscriptionContract.js:84).
+  - Ca 2 duong ghi `products[]` deu bat includeContractLineId:
+    shopifyService.js:2131 va subscriptionContractUpdateService.js:75-78 -> fallback theo idx
+    chi con cho doc legacy.
+  - Cac cho ghi gia khac deu dung contractLineId truc tiep, khong theo index:
+    updateLineItemPricingByDiscountConfig.js:44, bulkRemoveProducts.js:156,180,
+    helpers/subscription/findContractLine.js (match theo contractLineId).
+=> Rieng lop "index vao lineIds" da duoc phu.
+
+CON SOT — cung LOP bug (ghep 2 mang song song theo index), CHUA duoc sua:
+  services/graphql/subscriptionContractService.js:1198-1202
+    `linesData.map((line, index) => line.sellingPlanId = importedPlans[index].sellingPlanId)`
+    ghep lines cua Shopify voi mang plan luu trong custom attribute theo INDEX.
+    Chi chay khi contract la imported (isImported). Chua verify kookut co contract imported khong.
+    Neu co, day la bug gan plan/discount sai dong, cung ho voi bug gia sai dong.
+
+CHUA CHUA DUOC (van dung nhu BRIEF ghi): findContractsNeedPriceUpdate so
+  `shopifyPrice !== Number(p.variant.price)` (contractBulkActionService.js:55,61) — so variant.price,
+  KHONG so basePrice. Dong da hong VO HINH voi sync -> chay sync bao nhieu lan cung khong tu chua,
+  va cung KHONG ghi de len dong da sua tay. Xac nhan lai: cau "sua tay khong an vi lan sync sau ghi de"
+  trong report CS §4 la SAI co che.
+
+=========================================================
+6. Fix shipping SB-14315 / MR !2344 (convert currency ca khi cung currency)
+=========================================================
+FIX CON SONG VA DUNG. services/graphql/shippingProfileService.js:515-517
+  `if (rateCurrency === contractCurrency) return {title, amount: Number(rateAmount)};`
+  chi fallback FX khi currency THUC SU khac (:525-529).
+Duong nay con market-aware dung cach: :457-459 validate ISO alpha-2, :479-486 createCart voi
+  @inContext + buyerIdentity.countryCode lay tu contract, :466-477 dung selling plan id THAT
+  de cart khop dung shipping profile.
+=> Rieng shipping, fix nay la mau tot nhat trong repo.
+
+CON SOT — CUNG LOI DO O DUONG GIA SAN PHAM, chua sua:
+  helpers/subscription/flatPricingPolicy.js:29-41 toContractCurrency() van quy doi bang BANG FX TINH
+  (services/exchangeRate/_latest.json qua convertBaseCurrencyToSpecificCurrency).
+  Dung boi services/autoSwapService.js (auto swap ghi gia len contract).
+  Cung sai lam nhu SB-14315 nhung o truc gia thay vi truc ship: dung ty gia tinh thay vi
+  gia Markets that cua merchant.
+  Cac cho khac con dung bang FX tinh: helpers/currency/mapCurrency.js:13,
+  helpers/subscription/calculateDiscount.js:141, helpers/cancellationFlow/currencyHelpers.js:7,
+  contractBulkActionService.js:73 (nhanh nay hien khong bao gio chay vi caller luon truyen
+  currency === contract.currency, xem productService.js:116).
+
+=========================================================
+7. CO CHE CHUNG LAM "FIX ROI LAI BI" (verified, khong thuoc 6 muc tren nhung giai thich 33/54)
+=========================================================
+services/graphql/contractService.js:682-700 subscriptionDraftLineItemUpdate:
+  khi co `errors` hoac `userErrors` -> CHI console.error roi return undefined. KHONG throw.
+Caller khong ai kiem tra gia tri tra ve:
+  - contractBulkActionService.js:139-146 (processLineItemPriceUpdate) roi commit draft
+  - updateLineItemPricingByDiscountConfig.js:92-99
+  - ensureLineOwnsPlan.js:72-78
+=> Mot dot sync gia 4 dong ma 2 dong fail van commit draft va bao THANH CONG.
+Contract con lai o trang thai NUA VA (mot nua gia moi, mot nua gia cu) va khong co canh bao nao.
+Ket hop voi muc 5 (dong hong vo hinh voi detector cua sync) -> dung khuon "fix roi lai bi".
+docs/price-swap-damaged-contracts.md:88-89 cung da canh bao "updateContractPriceLineBatch nuot loi
+va van bao thanh cong" — canh bao do van dung tren master hom nay.
+
+=========================================================
+CHUA XAC MINH DUOC (ghi ro de khong bi doan)
+=========================================================
+- Vi sao dong Tuna 70g dang 1.70 bi ghi de thanh 1.95: cac ty le 1.95/1.80 = 1.0833 va
+  45.95/42 = 1.0940 khong phai mot ty le co dinh -> KHONG khop bang FX tinh (mot he so duy nhat),
+  ma khop hon voi auto-conversion cua Shopify + quy tac lam tron ".95" cua market.
+  Suy ra nguon la contextualPricing cua mot market EUR khong co gia FIXED cho Tuna.
+  NHUNG BRIEF ghi contextualPricing(FR) = 42.95, khong phai 45.95 -> country dung luc ghi
+  KHONG PHAI FR. Chua xac dinh duoc country nao. Can doc prod, ngoai pham vi chieu nay.
+- Contract kookut co contract "imported" nao khong (lien quan muc 5, con sot).
+- Co ton tai cap order doc khac cycleIndex tro cung 1 Shopify billing cycle khong (muc 1c).

@@ -1,0 +1,270 @@
+type= shipping country= CH currency= CHF lines= 6
+linesInput [{"merchandiseId":"gid://shopify/ProductVariant/39412934901968","quantity":4,"sellingPlanId":"gid://shopify/SellingPlan/712012038525"},{"merchandiseId":"gid://shopify/ProductVariant/39412882735312","quantity":8,"sellingPlanId":"gid://shopify/SellingPlan/712012038525"},{"merchandiseId":"gid://shopify/ProductVariant/39406932328656","quantity":8,"sellingPlanId":"gid://shopify/SellingPlan/712012038525"},{"merchandiseId":"gid://shopify/ProductVariant/57407623790973","quantity":4,"sellingPlanId":"gid://shopify/SellingPlan/712012038525"},{"merchandiseId":"gid://shopify/ProductVariant/39412968915152","quantity":8,"sellingPlanId":"gid://shopify/SellingPlan/712012038525"},{"merchandiseId":"gid://shopify/ProductVariant/39412925694160","quantity":8,"sellingPlanId":"gid://shopify/SellingPlan/712012038525"}]
+{
+ "errors": [
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    0,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    1,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    2,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    3,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    4,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    5,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  }
+ ],
+ "data": {
+  "cartCreate": {
+   "cart": {
+    "id": "gid://shopify/Cart/hWNFkPmN7FzToORdtxFjWBmA?key=a89708fc54a1f505e5c8c1ce66992313",
+    "lines": {
+     "edges": [
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/4ce4007a-d715-4f61-8637-3c0848acb443?cart=hWNFkPmN7FzToORdtxFjWBmA",
+        "quantity": 8,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412925694160",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Pacific Tuna & Baby Clams - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/1df0aebc-68cf-41b6-b26b-d4e06b56ac58?cart=hWNFkPmN7FzToORdtxFjWBmA",
+        "quantity": 8,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412968915152",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Pacific Tuna & Seaweed - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/4bbd9057-1a4f-43ff-9803-99821518d440?cart=hWNFkPmN7FzToORdtxFjWBmA",
+        "quantity": 4,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/57407623790973",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Mackerel & Zucchini - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/4863cd5d-2ae0-4152-aaae-17fd62647c97?cart=hWNFkPmN7FzToORdtxFjWBmA",
+        "quantity": 8,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39406932328656",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Pacific Tuna - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/b5e406e6-180c-40f8-bfa1-0ed4f143b6bd?cart=hWNFkPmN7FzToORdtxFjWBmA",
+        "quantity": 8,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412882735312",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Pacific Tuna & Sardine - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/6480d810-8179-4eee-8fba-8766de9d5bd3?cart=hWNFkPmN7FzToORdtxFjWBmA",
+        "quantity": 4,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412934901968",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Pacific Tuna & Green Mussels - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      }
+     ]
+    },
+    "deliveryGroups": {
+     "edges": []
+    }
+   },
+   "userErrors": []
+  }
+ },
+ "extensions": {
+  "context": {
+   "country": "CH",
+   "language": "EN"
+  },
+  "cost": {
+   "requestedQueryCost": 122
+  }
+ }
+}

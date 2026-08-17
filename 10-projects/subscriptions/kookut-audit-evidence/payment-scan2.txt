@@ -1,0 +1,148 @@
+orders scanned 1476
+idempotencyKeys shape counts (auto|shopifyCycle|retry): {
+ "auto|2|": 83,
+ "auto|1|": 84,
+ "|3|retry": 13,
+ "auto|5|": 15,
+ "|3|": 12,
+ "auto|4|": 23,
+ "|10|retry": 1,
+ "auto|3|": 41,
+ "|5|retry": 6,
+ "|2|retry": 15,
+ "auto|7|": 7,
+ "|2|": 13,
+ "|4|retry": 7,
+ "auto|12|": 1,
+ "|1|": 25,
+ "auto|6|": 10,
+ "|1|retry": 8,
+ "|9|": 2,
+ "|11|retry": 2,
+ "|4|": 7,
+ "|5|": 1,
+ "auto|8|": 2,
+ "|6|retry": 3,
+ "|8|retry": 2,
+ "|8|": 1,
+ "|7|retry": 5,
+ "|12|retry": 1,
+ "|13|retry": 1,
+ "|9|retry": 2
+}
+
+### orders whose idempotencyKeys claims shopifyCycleIndex=1 but appCycle!=1 : 32
+   {"doc":"67X765y3x5q2ly13psSd","contract":138922721661,"cycle":2,"status":"BILLED","key":"2__1_retry_1mnyzlwqf","err":"","upd":"2026-06-25T14:04:01.379Z"}
+   {"doc":"9R5zdhFyv9GKwQln52aT","contract":117966569853,"cycle":4,"status":"BILLED","key":"4__1__1mj5paiue","err":"","upd":"2026-06-01T08:00:29.412Z"}
+   {"doc":"9jiV0Ruqkk9ptCxJhPX3","contract":147905085821,"cycle":3,"status":"BILLED","key":"3__1__1mspx9e4d","err":"","upd":"2026-08-14T16:14:28.764Z"}
+   {"doc":"CbJ6wOLzqJlphKiglqPa","contract":144211050877,"cycle":2,"status":"BILLED","key":"2_auto_1__1mqfjha46","err":"","upd":"2026-08-13T15:43:46.587Z"}
+   {"doc":"CcxIU5Cjsjtgrc3lkxgK","contract":141951172989,"cycle":2,"status":"BILLED","key":"2_auto_1__1mpkvdb9i","err":"","upd":"2026-05-25T07:13:26.719Z"}
+   {"doc":"FghwgaHMMzdcg0papRQ7","contract":120464900477,"cycle":2,"status":"BILLED","key":"2__1__1min0rbaw","err":"","upd":"2026-04-23T18:10:09.634Z"}
+   {"doc":"HN5uFE4SLgfbLFjliXZF","contract":151147970941,"cycle":2,"status":"BILLED","key":"2_auto_1__1mssigpem","err":"","upd":"2026-08-14T19:29:39.591Z"}
+   {"doc":"Jv6aVakZfwIfd9bkuPBF","contract":142473494909,"cycle":2,"status":"BILLED","key":"2__1_retry_1mpshczu8","err":"","upd":"2026-07-25T06:27:30.754Z"}
+   {"doc":"Km2FpYRBJEtwjTpfAkgH","contract":139674878333,"cycle":2,"status":"BILLED","key":"2_auto_1__1mngcpehu","err":"","upd":"2026-08-13T15:25:28.241Z"}
+   {"doc":"MSoWX2naKu4Ot0rZ8XVA","contract":142715650429,"cycle":2,"status":"BILLED","key":"2_auto_1__1msdo9qt1","err":"","upd":"2026-08-13T15:25:45.015Z"}
+   {"doc":"OAPQzQd0OKaQ8dK3byJ5","contract":140389712253,"cycle":2,"status":"BILLED","key":"2_auto_1__1mox4a4kj","err":"","upd":"2026-05-11T09:14:06.355Z"}
+   {"doc":"Pt2ulgapKTi2tUyMrVzO","contract":118053044605,"cycle":3,"status":"BILLED","key":"3_auto_1__1mgfmc8rv","err":"","upd":"2026-07-26T16:48:04.532Z"}
+   {"doc":"XldWw2naYPijL3jcaKLt","contract":120694505853,"cycle":2,"status":"BILLED","key":"2__1__1mhj1ofx5","err":"","upd":"2026-08-13T15:23:11.450Z"}
+   {"doc":"YZ3278R5Tc9PGVhg61lZ","contract":147888865661,"cycle":2,"status":"BILLED","key":"2_auto_1__1mrhz9j9l","err":"","upd":"2026-07-12T15:58:33.083Z"}
+   {"doc":"aUgIsSwUAtwVTrIjx3es","contract":150985212285,"cycle":2,"status":"BILLED","key":"2_auto_1__1mspt0hki","err":"","upd":"2026-08-14T17:19:48.569Z"}
+   {"doc":"bJNynvBFEPaQVDh5twpn","contract":151260234109,"cycle":2,"status":"BILLED","key":"2_auto_1__1msu1avfl","err":"","upd":"2026-08-15T07:08:30.628Z"}
+   {"doc":"d9Bw5oz7u2LAe2fOxYVy","contract":144430989693,"cycle":2,"status":"BILLED","key":"2__1__1mq73qzjs","err":"","upd":"2026-08-15T08:18:59.800Z"}
+   {"doc":"dkdDzZReTglR8YchO4rx","contract":139674878333,"cycle":3,"status":"BILLED","key":"3_auto_1__1mon7wxsn","err":"","upd":"2026-08-13T15:25:28.242Z"}
+   {"doc":"f7SlUD594NSECFgofsQn","contract":117174239613,"cycle":3,"status":"BILLED","key":"3__1__1mhuomyf4","err":"","upd":"2025-11-11T14:44:59.847Z"}
+   {"doc":"fYFXVuqGrGfCSc0BOIJU","contract":147905085821,"cycle":2,"status":"BILLED","key":"2_auto_1__1mri5zdj3","err":"","upd":"2026-08-14T16:14:28.769Z"}
+   {"doc":"fmLgbRT15avBrGXINv7g","contract":118053044605,"cycle":2,"status":"BILLED","key":"2_auto_1__1meu66vis","err":"","upd":"2026-07-26T16:48:04.534Z"}
+   {"doc":"gFTEjbpqx3JcWj4wqPOo","contract":117966569853,"cycle":3,"status":"UNBILLED","key":"3__1__1mj5p76sg","err":"PAYMENT_METHOD_DECLINED","upd":"2026-06-01T08:00:29.414Z"}
+   {"doc":"iQrZBobYXwLUy6bd89AW","contract":120694505853,"cycle":3,"status":"BILLED","key":"3__1__1mjgvw16v","err":"","upd":"2026-08-13T15:23:11.451Z"}
+   {"doc":"khPmJoStZOSksAsZL2PV","contract":142532804989,"cycle":2,"status":"BILLED","key":"2__1__1mpux6lr4","err":"","upd":"2026-08-08T17:09:32.699Z"}
+   {"doc":"l5ZPKyuMbmhDv7F8VuAR","contract":117174239613,"cycle":2,"status":"BILLED","key":"2__1__1mfzrasv4","err":"","upd":"2025-09-25T18:38:54.775Z"}
+   {"doc":"lTay2DPfjiarCHWfDSYi","contract":142398423421,"cycle":2,"status":"BILLED","key":"2_auto_1__1mpoii9j5","err":"","upd":"2026-05-27T20:24:20.793Z"}
+   {"doc":"m8nttnn0StcQBUYQ8FFD","contract":120464900477,"cycle":3,"status":"BILLED","key":"3__1__1ml2ep6e9","err":"","upd":"2026-04-23T18:10:09.635Z"}
+   {"doc":"mdE2Jlh0h2mxD9dCIb1K","contract":140586680701,"cycle":2,"status":"BILLED","key":"2_auto_1__1mp00ub1c","err":"","upd":"2026-06-11T16:59:07.091Z"}
+   {"doc":"mhxZbWNTCmTdVzyRHyKv","contract":144430989693,"cycle":3,"status":"BILLED","key":"3_auto_1__1mr7ihu4y","err":"","upd":"2026-08-15T08:18:59.860Z"}
+   {"doc":"mrudHKzXaBTtd4APceIo","contract":147888865661,"cycle":3,"status":"BILLED","key":"3__1__1mspx7lud","err":"","upd":"2026-08-12T10:02:53.501Z"}
+
+### billingAttempts with isCreateAttemptFailed=true: 0
+
+### live vs stored payment method
+
+contract 122251772285 LIVE: type=CustomerCreditCard last=4954 masked=•••• •••• •••• 4954 exp=12/2031
+   cycle 0: last=undefined masked=undefined type=undefined pmId=
+   cycle 1: last=4954 masked=•••• •••• •••• 1685 type=CustomerCreditCard pmId=4a7da6df2b
+
+contract 142987559293 LIVE: type=CustomerCreditCard last=5704 masked=•••• •••• •••• 5704 exp=12/2031
+   cycle 0: last=undefined masked=undefined type=undefined pmId=
+   cycle 1: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 2: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 3: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 4: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 5: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 6: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 7: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 8: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 9: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 10: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+   cycle 11: last=5704 masked=•••• •••• •••• 0540 type=CustomerCreditCard pmId=e184e62db0
+
+contract 140389712253 LIVE: type=CustomerCreditCard last=8964 masked=•••• •••• •••• 8964 exp=1/2031
+   cycle 0: last=undefined masked=undefined type=undefined pmId=
+   cycle 1: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 2: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 3: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 4: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 5: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 6: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 7: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 8: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 9: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 10: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 11: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 12: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 13: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 14: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+   cycle 15: last=8964 masked=•••• •••• •••• 1763 type=CustomerCreditCard pmId=c2209fdcb1
+
+contract 129462731133 LIVE: type=CustomerCreditCard last=8906 masked=•••• •••• •••• 8906 exp=3/2029
+   cycle 0: last=undefined masked=undefined type=undefined pmId=
+   cycle 1: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 2: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 3: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 4: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 5: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 6: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 7: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 8: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 9: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 10: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 11: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 12: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 13: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 14: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 15: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 16: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 17: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 18: last=8906 masked=•••• •••• •••• 2034 type=CustomerCreditCard pmId=8dd3795be8
+   cycle 19: last=8906 masked=•••• •••• •••• 8906 type=CustomerCreditCard pmId=8dd3795be8
+
+contract 127423086973 LIVE: type=CustomerCreditCard last=9396 masked=•••• •••• •••• 9396 exp=1/2027
+   cycle 0: last=undefined masked=undefined type=undefined pmId=
+   cycle 1: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 2: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 3: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 4: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 5: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 6: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 7: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 8: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 9: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 10: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 11: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 12: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 13: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 14: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 15: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 16: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 17: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 18: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc
+   cycle 19: last=9396 masked=•••• •••• •••• 5986 type=CustomerCreditCard pmId=c402c48edc

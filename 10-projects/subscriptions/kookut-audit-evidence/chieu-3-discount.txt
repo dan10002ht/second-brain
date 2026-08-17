@@ -1,0 +1,192 @@
+CHIEU 3/6 — DISCOUNT — kookut.myshopify.com — 2026-08-17 — READ ONLY
+shopId = 4VgCcf9Ov5cIBx2tCkcT
+
+============================================================
+LENH DA CHAY (deu chi-doc, lap lai duoc)
+============================================================
+cwd = /Users/dantt1002/projects/subscriptions/packages/functions
+SC=/private/tmp/claude-501/-Users-dantt1002-projects-subscriptions/ae2ad0b1-3f96-44cd-95d5-e9f7a8d44e1b/scratchpad
+
+1) Quet ty le currentPrice/basePrice moi line, moi contract (Firestore mirror):
+   SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app \
+     node $SC/scanDiscountRatio.js kookut.myshopify.com ANY  > $SC/discount-scan-ANY.txt
+
+2) Doc LIVE pricingPolicy tren Shopify cua tung contract (nguon su that):
+   set -a && . ./.env.local && set +a && SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app \
+     SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD" \
+     node $SC/liveDiscountSweep.js kookut.myshopify.com > $SC/live-discount-sweep.txt
+   node $SC/liveContractPricing.js kookut.myshopify.com <ids...>   > $SC/live-pricing.txt
+   node $SC/liveBillingCycles.js  kookut.myshopify.com <ids...>    > $SC/live-orders.txt
+
+3) Doc plans[] cua contract (Firestore):
+   node lib/commands/misc/inspectContractPricing.js kookut.myshopify.com <id>
+4) Doc order/upcoming order:
+   node lib/commands/misc/inspectContractOrders.js 4VgCcf9Ov5cIBx2tCkcT <id> 40
+5) Doc bulk action log:
+   node lib/commands/misc/inspectBulkSwapJobs.js 4VgCcf9Ov5cIBx2tCkcT 60 > $SC/bulkjobs.txt
+
+============================================================
+A. QUET DU LIEU (yeu cau 1 + 2)
+============================================================
+Firestore, 209 contract (moi status). Histogram ty le currentPrice/basePrice tren 626 line:
+   0.9500 -> 595 line
+   0.9503 ->   1 line   (1.853/1.95, lam tron)
+   0.9529 ->   8 line   (1.62/1.70  -> 1.70*0.95=1.615 lam tron len 1.62)
+   1.0000 ->  22 line   <-- CHI CO NHOM NAY LA BAT THUONG
+
+=> 0.9529 va 0.9503 KHONG phai bug: la 5% + lam tron 2 chu so (half-up).
+   App lam tron LEN nen khach tra nhieu hon dung 0.005/dv o line 1.70 — khong dang ke.
+=> KHONG lap lai sai lam detector v1: khong suy dien tu trung vi contract; day la ty le
+   tuyet doi so voi muc 5% CS xac nhan, va moi ca 1.0 deu duoc doi chieu LIVE tren Shopify.
+
+Doi chieu LIVE Shopify (159 contract non-CANCELLED, doc truc tiep pricingPolicy):
+   155 contract: MOI line deu percentage=5   -> dung
+     4 contract: co line percentage=0        -> xem duoi
+     0 contract: khong tim thay tren Shopify
+
+4 contract co line 0% (live, hom nay):
+ 1) 149541781885  ACTIVE EUR  3/3 line 0%   (toan bo contract mat discount)
+    Tuna&Seaweed 70g x11, Tuna&BabyClams 70g x11, Tuna&GreenMussels 70g x11
+    base 1.70 / current 1.70 (dung ra 1.62). Thiet hai 0.88 EUR/line/ky = 2.64 EUR/ky.
+    Tao 29/05/2026 (create_subscription). CHUA co order nao — 8 lan attempt_billing
+    28/06,29/06,30/06,01/07 va 28/07..31/07 deu khong ra order => dang fail thanh toan.
+    Chu y: order doc cycle 1 con luu 1.62; cycle 2..12 da la 1.70 -> discount BI XOA sau khi
+    contract da duoc tao dung.
+ 2) 117174239613  ACTIVE CHF  3/11 line 0%  <-- DUNG TRIEU CHUNG "5% khong ap cho TAT CA SP"
+    Chicken&Pumpkin x3, Chicken&PacificTuna x4, Tuna&GreenMussels x5 -> 1.80 thay vi 1.71
+    8 line con lai van 5%. Mat 1.08 CHF/ky.
+ 3) 116934836605  ACTIVE CHF  1/1 line 0%   Pacific Tuna 70g x5 -> 1.80 thay vi 1.71
+ 4) 153490162045  ACTIVE EUR  1/1 line 0%   "Kookut wet food discovery set" base 18
+    -> KHONG PHAI BUG: plan entry cua chinh line nay co discountValue=0,
+       enabledAmountDiscount=false. Day la plan khong cau hinh discount.
+
+KHACH DA THUC SU TRA THUA (doc order THAT tren Shopify, khong phai mirror):
+  117174239613  #6165 08/06/2025 — Pumpkin x1 @1.71, GreenMussels x2 @1.71  (CON discount)
+                #6680 08/08/2025 — Pumpkin x3 @1.80, GreenMussels x5 @1.80  (MAT discount)
+                #7104 25/09/2025 — them Chicken&PacificTuna x4 @1.80        (12 dv @1.80)
+                #7530 11/11/2025 — 12 dv @1.80
+                => thua 0.72 + 1.08 + 1.08 = 2.88 CHF
+  116934836605  #6124 02/06/2025 — tat ca @1.71
+                #6631 02/08/2025 — Chicken&PacificTuna x20, GreenMussels x20,
+                                   Seaweed x20, PacificTuna x5 = 65 dv @1.80
+                => thua 5.85 CHF
+  TONG DA THU THUA XAC MINH DUOC: ~8.73 CHF tren 4 don da PAID.
+  (Con nho ve tien, nhung dung la loai loi khach goi "a major flaw".)
+
+============================================================
+B. DAU VET TRONG DU LIEU: plans[] BI "NHIEM"
+============================================================
+Moi ca 0% deu co plan entry tuong ung trong subscriptionContracts.plans[] bi tat co discount:
+  117174239613: 3 entry enabledDiscount=FALSE & enabledAmountDiscount=FALSE, discountValue=5
+                (sellingPlanId 710589645181 / 710589186429 / 710589841789 — dung 3 line 0%)
+                7 entry con lai True/True -> dung 3 line = 3 entry, khop 1-1
+  116934836605: 4 entry False/False discountValue=5
+  149541781885: 3 entry enabledDiscount=FALSE nhung enabledAmountDiscount=TRUE, discountValue=5,
+                sellingPlanId la UUID
+  153490162045: discountValue=0 -> plan khong co discount (khong phai nhiem)
+  151147970941: TAT CA True/True  -> discount lanh lan
+Ket qua: `checkEnabledAmountDiscount = enabledDiscount && enabledAmountDiscount`
+  (helpers/subscription/checkDiscountPlan.js:23-26) tra false ->
+  pricingPolicyDetail(...enabled:false) (helpers/utils/getSellingPlanVariables.js:37-44)
+  ghi `percentage: 0` len Shopify. Dung hinh dang doc duoc live:
+  {"adjustmentType":"PERCENTAGE","adjustmentValue":{"percentage":0},"afterCycle":0}
+
+============================================================
+C. DOC CODE — 3 duong VAN dang tao line 0% (yeu cau 3)
+============================================================
+C1. Backend KHONG he tinh lai discount khi them line.
+    controllers/storefrontApi/managementController.js:522-560 (portal) va
+    controllers/clientApi/subscriptionContractController.js:393-417 (admin)
+    lay nguyen `lines` tu ctx.req.body -> services/subscription/subscriptionService.js:2018
+    handleAddLines -> subscriptionDraftLineAdd. Khong validate, khong recompute.
+    => pricingPolicy do FRONTEND quyet dinh hoan toan.
+
+C2. ADMIN "Add product" HARDCODE 0%  — CHUA FIX, van con trong cay lam viec hien tai
+    packages/assets/src/hooks/modal/useAddProductsModal.js:230-241
+       pricingPolicy: {basePrice: variant.price,
+         cycleDiscounts:[{adjustmentType:'PERCENTAGE',
+                          adjustmentValue:{percentage: 0}, afterCycle:0,
+                          computedPrice: linePrice}]}
+       sellingPlanId: null, customAttributes:[{__selling_plan_id: uuid()}]
+    packages/assets/src/pages/Subscriptions/Tabs/PlanDetails/PlanDetails.js:129-135
+       addedPlans: [{...data.plan, enabledDiscount: false, enabledChangeDiscount: false,
+                     sellingPlanId: <uuid>}]
+    => tao dung chu ky "enabledDiscount=false, enabledAmountDiscount=true, discountValue=5,
+       sellingPlanId=UUID" — TRUNG KHIT voi 149541781885.
+    => day CHINH LA loi khach bao 22/11/25 "add product admin khong auto discount 5%",
+       ma report CS xep 🟢 da fix 16/06. KHONG DUNG.
+
+C3. BULK ACTION "add product" cung hardcode 0%
+    packages/functions/src/services/subscription/bulkAddProducts.js:224-235 (percentage: 0)
+    va :252-256 (enabledDiscount:false, enabledChangeDiscount:false)
+
+C4. BULK SWAP server-side ep tat discount
+    packages/functions/src/services/subscription/bulkSwapProducts.js:331-333
+       const serverSideProps = isServerSide ? {enabledDiscount:false, enabledAmountDiscount:false} : {}
+    goi tu handlers/pubsub/bulkActionHandler.js:18. Tao chu ky "False/False + discountValue 5"
+    -> giong 117174239613 / 116934836605.
+    ⚠️ NHUNG: log backgroundActivities cua kookut (22 job, som nhat 2025-12-30) KHONG co job
+       bulk-swap nao — toan `sync-product-price-to-subscription-contract`. Ton thuong cua 2
+       contract tren xay ra 06→08/2025, TRUOC moi job co trong log. => KHONG duoc ket luan
+       bulkSwap la thu pham cho kookut. Nguyen nhan lich su cua 2 ca do CHUA XAC DINH DUOC
+       (code thoi diem do khong con trong cay lam viec, va toi bi cam chay git).
+    Duong swap 1-contract hien tai (services/subscription/contractService.js:112-240, dung boi
+    controllers/subscriptionContractController.js:756-787) KHONG co serverSideProps
+    -> duong nay khong tat discount.
+
+C5. Fix 16/06 "sellingPlanId" CO trong cay lam viec:
+    services/subscription/ensureLineOwnsPlan.js (fork-on-write per-line key) +
+    helpers/subscription/resolveSwapLineKey.js, duoc goi o shopifyService.js:1349, :1439 va
+    subscriptionUpdateLine.js:306. No chua "sua 1 SP lam hong discount cua SP khac"
+    (cross-contamination) — KHONG chua duong C2/C3/C4 o tren.
+    ⚠️ Toi KHONG xac minh duoc no co nam trong master khong: nhanh hien tai la
+       feat/chatty-subscription-api va toi bi cam chay git.
+
+============================================================
+D. VI SAO "FIX ROI LAI BI" — co che tu tai tao
+============================================================
+services/subscription/contractBulkActionService.js:157-186 updateContractPriceLineBatch
+  const lineItemPlan = getPlanWithDiscountConfig(lineItem.plan);   // :171
+  -> processLineItemPriceUpdate (:108-145) -> getCycleDiscountVariables(input,...)  (:120)
+  -> ghi lai pricingPolicy len Shopify.
+Neu plan entry cua line da bi nhiem (enabledDiscount=false) thi MOI lan chay
+`sync-product-price-to-subscription-contract` se GHI LAI 0% len Shopify.
+=> Sua tay pricingPolicy tren Shopify se bi job sync xoa lai. Phai sua plans[] trong
+   Firestore truoc.
+⚠️ DINH CHINH BRIEF: cau "sync khong dung toi line hong, chay bao nhieu lan cung khong tu
+   chua" ([[#28]]) CHI dung cho basePrice. Voi DISCOUNT thi nguoc lai — sync GHI DE discount
+   moi lan chay. kookut co 20 job sync trong log.
+
+============================================================
+E. YEU CAU 4 — discount dung, basePrice sai
+============================================================
+151147970941 live tren Shopify (node $SC/liveContractPricing.js ... 151147970941):
+  Tuna 70g     base 1.95  current 1.853  percentage=5  ratio 0.9503
+  Salmon 70g   base 1.80  current 1.71   percentage=5  ratio 0.9500
+  Salmon 24x70 base 40.00 current 38.00  percentage=5  ratio 0.9500
+  Tuna 24x70   base 45.95 current 43.653 percentage=5  ratio 0.9500
+  plans[]: ca 4 entry enabledDiscount=true, enabledAmountDiscount=true, discountValue=5
+=> XAC NHAN [[#44]]: discount 5% ap DUNG tren ca 4 dong. Sai nam o basePrice (Tuna 1.95/45.95
+   thay vi 1.70/40.00). Khong co dau hieu bug discount o contract nay.
+=> Rong hon: 595/626 line toan shop deu dung 0.95 -> co che discount cua kookut ve co ban ON.
+   3 truc "gia / ship / discount" thi discount la truc it hong nhat.
+
+Thu tu line LIVE khac thu tu trong Firestore products[] (live: Tuna70, Salmon70, Salmon24,
+Tuna24; Firestore: Salmon70, Salmon24, Tuna70, Tuna24) — them mot bang chung doc lap cho
+lech index cua [[#28]].
+
+============================================================
+F. PHAT HIEN NGOAI CHIEU (bao de chieu khac xu)
+============================================================
+15 contract Firestore ghi PAUSED nhung Shopify tra ACTIVE:
+  118869197181 120547639677 117174239613 118553739645 121601032573 121496043901
+  119850303869 117124989309 121424478589 117206647165 116934836605 116999324029
+  118354313597 119156867453 116972159357
+⚠️ Trong do co 117124989309 — BRIEF [[#28]] goi la "PAUSED bom hen gio". Tren Shopify no
+   dang ACTIVE. Muc do gap co the cao hon BRIEF ghi. (2 ca toi kiem — 117174239613 va
+   116934836605 — nextBillingDate con ket o 08/2025 va khong ra order tu 11/2025, nen "ACTIVE"
+   o day co the la trang thai chet chu khong phai dang charge. CAN CHIEU KHAC XAC MINH.)
+
+Chua kiem: bug "discount 50% van ap order 2 sau khi het sale" (30/12/25). Trong toan bo du
+lieu live doc duoc, moi cycleDiscounts deu chi co 1 phan tu afterCycle=0 -> kookut hien khong
+dung discount theo tier/het han. Chua chay test rieng cho removeDiscountExpired.

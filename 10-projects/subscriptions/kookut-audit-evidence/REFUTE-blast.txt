@@ -1,0 +1,10 @@
+total contracts in Firestore: 209
+by status: {"PAUSED":73,"ACTIVE":86,"CANCELLED":50}
+contracts with >=1 poisoned plans[] entry: 5 (entries=19)
+contracts with poisoned contract.plan: 4 (of which lines clean: 0)
+---
+  116934836605 fsStatus=PAUSED poisoned=4/5 contractPlanPoisoned=true keys=[710589120893,710589841789,710589186429,710589743485]
+  117174239613 fsStatus=PAUSED poisoned=3/10 contractPlanPoisoned=true keys=[710589645181,710589186429,710589841789]
+  121413828989 fsStatus=CANCELLED poisoned=8/9 contractPlanPoisoned=true keys=[27e96c60-e9bb-44be-b1c6-d3aea8779e93,62741f6c-e958-4c46-a781-30963ce99ecd,d8a03739-a1e9-4a2c-9833-608b258b662a,0f6e7f62-0cb7-4daf-8f82-c545f67df125,df163e40-10af-4ea1-999b-db0ece4ddcce,006db4a0-f431-4550-bf41-14e97a4b65cc,f443d09b-b67b-4d4a-a758-5bfd65646204,c8e4819c-1f9f-4f8d-b344-e379c94fecbc]
+  140259131773 fsStatus=CANCELLED poisoned=1/5 contractPlanPoisoned=false keys=[34a59c24-a522-4dd6-ae26-650a9cc1e543]
+  149541781885 fsStatus=ACTIVE poisoned=3/3 contractPlanPoisoned=true keys=[eaa4ab77-fc66-4221-8935-894307fa08af,b813ca11-5e72-4a6e-93eb-a94c6e2525f1,14334d74-6e37-447b-acaf-0a15557cd6f5]

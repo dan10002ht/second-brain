@@ -1,0 +1,162 @@
+CHIEU DOI KHANG — REFUTE ket qua chieu "discount" — kookut.myshopify.com — 2026-08-17 — READ ONLY
+shopId = 4VgCcf9Ov5cIBx2tCkcT
+
+=========================================================================
+LENH TOI TU CHAY (khong dung lai ket qua cua ho)
+=========================================================================
+cwd = /Users/dantt1002/projects/subscriptions/packages/functions
+SC  = /private/tmp/claude-501/-Users-dantt1002-projects-subscriptions/ae2ad0b1-3f96-44cd-95d5-e9f7a8d44e1b/scratchpad
+
+R1) LIVE pricingPolicy + FULL cycleDiscounts array + orders + Firestore plans[]:
+    set -a && . ./.env.local && set +a && SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app \
+      SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD" \
+      node $SC/refuteDiscount.js 117174239613 116934836605 149541781885 153490162045 151147970941
+    -> $SC/REFUTE-discount-raw.txt
+
+R2) LINE ITEM THAT cua tung order (nguon su that ve tien):
+    ... node $SC/refuteOrders.js 117174239613 116934836605  -> $SC/REFUTE-orders-raw.txt
+
+R3) Chay lai NGUYEN sweep cua ho:
+    ... node $SC/liveDiscountSweep.js kookut.myshopify.com  -> $SC/REFUTE-sweep.txt
+
+R4) Blast radius that trong Firestore (KE CA CANCELLED — ho bo qua):
+    SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app node $SC/refuteBlastRadius.js
+    -> $SC/REFUTE-blast.txt
+
+R5) Activity trail: node lib/commands/misc/inspectContractActivities.js 4VgCcf9Ov5cIBx2tCkcT <id> 60
+    -> $SC/REFUTE-activities.txt
+R6) Background jobs: node lib/commands/misc/inspectBulkSwapJobs.js 4VgCcf9Ov5cIBx2tCkcT 60
+    -> $SC/REFUTE-bgjobs.txt
+
+=========================================================================
+A. TAI LAP DUOC (con so cua ho LA DOC THAT tu prod, khong chep BRIEF)
+=========================================================================
+Sweep chay lai, khop TUNG CHU:
+  targets (non-cancelled per Firestore): 159
+  === SUMMARY === allDiscounted=155 withZeroLine=4 notFound=0
+  4 contract 0%: 149541781885 [0,0,0] · 117174239613 [0,0,0,5,5,5,5,5,5,5,5]
+                 153490162045 [0]     · 116934836605 [0]
+  STATUS DRIFT: dung 15 ID, dung thu tu ho liet ke.
+Firestore total = 209 contract (PAUSED 73 / ACTIVE 86 / CANCELLED 50) — khop.
+
+Toi mo rong query de doc TOAN BO mang cycleDiscounts (ho chi doc phan tu [0], la mot
+nguon false-positive tiem tang). Ket qua: MOI line cua ca 5 contract deu co n=1 phan tu.
+=> Lo hong phuong phap do KHONG lam sai ket qua lan nay.
+
+=========================================================================
+B. TIEN — TOI DOC LINE ITEM THAT, SO HO DUNG
+=========================================================================
+117174239613 (CHF), 4 order deu PAID:
+  #6165 08/06/2025  TAT CA line @1.71  -> KHONG thu thua
+  #6680 08/08/2025  Pumpkin x3 @1.80 + GreenMussels x5 @1.80 = 8 dv x 0.09 = 0.72
+  #7104 25/09/2025  + Chicken&PacificTuna x4 @1.80 => 12 dv x 0.09 = 1.08
+  #7530 11/11/2025  12 dv x 0.09 = 1.08
+  TONG = 2.88 CHF  <-- DUNG y nguyen con so ho bao
+116934836605 (CHF):
+  #6124 02/06/2025 tat ca @1.71 (Salmon x15 giu discount o ca 2 don)
+  #6631 02/08/2025 ChickenPacificTuna x20 + GreenMussels x20 + Seaweed x20 + PacificTuna x5
+        = 65 dv x 0.09 = 5.85 CHF   <-- DUNG
+TONG 8.73 CHF — XAC NHAN.
+149541781885: orders(n=0) tren Shopify -> loi nhan "chua mat tien that" cua ho LA DUNG.
+
+=========================================================================
+C. CO CHE CODE — TOI TU TRACE, KHOP
+=========================================================================
+Sync ghi de discount tu plans[]:
+  contractBulkActionService.js:253-256  transformContractDataFormat
+      plan: contract.plans.find(p => p.sellingPlanId === item.sellingPlanId) || contract.plan
+  -> :171 getPlanWithDiscountConfig -> :120 getCycleDiscountVariables
+  -> getSellingPlanVariables.js:342  neu !discountConfig  -> getLegacyCycleDiscountVariables
+        :356  enabled: checkEnabledAmountDiscount(plan)  -> percentage 0
+     neu CO discountConfig -> getCycleDiscountTiersVariables -> getPricingPolicyByTier :322
+        const isEnabledAmountDiscount = checkEnabledAmountDiscount(plan)  -> discountValue 0
+  checkDiscountPlan.js:23-26  enabledDiscount && enabledAmountDiscount
+  => CA HAI nhanh deu bi gate. Ho chi dan nhanh legacy nhung ket luan van dung
+     (149541781885 co discountConfig=true, di nhanh tiers).
+
+Backend khong recompute khi add line: subscriptionService.js:2081-2085
+  linesWithPlanName.map(line => subscriptionDraftLineAdd({... cleanEmptyField(line)}))
+  -> khong dung toi pricingPolicy. XAC NHAN C1.
+Admin hardcode 0%: useAddProductsModal.js:236 (percentage: 0) + PlanDetails.js:132-133.
+Bulk add: bulkAddProducts.js:230 + :254-255. Bulk swap: bulkSwapProducts.js:332.
+Portal khach tu them CO recompute: prepareLineAddPayload.js:55-70. XAC NHAN.
+
+=========================================================================
+D. CHO HO SAI / NOI QUA
+=========================================================================
+D1. "Ung vien DUY NHAT tao chu ky False/False la bulkSwapProducts" — SAI.
+    Con it nhat 2 duong nua, deu spread ...contractData.plan (mang discountValue=5)
+    roi ep ca hai co ve false:
+      packages/scripttag/src/subscription/hooks/modal/useCancellationFlowModal/
+        useCancellationFlowModal.js:413-414
+      extensions/customer-account-ui/src/hooks/modals/useCancellationFlowModal.js:295-296
+    (duong "tang gift" trong cancellation flow — key la UUID nen khong khop 2 ca kookut,
+     nhung menh de "duy nhat" bi bac bo.)
+    Ngoai ra helpers/subscription/buildDefaultPlanFromContract.js:56-58 cung False/False
+    (nhung discountValue=0 nen khong phai chu ky nay).
+
+D2. Lap luan "khong co job bulk-swap trong log" YEU hon ho tuong.
+    Toi chay lai: 22 job = 20 sync-product-price + 1 bulk-update-subscription-product-price
+    + 1 bulk-delete-subscription, som nhat 2025-12-30. NHUNG bulkSwap ghi log bang
+    createOrUpdateBackgroundActivityByFields (bulkSwapProducts.js:111-121) — la UPSERT theo
+    field, nen N lan swap chi de lai 1 doc; va collection ro rang chi bat dau co du lieu tu
+    12/2025. Vang mat trong log KHONG chung minh duoc gi cho 06-08/2025.
+    Ket luan "dung do bulkSwap" cua ho van DUNG, nhung ly do ho dua ra khong vung.
+
+D3. Lap luan qua activity log cung KHONG dung duoc (ho khong kiem):
+    createActivity chi duoc goi tu orderService.js:213, bulkChangeStatusService.js:212,
+    subscriptionService.js:367/1377, billingAttemptWebhookService.js:92,
+    subscriptionContractCreateService.js:792/1262.
+    => collection `activities` chi ghi create/recurring/attempt_billing/pause.
+       KHONG BAO GIO ghi add_product / swap / line edit.
+    Bang chung: 117174239613 co activities = create + recurring x3 + attempt_billing + pause,
+    KHONG co event nao — trong khi line item giua #6165 va #6680 ro rang da bi sua.
+
+D4. Gan 149541781885 cho duong admin "Add product" — KHONG DUNG DUOC.
+    afterUpdateContract (shopifyService.js:2152-2154): voi updateType 'lineAdd'/'lineRemove'
+    CHI ghi `toUpdateData.plans = plans`, TUYET DOI khong ghi `plan`.
+    Nhung 149541781885 co contract.plan.enabledDiscount = false (REFUTE-discount-raw.txt:83).
+    Them nua: plans[] = 3/3 entry deu hong, khong con entry goc nao sach — trong khi
+    add-product la thao tac CONG THEM (phai con entry cu). Ma cycle 1 da charge co discount.
+    => Contract nay bi ghi de TOAN BO plan, khong phai bi "them 1 line 0%".
+    Bug code C2 LA THAT; nhung `affected: [149541781885]` la suy dien theo mau hinh, chua co
+    bang chung — dung kieu sai lam BRIEF da vap nhieu lan.
+
+D5. "sync GHI DE 0% lai MOI LAN CHAY" — noi qua.
+    Sync chi chay khi gia 1 product doi, va chi dung toi line cua product do
+    (needUpdateData[contractId].lineItems). Khong phai quet toan bo contract dinh ky.
+    Va o kookut KHONG co bang chung nao cho thay mot line discount da tung duoc sua roi
+    bi sync xoa lai. Co che dung; quy ket "day la ly do fix roi lai bi" chua chung minh.
+
+D6. "Khong co call site nao trong ... bulkSwapProducts.js" (finding 9) — sai mot nua.
+    ensureLineOwnsPlan: dung, chi 3 call site (shopifyService.js:1349, :1439,
+    subscriptionUpdateLine.js:306).
+    resolveSwapLineKey: CO trong bulkSwapProducts.js:335 VA contractService.js:176.
+
+D7. Finding 5 tit de "mat discount tren 4/5 dong" — hien tai contract 116934836605 chi con
+    DUNG 1 line tren Shopify. "4/5 dong" la cua ORDER #6631, khong phai cua contract.
+
+=========================================================================
+E. HO BO SOT — 2 CONTRACT HONG NUA (toi tim ra)
+=========================================================================
+$SC/REFUTE-blast.txt — quet Firestore theo tieu chi CHINH HO de xuat
+(discountValue > 0 AND (enabledDiscount==false OR enabledAmountDiscount==false)):
+
+  contracts with >=1 poisoned plans[] entry: 5 (entries=19)
+  116934836605 PAUSED    poisoned 4/5   contract.plan hong
+  117174239613 PAUSED    poisoned 3/10  contract.plan hong
+  121413828989 CANCELLED poisoned 8/9   contract.plan hong   <-- HO BO SOT
+  140259131773 CANCELLED poisoned 1/5   contract.plan sach   <-- HO BO SOT
+  149541781885 ACTIVE    poisoned 3/3   contract.plan hong
+
+Sweep cua ho filter `fsStatus !== 'CANCELLED'` nen 2 ca nay vo hinh.
+121413828989 dac biet dang chu y: 8/9 dong mat discount RỒI KHACH CANCEL — dung loai
+bang chung can cho ticket "khach bo di vi bi thu thua", va la mau vat forensic tot nhat
+(UUID key, giong 149541781885) de truy nguyen nhan lich su.
+Doi lai, 153490162045 KHONG nam trong danh sach nay -> XAC NHAN doc lap finding 7 cua ho.
+
+E2. Status drift co bang chung manh hon ho nghi:
+    117174239613 co activity `pause` 2025-11-11, 116934836605 co `pause` 2025-09-28,
+    Firestore = PAUSED, nhung Shopify van tra ACTIVE.
+    => Khong phai "trang thai chet" mo ho: lenh pause DA CHAY ma khong propagate len Shopify.
+    Muc do gap cua nhom 15 contract nay cao hon ho danh gia.

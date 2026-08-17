@@ -1,0 +1,104 @@
+# CHIEU DOI KHANG — REFUTE bao cao "shipping" — kookut.myshopify.com — 2026-08-17
+# READ-ONLY. Khong git. Khong mutation Firestore/Shopify (tru cartCreate ephemeral,
+# giong het cai prod code va auditShippingRecurring.js van goi).
+
+## LENH TU CHAY LAI (cwd = packages/functions)
+BASE='set -a && . ./.env.local && set +a && SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD"'
+1) $BASE node lib/commands/misc/compareShippingMirror.js kookut.myshopify.com ALL
+   -> REFUTE-shipping-mirror.txt   (86 contract, "TONG: 41/86")
+2) $BASE node lib/commands/misc/auditShippingRecurring.js kookut.myshopify.com 300
+   -> REFUTE-shipping-audit.txt    (86 ACTIVE)
+3) $BASE node lib/commands/misc/inspectContractActivities.js 4VgCcf9Ov5cIBx2tCkcT 150579708285 40
+4) probe TU VIET (scratchpad/probeGroupType.js, copy tam vao lib/commands/misc/
+   roi XOA) — cartCreate y het prod nhung xin them `groupType` + `deliveryOptions`.
+
+## KET QUA QUYET DINH — groupType (dieu bao cao kia BO SOT)
+154109116797 CH: [0] groupType=ONE_TIME_PURCHASE opts=[["Standard - SwissPost Economy","10.0","CHF"]]
+                 [1] groupType=SUBSCRIPTION       opts=[["Standard - SwissPost Economy","0.0","CHF"]]
+150579708285 CH: [0] ONE_TIME_PURCHASE 10.0 CHF | [1] SUBSCRIPTION 0.0 CHF
+155222278525 CH: [0] ONE_TIME_PURCHASE 10.0 CHF | [1] SUBSCRIPTION 0.0 CHF
+156384657789 BE: [0] ONE_TIME_PURCHASE "Home Delivery 3-7 days" 5.9 EUR | [1] SUBSCRIPTION 0.0 EUR
+153490162045 FR: 1 group, ONE_TIME_PURCHASE, 5 option (5.9 x3, 6.9, 10.0), selected 5.9
+                 (khong co group SUBSCRIPTION — line nay khong co selling plan)
+
+=> Nhom 0.00 KHONG phai "mot rate re hon cua cung mot chuyen giao". No la
+   deliveryGroup danh cho GIAO HANG DINH KY (groupType=SUBSCRIPTION) — tuc chinh
+   shipping profile cua merchant dang bao gia 0 cho don recurring.
+   edges[0] ma code dang lay lai la nhom ONE_TIME_PURCHASE.
+   Nghia la code dang quote NHAM LOAI don, chu khong phai "quen so sanh de tim min".
+   He qua nguoc voi khuyen nghi cua bao cao kia: neu sua #32 de tinh lai moi ky bang
+   code hien tai, app se ghi 10 CHF len contract ma profile subscription noi la 0 ->
+   THU DU hang loat. Con neu "sua cho dung nghia lowest" (min moi group) thi ra 0 —
+   nhung do la con so DUNG theo cau hinh merchant, khong phai bug.
+
+## MIRROR — con so 41/86 bi thoi phong boi CHINH loi ma ho to cao nguoi khac
+compareShippingMirror.js:52 `const bad = Number(f) !== Number(l)`; f='none' -> NaN ->
+NaN !== 0 -> luon true. Bang cap (Firestore, Shopify) tu run cua toi:
+  40 (0.0, 0.0)      <- khop
+  30 (none, 0.0)     <- bi dem la LECH, nhung app fallback 0 nen HIEN THI van dung
+   4 (none, 10.0)    <- lech that
+   3 (5.9, 5.9)      <- khop
+   2 (10.0, 10.0)    <- khop
+   2 (0.0, 10.0)     <- lech that
+   1 (none, 6.69) 1 (none, 5.9) 1 (5.42, 4.7) 1 (10.0, 5.9) 1 (0.0, 9.83)  <- lech that
+=> lech CO Y NGHIA = 11/86 (13%), khong phai 41/86 (48%).
+
+## deliveryPrice UNDEFINED — XAC NHAN
+auditShippingRecurring.js dong dau: deliveryPrice hien tai: {"0.0":43,"10.0":3,"none":36,"5.42":1,"5.9":3}
+36/86 khong co field. 36 dong in ra "dang thu=NaN". Code loi: auditShippingRecurring.js:74
+`Number(c.deliveryPrice?.amount ?? NaN)` + :77 `Math.abs(would-now) > 0.01` -> false.
+=> Finding #3 DUNG.
+
+## NHOM "no shipping rates found" — SO 12 KHONG TAI LAP DUOC
+Run cua toi: 24 dong `lowest=n/a`, 23 lan `⏭️ Skip: no shipping rates found`.
+Doc 13/08 ghi 23. Bao cao kia ghi 12. Ba lan do ra ba con so khac nhau -> tap hop
+KHONG on dinh, khong the goi la "12 contract hong cau truc".
+Trong log cua toi co NGUYEN NHAN CU THE ma ho bao "chua xac dinh":
+  - 4 lan `Error when creating cart ... message: 'Cannot apply selling plan to variant'`
+    (5 message) -> cartService.js:26 `if (errors || userErrors.length) return {}` -> no rate.
+    Gia thuyet selling-plan cua ho BI BAC SAI: ho chi kiem tra plan id CO TON TAI,
+    khong kiem tra plan co AP DUOC cho variant khong.
+  - 2 lan ETIMEDOUT -> n/a do mang, khong phai do shop.
+
+## 3 DONG SAI TRONG docs/kookut-shipping-audit.md — XAC NHAN
+Tu run cua toi:
+ 156384657789  Firestore=10.0  Shopify=5.9   <<< doc noi "KHACH bi thu du 4.10/ky" -> SAI
+ 150579708285  Firestore=0.0   Shopify=10.0  <<< doc noi "shop dang mat phi ship" -> SAI
+ 153490162045  Firestore=5.42  Shopify=4.7   <<< doc ghi 5.42 vs 5.90
+inspectContractActivities 150579708285: 5 activity (create_subscription 2026-06-08 +
+4 attempt_billing 08-11/08) — KHONG co lan sua shipping nao sau 13/08, nen 10.0 khong
+phai do ai vua fix; doc lay so tu Firestore stale.
+Luu y nho: doc liet ke 6 dong "shop dang mat phi ship" (+1 dong "da sua 13/08"),
+nen phai noi "6 -> 5", bao cao kia ghi "7 -> 5".
+Xac nhan 5 contract that su Shopify=0: 155222278525 154185236861 155756986749
+155757019517 155757052285 (deu Firestore=0.0 Shopify=0.0).
+
+## FINDING #9 (presentmentTitle) — SAI O PHAN HE QUA
+- shippingProfileService.js:781-790: dieu kien skip la AND cua 4 ve, trong do co
+  `Math.abs(currentDeliveryPrice - newDeliveryPrice) < DELIVERY_PRICE_EPSILON`.
+  Nen ke ca presentmentTitle khop, gia lech van ghi. Ho mo ta nhu the presentmentTitle
+  la ve duy nhat.
+- autoUpdateShippingRate KHONG commit draft. No goi `subscriptionDraftUpdate` len
+  draftId do CALLER truyen vao. Kiem 4 caller:
+    contractService.js:385 createSubscriptionContractDraft -> :408 autoUpdate -> commit sau
+    shopifyService.js:1333 updateCurrentPrice{shouldCommit:false} -> :1363 -> :1381 commitDraftContract
+    shopifyService.js:1581 changeSubscriptionContractLine -> :1598 -> :1608 commitSubscriptionDraft
+    subscriptionUpdateLine.js:234/:334 cung mau
+  => KHONG co commit them. Cau "moi lan sua contract deu commit them mot draft khong
+     can thiet -> mat cycle edit" la SAI.
+- Comment ":667-669" ho trich thuoc ham KHAC (adjustShippingPrice), khong phai
+  autoUpdateShippingRate.
+- Co ton tai mot co che "save roi revert" that, nhung khac: autoUpdateShippingRate
+  ghi de deliveryPrice/shippingOption len chinh draft ma user vua sua tay.
+
+## CALL SITE BO SOT
+Ho liet ke 8 call site autoUpdateShippingRate va ket luan "het". Con:
+  services/subscription/applyFreeShippingService.js:99  getLowestShippingRate (devZone tool,
+     controllers/devZoneController.js:1481) — cai NAY tu tao draft + commitDraftContract.
+  commands/misc/repairContractShipping.js:57
+Khong lam thay ket luan #1 (van khong co duong tinh lai moi ky) nhung enumeration khong day du.
+
+## CHI TIET KHAC KHONG AI NOI
+const/default.js:270 + services/subscriptionService.js:178/266/383 ->
+`recurringOption: RECURRING_OPTION_LOWEST` la MAC DINH cua moi shop. Bug #32 vi vay
+khong rieng kookut. Bao cao kia trinh bay nhu setting rieng cua kookut.

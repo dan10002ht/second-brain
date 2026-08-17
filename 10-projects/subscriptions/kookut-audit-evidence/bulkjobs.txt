@@ -1,0 +1,312 @@
+=== backgroundActivities: 22 ===
+
+--- sy94Sc58TzX3Iw4ByKoS ---
+{
+  "createdAt": "2025-12-30T11:23:29.000Z",
+  "updatedAt": "2025-12-30T11:29:16.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "bulk-update-subscription-product-price",
+  "status": "DONE"
+}
+
+--- kdr6UxYXvmcwxP86ymSB ---
+{
+  "createdAt": "2025-12-30T11:33:24.000Z",
+  "updatedAt": "2025-12-30T11:34:02.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6574718648528,
+  "totalContracts": 4,
+  "processedCount": 4,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "kdr6UxYXvmcwxP86ymSB"
+}
+
+--- H5fZDyDkYFV5fl3wHfmK ---
+{
+  "createdAt": "2025-12-30T12:22:56.000Z",
+  "updatedAt": "2026-08-13T14:58:22.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576478224592,
+  "totalContracts": 23,
+  "processedCount": 3,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "H5fZDyDkYFV5fl3wHfmK"
+}
+
+--- wEhO7bdp9VHyDfUVxXGK ---
+{
+  "createdAt": "2025-12-30T12:22:56.000Z",
+  "updatedAt": "2026-08-14T15:53:01.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6574720745680,
+  "totalContracts": 9,
+  "processedCount": 9,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "wEhO7bdp9VHyDfUVxXGK"
+}
+
+--- JFws3XUBM8tpYuttQ33m ---
+{
+  "createdAt": "2025-12-30T13:41:28.000Z",
+  "updatedAt": "2026-08-13T16:58:06.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6574725103824,
+  "totalContracts": 1,
+  "processedCount": 1,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "JFws3XUBM8tpYuttQ33m"
+}
+
+--- fUADvsfThGObqKEsq7pK ---
+{
+  "createdAt": "2025-12-30T18:04:38.000Z",
+  "updatedAt": "2026-08-13T15:20:21.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576451322064,
+  "totalContracts": 22,
+  "processedCount": 2,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "fUADvsfThGObqKEsq7pK"
+}
+
+--- AD5pVizVe9rSQ8ndDqe8 ---
+{
+  "createdAt": "2025-12-30T18:04:39.000Z",
+  "updatedAt": "2026-08-14T14:36:58.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576498409680,
+  "totalContracts": 20,
+  "processedCount": 20,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "AD5pVizVe9rSQ8ndDqe8"
+}
+
+--- yJN3JjZlvZKcmhkdAZyq ---
+{
+  "createdAt": "2025-12-30T18:04:39.000Z",
+  "updatedAt": "2026-08-14T19:29:59.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576427466960,
+  "totalContracts": 7,
+  "processedCount": 7,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "yJN3JjZlvZKcmhkdAZyq"
+}
+
+--- ByfDDJun0se3NN5Yw3W7 ---
+{
+  "createdAt": "2025-12-30T21:23:54.000Z",
+  "updatedAt": "2026-08-14T16:15:15.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576417243344,
+  "totalContracts": 26,
+  "processedCount": 5,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "ByfDDJun0se3NN5Yw3W7"
+}
+
+--- RHXjFCQk8DPigyAu4njm ---
+{
+  "createdAt": "2025-12-30T21:23:54.000Z",
+  "updatedAt": "2026-08-13T15:09:50.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576443031760,
+  "totalContracts": 29,
+  "processedCount": 9,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "RHXjFCQk8DPigyAu4njm"
+}
+
+--- zld3yr4LWiPGoglqqXMb ---
+{
+  "createdAt": "2025-12-30T21:23:54.000Z",
+  "updatedAt": "2026-08-13T15:20:55.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576437264592,
+  "totalContracts": 26,
+  "processedCount": 6,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "zld3yr4LWiPGoglqqXMb"
+}
+
+--- n484GjaS3QWsjS09Tknt ---
+{
+  "createdAt": "2025-12-31T12:20:32.000Z",
+  "updatedAt": "2026-08-14T19:28:40.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "PENDING",
+  "productId": 15247427436925,
+  "totalContracts": 23,
+  "processedCount": 1,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "n484GjaS3QWsjS09Tknt"
+}
+
+--- Op4v6tyK79situnYTCBH ---
+{
+  "createdAt": "2026-01-01T10:52:59.000Z",
+  "updatedAt": "2026-01-26T12:27:08.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6574721663184,
+  "totalContracts": 1,
+  "processedCount": 1,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "Op4v6tyK79situnYTCBH"
+}
+
+--- 53NVYeaGS1EpGNGpeMZg ---
+{
+  "createdAt": "2026-01-26T15:22:00.000Z",
+  "updatedAt": "2026-08-13T15:46:54.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576472588496,
+  "totalContracts": 20,
+  "processedCount": 20,
+  "chunkIndex": 0,
+  "totalChunks": 1,
+  "activityId": "53NVYeaGS1EpGNGpeMZg"
+}
+
+--- TDUZhYL3OPxTSdHI8tpl ---
+{
+  "createdAt": "2026-07-16T08:13:55.000Z",
+  "updatedAt": "2026-08-14T17:20:35.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6576492216528,
+  "totalContracts": 21,
+  "processedCount": 21,
+  "chunkIndex": 0,
+  "totalChunks": 1
+}
+
+--- ZRUdQiTbGvHsybtn93eG ---
+{
+  "createdAt": "2026-07-16T16:49:49.000Z",
+  "updatedAt": "2026-08-14T16:07:56.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 15674839859581,
+  "totalContracts": 12,
+  "processedCount": 12,
+  "chunkIndex": 0,
+  "totalChunks": 1
+}
+
+--- 2HrM47FuO7euYSlmEt8w ---
+{
+  "createdAt": "2026-07-17T09:05:41.000Z",
+  "updatedAt": "2026-08-12T05:27:11.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 15674750927229,
+  "totalContracts": 3,
+  "processedCount": 3,
+  "chunkIndex": 0,
+  "totalChunks": 1
+}
+
+--- qEqV58igKcv03vvScyKU ---
+{
+  "createdAt": "2026-07-17T12:42:39.000Z",
+  "updatedAt": "2026-07-17T12:42:45.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "bulk-delete-subscription",
+  "status": "DONE"
+}
+
+--- C1cW0uaYckXjZ6EacmSY ---
+{
+  "createdAt": "2026-07-18T20:58:49.000Z",
+  "updatedAt": "2026-08-13T15:27:03.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 6574904672464,
+  "totalContracts": 30,
+  "processedCount": 8,
+  "chunkIndex": 0,
+  "totalChunks": 1
+}
+
+--- 7g5XxbptxAVvHdUpg9C5 ---
+{
+  "createdAt": "2026-08-06T12:50:27.000Z",
+  "updatedAt": "2026-08-12T19:05:55.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 15789619577213,
+  "totalContracts": 1,
+  "processedCount": 1,
+  "chunkIndex": 0,
+  "totalChunks": 1
+}
+
+--- ZSOUMpPPLuc1AqZAYOFa ---
+{
+  "createdAt": "2026-08-09T11:23:38.000Z",
+  "updatedAt": "2026-08-09T11:23:50.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 15745177977213,
+  "totalContracts": 1,
+  "processedCount": 1,
+  "chunkIndex": 0,
+  "totalChunks": 1
+}
+
+--- wqjpHZ35OpD4TxFI3D0u ---
+{
+  "createdAt": "2026-08-09T11:24:17.000Z",
+  "updatedAt": "2026-08-09T11:24:28.000Z",
+  "type": "bulk-action-subscription",
+  "bulkActionType": "sync-product-price-to-subscription-contract",
+  "status": "DONE",
+  "productId": 15745113817469,
+  "totalContracts": 1,
+  "processedCount": 1,
+  "chunkIndex": 0,
+  "totalChunks": 1
+}

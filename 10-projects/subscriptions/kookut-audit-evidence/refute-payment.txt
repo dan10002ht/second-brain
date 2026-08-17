@@ -1,0 +1,185 @@
+shop 4VgCcf9Ov5cIBx2tCkcT kookut.myshopify.com
+
+[1] total=1476 withMasked=1248 mismatch=190 contracts=38
+[2] mismatched masked-tail origin: sameContractOldCard=0 otherContract=3 nowhereInShop=187
+   other-contract examples: [
+ {
+  "doc": "IQY9Bhx9nW0cyYDs74qk",
+  "c": 117505720701,
+  "cy": 1,
+  "last": "7555",
+  "masked": "•••• •••• •••• 4410",
+  "alsoOn": [
+   125403431293
+  ]
+ },
+ {
+  "doc": "K4VIsgnHQlSARbM8Ppq1",
+  "c": 117505720701,
+  "cy": 3,
+  "last": "7555",
+  "masked": "•••• •••• •••• 4410",
+  "alsoOn": [
+   125403431293
+  ]
+ },
+ {
+  "doc": "Qmzr8A0Tt0YWHBHNSSQt",
+  "c": 117505720701,
+  "cy": 2,
+  "last": "7555",
+  "masked": "•••• •••• •••• 4410",
+  "alsoOn": [
+   125403431293
+  ]
+ }
+]
+   nowhere examples: [
+ {
+  "doc": "0Sz1Un9sbb3V7zvjnhXA",
+  "c": 122251772285,
+  "cy": 1,
+  "last": "4954",
+  "masked": "•••• •••• •••• 1685",
+  "pmId": "7d4a7da6df2b"
+ },
+ {
+  "doc": "1klWRtct54533EZpoCBj",
+  "c": 142987559293,
+  "cy": 2,
+  "last": "5704",
+  "masked": "•••• •••• •••• 0540",
+  "pmId": "e2e184e62db0"
+ },
+ {
+  "doc": "3fw3UrVMtUJLJWjYnceG",
+  "c": 140389712253,
+  "cy": 5,
+  "last": "8964",
+  "masked": "•••• •••• •••• 1763",
+  "pmId": "44c2209fdcb1"
+ },
+ {
+  "doc": "3gq8z91vOUzhkdU9kPUR",
+  "c": 129462731133,
+  "cy": 5,
+  "last": "8906",
+  "masked": "•••• •••• •••• 2034",
+  "pmId": "6b8dd3795be8"
+ },
+ {
+  "doc": "4MTooiQ2Rh0pWuTmpzut",
+  "c": 142538670461,
+  "cy": 1,
+  "last": "3100",
+  "masked": "•••• •••• •••• 6799",
+  "pmId": "048cb1f50d62"
+ },
+ {
+  "doc": "4QZrUheX33oHU8SQ2liA",
+  "c": 123476083069,
+  "cy": 9,
+  "last": "1493",
+  "masked": "•••• •••• •••• 4787",
+  "pmId": "3ba42a223729"
+ },
+ {
+  "doc": "4jBsBRLVjJzRkEftAWAu",
+  "c": 140389712253,
+  "cy": 8,
+  "last": "8964",
+  "masked": "•••• •••• •••• 1763",
+  "pmId": "44c2209fdcb1"
+ },
+ {
+  "doc": "59ZRTbkyJRMukdO4l9ub",
+  "c": 141388218749,
+  "cy": 1,
+  "last": "9531",
+  "masked": "•••• •••• •••• 8874",
+  "pmId": "9b49d7d7a2eb"
+ }
+]
+[2b] "7216" as lastDigits anywhere in kookut orders: NO
+   cy0 BILLED last=undefined masked=undefined pmId= upd=2026-08-14T08:32:29.672Z
+   cy1 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.672Z
+   cy2 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.673Z
+   cy3 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.674Z
+   cy4 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.673Z
+   cy5 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.672Z
+   cy6 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.673Z
+   cy7 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.674Z
+   cy8 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.671Z
+   cy9 BILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.672Z
+   cy10 UNBILLED last=1932 masked=•••• •••• •••• 7216 pmId=974f317d0b54 upd=2026-08-14T08:32:29.675Z
+   cy11 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-16T08:03:16.891Z
+   cy12 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:57.172Z
+   cy13 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.673Z
+   cy14 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.673Z
+   cy15 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.672Z
+   cy16 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.672Z
+   cy17 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.666Z
+   cy18 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.673Z
+   cy19 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.667Z
+   cy20 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.671Z
+   cy21 UNBILLED last=1932 masked=•••• •••• •••• 1932 pmId=974f317d0b54 upd=2026-08-14T08:32:29.671Z
+
+[3] LIVE caroline: {
+ "subscriptionContract": {
+  "id": "gid://shopify/SubscriptionContract/121065865597",
+  "status": "ACTIVE",
+  "customerPaymentMethod": {
+   "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+   "revokedReason": null,
+   "instrument": {
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932"
+   }
+  },
+  "customer": {
+   "id": "gid://shopify/Customer/6712397070544",
+   "displayName": "Caroline Charbonneau",
+   "email": "charbonneau.caroline@hotmail.fr",
+   "paymentMethods": {
+    "nodes": [
+     {
+      "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+      "revokedReason": null,
+      "instrument": {
+       "__typename": "CustomerCreditCard",
+       "brand": "mastercard",
+       "expiryMonth": 7,
+       "expiryYear": 2026,
+       "lastDigits": "1932",
+       "maskedNumber": "•••• •••• •••• 1932"
+      }
+     }
+    ]
+   }
+  }
+ }
+}
+GQL [{"message":"syntax error, unexpected IDENTIFIER (\"showRevoked\"), expecting RPAREN or VAR_SIGN at [1, 43]","locations":[{"line":1,"column":43}],"extensions":{"code":"PARSE_ERROR"}}]
+[4] broken-query data = undefined
+
+[5] billingAttempts total=722 isCreateAttemptFailed=0
+[6] contracts=209 statuses={"PAUSED":73,"ACTIVE":86,"CANCELLED":50} isPaymentFailed=20 isMaximumRetry=0 pmRevoked=8
+    ACTIVE+expired card: [{"c":119254778237,"exp":"6/2026","last":"8619","rev":false},{"c":119901487485,"exp":"7/2026","last":"4939","rev":false},{"c":121065865597,"exp":"7/2026","last":"1932","rev":false},{"c":135604175229,"exp":"6/2026","last":"0499","rev":false}]
+[7] (contract,cycle) with >4 failed attempts (setting maximumRetryAttempts=3): 13
+    123521991037|6 13
+    123521991037|5 13
+    123521991037|4 12
+    119901487485|7 11
+    129462731133|5 10
+    117661663613|5 8
+    123521991037|3 8
+    117687419261|4 6
+    129462731133|4 6
+    117269365117|4 5
+    117269365117|5 5
+    117269365117|3 5
+    150173548925|1 5

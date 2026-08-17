@@ -1,0 +1,190 @@
+type= shipping country= FR currency= EUR lines= 4
+linesInput [{"merchandiseId":"gid://shopify/ProductVariant/39412882735312","quantity":6},{"merchandiseId":"gid://shopify/ProductVariant/39412859404496","quantity":6,"sellingPlanId":"gid://shopify/SellingPlan/712012038525"},{"merchandiseId":"gid://shopify/ProductVariant/39412859371728","quantity":1},{"merchandiseId":"gid://shopify/ProductVariant/39412882702544","quantity":1}]
+{
+ "errors": [
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    0,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    1,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    2,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  },
+  {
+   "message": "Access denied for sellingPlanAllocation field. Required access: `unauthenticated_read_selling_plans` access scope.",
+   "locations": [
+    {
+     "line": 5,
+     "column": 160
+    }
+   ],
+   "path": [
+    "cartCreate",
+    "cart",
+    "lines",
+    "edges",
+    3,
+    "node",
+    "sellingPlanAllocation"
+   ],
+   "extensions": {
+    "code": "ACCESS_DENIED",
+    "documentation": "https://shopify.dev/api/usage/access-scopes",
+    "requiredAccess": "`unauthenticated_read_selling_plans` access scope."
+   }
+  }
+ ],
+ "data": {
+  "cartCreate": {
+   "cart": {
+    "id": "gid://shopify/Cart/hWNFkPQ2KJDvpqTnvS9ZKsHW?key=76cbba81a6f8be90bc2f9a8614b9a45e",
+    "lines": {
+     "edges": [
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/0f3e014a-d356-4096-a26a-826909e9dbf3?cart=hWNFkPQ2KJDvpqTnvS9ZKsHW",
+        "quantity": 1,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412882702544",
+         "title": "24x70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Pacific Tuna & Sardine - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/92713d6c-673d-4ee6-939f-2f7554d0908f?cart=hWNFkPQ2KJDvpqTnvS9ZKsHW",
+        "quantity": 1,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412859371728",
+         "title": "24x70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Wild Alaskan Salmon - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/8b6e88f5-1d3f-4a30-bed2-826c69bc75ee?cart=hWNFkPQ2KJDvpqTnvS9ZKsHW",
+        "quantity": 6,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412859404496",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Wild Alaskan Salmon - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      },
+      {
+       "node": {
+        "id": "gid://shopify/CartLine/7eec58db-1ed9-472c-849e-51fef39e0131?cart=hWNFkPQ2KJDvpqTnvS9ZKsHW",
+        "quantity": 6,
+        "merchandise": {
+         "id": "gid://shopify/ProductVariant/39412882735312",
+         "title": "70g",
+         "availableForSale": true,
+         "currentlyNotInStock": false,
+         "requiresShipping": true,
+         "product": {
+          "title": "Pacific Tuna & Sardine - Natural"
+         }
+        },
+        "sellingPlanAllocation": null
+       }
+      }
+     ]
+    },
+    "deliveryGroups": {
+     "edges": []
+    }
+   },
+   "userErrors": []
+  }
+ },
+ "extensions": {
+  "context": {
+   "country": "FR",
+   "language": "EN"
+  },
+  "cost": {
+   "requestedQueryCost": 122
+  }
+ }
+}

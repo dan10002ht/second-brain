@@ -1,0 +1,78 @@
+##### 149541781885
+=== activities: 9 ===
+{
+  "at": "2026-05-29T08:29:00.000Z",
+  "type": "create_subscription"
+}
+{
+  "at": "2026-06-28T12:00:07.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2026-06-29T12:00:16.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2026-06-30T12:01:19.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2026-07-01T12:02:09.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2026-07-28T12:00:14.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2026-07-29T12:01:09.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2026-07-30T12:02:12.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2026-07-31T12:03:07.000Z",
+  "type": "attempt_billing"
+}
+##### 117174239613
+=== activities: 6 ===
+{
+  "at": "2025-06-08T08:10:51.000Z",
+  "type": "create_subscription"
+}
+{
+  "at": "2025-08-08T08:11:13.000Z",
+  "type": "recurring"
+}
+{
+  "at": "2025-09-25T18:38:46.000Z",
+  "type": "recurring"
+}
+{
+  "at": "2025-11-11T14:44:48.000Z",
+  "type": "attempt_billing"
+}
+{
+  "at": "2025-11-11T14:44:50.000Z",
+  "type": "recurring"
+}
+{
+  "at": "2025-11-11T14:45:07.000Z",
+  "type": "pause"
+}
+##### 116934836605
+=== activities: 3 ===
+{
+  "at": "2025-06-02T23:10:30.000Z",
+  "type": "create_subscription"
+}
+{
+  "at": "2025-08-02T23:11:13.000Z",
+  "type": "recurring"
+}
+{
+  "at": "2025-09-28T21:38:21.000Z",
+  "type": "pause"
+}

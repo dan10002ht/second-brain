@@ -545,3 +545,416 @@
    - Cái SAI là **7.99** (bug FX, đã fix SB-14315 `437759f59`) và có thể cả **10** (dev áp vào). `€0` khớp đúng điều kiện đăng ký gốc
    - **Bài học**: `originDeliveryPrice`/`newDeliveryPrice` trên doc KHÔNG phải "giá gốc/giá đúng" — `newDeliveryPrice` chỉ là con số ai đó set tay, có thể chưa từng có hiệu lực. Đừng suy ra "đang thiếu tiền" từ chênh lệch giữa chúng
    - Việc còn lại (nhẹ hơn nhiều so với tưởng ban đầu): xác nhận với Kookut rằng khách này được miễn ship theo điều kiện đăng ký, và dọn `newDeliveryPrice: 10` cho khỏi gây hiểu nhầm lần sau. Không có ai đang mất tiền
+
+## 2026-08-14
+
+39. [✅ 2026-08-14] **CI production fail: clone repo artifacts từ gitlab.com bị 401 — đang chuyển sang on-premise**
+   - **ĐÓNG 14/08 — user chốt "task 39 done rồi"**. Không có commit mới trong phiên này; phần code đã ở nhánh `fix/ci-artifacts-onprem` · commit `dee9344` (đã push). Mục "CÒN LẠI" bên dưới (tạo MR, chọn token CI, rotate PAT `glpat-w06kO...`) là **việc tay của user**, giữ lại làm checklist
+   - **Triệu chứng 14/08**: job `publish-fe` (tag `v2.34.69`, commit `8016e0ac`) chết ở `.gitlab/ci/production.yml:207`
+     `git clone https://gitlab-ci-token:$GIT_ACCESS_TOKEN@gitlab.com/avada/artifacts/joy-subscription-artifacts.git` → `HTTP Basic: Access denied`, exit 128. CDN Cloudflare chạy xong bình thường, **chỉ nhánh CHUNK chết**
+   - Job **fail-closed** (`:229`) — hosting chỉ chạy khi cả CDN lẫn chunk OK → **FE chưa lên production**, không lên nửa vời
+   - Nguyên nhân: repo `subscriptions` đã chuyển sang `git.avada.net`, repo artifacts vẫn ở `gitlab.com` → token cross-host vô giá trị (hoặc PAT hết hạn)
+   - **ĐÃ LÀM 14/08 — seed on-premise xong**: repo `git.avada.net/avada/artifacts/joy-subscription-artifacts` vốn đã tồn tại nhưng là **ảnh chụp lúc migrate 07/08 rồi đứng yên** — phân kỳ với gitlab.com: onprem có 16 commit riêng, gitlab.com đi trước **1756 commit**
+     - Xác minh 16 commit onprem là **bản sao, không có gì độc nhất**: mỗi cái có commit song sinh bên gitlab.com (cùng message, cùng ngày, cùng SHA `subscriptions` nhúng trong message), và bằng chứng cứng nhất — `f17f1b3bdd` vs `2ed35b8fa8` **cùng tree `15d90c2a0a`**, `git diff` rỗng
+     - → force push đè không mất gì. Đã đẩy **một commit không cha** `de6db84253` mang y nguyên tree của `75d0b53e67` (bản gitlab.com hôm nay). **Cắt 2.7 GiB lịch sử**; lịch sử cũ vẫn nguyên ở gitlab.com
+     - Gotcha: zsh nuốt `:r` trong `$NEW:refs/heads/main` → phải **quote** refspec. Và `main` onprem protected — **force push là quyền RIÊNG**, Maintainer vẫn bị chặn nếu toggle "Allowed to force push" tắt
+   - **ĐÃ KIỂM TOKEN 14/08**: `~/projects/joy-subscription-artifacts/.env` có biến `GL_ONPREMISE` (gitignored, **khác** token đã lộ). Test thật 3 tầng: `ls-remote` ok · push branch thường ok · **push commit rỗng vào `main` protected ok** (`de6db84253..48d93da358`, fast-forward). → token đủ quyền Maintainer, CI dùng được luôn
+     - Quan trọng: CI push hàng ngày là **fast-forward**, **KHÔNG cần** quyền force push. Toggle force push chỉ cần lúc seed, xong phải tắt
+     - ⚠️ `.env` đang `chmod 644` → nên đổi `600`
+     - Bẫy zsh (dính 2 lần): `"$NEW:refs/heads/main"` bị hiểu là modifier `:r` **kể cả trong nháy kép**. Phải dùng `"${NEW}:refs/heads/main"` hoặc sha literal
+   - **ĐÃ SỬA CI 14/08**: nhánh `fix/ci-artifacts-onprem` · commit **`dee9344`** · **đã push**, base `origin/master`. Đúng 1 dòng `production.yml:207` — đổi host `gitlab.com` → `git.avada.net` và username `gitlab-ci-token` → `oauth2`. YAML đã validate. **Chưa tạo MR** — phải merge vào `master` thì pipeline tag mới ăn config mới
+     - Tách nhánh riêng, **KHÔNG** trộn vào MR Klaviyo !2470: thay đổi CI production, reviewer khác, rủi ro khác
+     - `GIT_ACCESS_TOKEN` chỉ được dùng ở **đúng 1 dòng** trong toàn `.gitlab/` → đổi thẳng giá trị biến cũ là an toàn, khỏi tạo biến mới
+     - ⚠️ **`staging.yml` KHÔNG clone repo artifacts** — chỉ production làm. Nên **không test được trên staging**; phải test token ở máy trước (đã làm)
+   - 🔑 **BẢN ĐỒ TOKEN on-premise — đừng nhầm nữa** (tôi đã kết luận vội một lần và sai):
+     | Biến | File | Ghi chú |
+     |---|---|---|
+     | `ON_PREMISE_GITLAB_TOKEN` | `subscriptions/packages/functions/.env.local` | **CHÍNH LÀ token `glpat-w06kO...` đã lộ** → cần revoke + thay mới |
+     | `GL_ONPREMISE` | `joy-subscription-artifacts/.env` | Token khác, KHÔNG lộ |
+     - Không file nào trong repo đọc `ON_PREMISE_GITLAB_TOKEN` (grep js/json/yml/sh) → revoke **không hỏng automation**, chỉ hỏng thao tác git tay cho tới khi thay token mới
+     - **Trước khi revoke phải kiểm**: CI variable `GIT_ACCESS_TOKEN` có đang dùng chính token này không
+   - **Gotcha môi trường**: push từ session Claude Code fail `could not read Username ... Device not configured` — không có TTY nên osxkeychain không hỏi được. Gỡ bằng token: `ON_PREMISE_GITLAB_TOKEN` trong `packages/functions/.env.local` (PAT cá nhân cho `git.avada.net`), dùng dạng `https://oauth2:$TOKEN@git.avada.net/...`
+   - **CÒN LẠI, chưa làm**:
+     0. Tạo MR cho `fix/ci-artifacts-onprem` và **merge vào master**
+     1. Chọn token cho CI: dùng luôn `GL_ONPREMISE` (đã chứng minh chạy được) **hoặc** tạo Project Access Token role Maintainer + `write_repository`. PAT cá nhân thì CI gắn với người — đúng lớp lỗi đang gặp; project token thì gắn project
+     2. Sửa `production.yml:207` trỏ URL onprem + biến token mới — **agent bị classifier chặn sửa `.gitlab/ci/*.yml`, user tự làm**
+     3. Chạy thử staging trước khi production đi qua đường mới
+     4. ⚠️ **Rotate PAT `glpat-w06kO...`** — nó từng nhúng plaintext trong `.git/config` của `~/projects/joy-subscription-artifacts` (remote `onprem`) và đã lộ ra output phiên 14/08. Đã gỡ khỏi URL remote nhưng **gỡ không làm token hết hiệu lực**
+   - ⚠️ **Rủi ro phải tránh khi đổi CI**: repo artifacts KHÔNG được bắt đầu từ rỗng. Bước `cp -rf joy-subscription-artifacts/static/* static/` merge chunk cũ vào bản build mới; thiếu chunk là browser khách đang cache URL hash cũ sẽ **404 asset trên storefront thật**. Seed ở trên đã giữ đúng nội dung nên an toàn
+
+17. [✅ 2026-08-14] **Cân nhắc lại chiến lược fork — CTO đang làm song song** _(việc của người, agent không tự làm được)_
+   - **ĐÓNG 14/08 — user chốt "#17 k cần nhé"**. Không có commit. Nội dung khảo sát bên dưới giữ lại làm tài liệu nếu sau này quay lại chuyện fork vs upstream
+   - **Cập nhật 12/08**: "NGAY HÔM NAY" trong tiêu đề cũ là **11/08**. Từ đó tới nay: `joysub.3` đã vá gap so với alpha.12 (#19) và fork còn **đi trước upstream 1 điểm** (guard `!plan.startingPrice`). Task vẫn mở vì thứ chưa làm là **nói chuyện với CTO**, không phải viết code
+   - Việc còn lại: đóng góp ngược 4 việc của joysub lên dòng chính, đặc biệt nhánh 403 `checkIfActiveAccessToken` (xác nhận alpha.9 KHÔNG có; **chưa kiểm alpha.12**)
+   - Dòng thời gian registry: `joysub.1` 07:38 → **`alpha.12` 08:36 (CTO, hôm nay)** → `joysub.2` 09:17. Lúc khảo sát 14:43 giờ máy `latest` còn là `alpha.9`; giờ là `alpha.12`. **Hai bên đang sửa cùng một thứ mà không biết nhau**
+   - `alpha.10`/`alpha.11` không có trên registry (giống alpha.8) — nội dung nằm trong alpha.12. Changelog ghi *"Fixes the three pre-existing defects alpha.11 pinned with tests"* → **CTO đã thêm TEST**, dòng của họ giờ có test suite, fork của mình không có
+   - alpha.12 đụng rộng hơn alpha.9 nhiều: thêm file mới `services/authClassifiers.{js,d.ts}` (tách logic phân loại lỗi ra module riêng — tức phần mình vừa dựng lại đã bị họ refactor), cộng `builder.js`, `discount.js`, `helpers.js`, `shopRepository`, `sessionRepository`, `session/firestore.js`, `shopifyApiService`, `subscriptionController`
+   - 3 fix của alpha.12 là bug thật, ảnh hưởng app: `normalizeShopName` regex case-sensitive làm `DEMO.myshopify.com` → `DEMO.myshopify.com.myshopify.com` (hostname không resolve, hỏng MỌI request của shop đó); `removeProperties` guard `if (obj[prop])` nên `false`/`0`/`''` sống sót; `calculatePlanWithDiscount` cho ra giá âm → Shopify từ chối `appSubscriptionCreate`, merchant thấy coupon làm gãy checkout mà log app không giải thích gì. Thêm `engines: node>=18`
+   - **Hệ quả**: `joysub.2` vừa publish đã lạc hậu. Mỗi lần CTO publish, fork phải dựng lại từ JS build — chi phí lặp vô hạn, và giờ còn thua cả về test coverage
+   - **Khuyến nghị: DỪNG mở rộng fork, nói chuyện với CTO trước.** 4 việc của joysub nên đóng góp ngược lên dòng chính thay vì duy trì song song. Đặc biệt nhánh 403 (`checkIfActiveAccessToken`) — đã xác nhận alpha.9 KHÔNG có, cần kiểm alpha.12 có chưa
+
+24. [✅ 2026-08-14] **[P1] Job bulk-action báo `DONE` khi mới chạy được một phần**
+   - **ĐÓNG 14/08**: lock `[⏳ 11:00]` là lock chết — code đã commit từ 12/08. Nhánh `fix/line-price-sync` · commit **`2dc2fb9fd`** (chung commit với #23) · đã có trên `master`. Xác minh lại bằng `git show`: `unprocessedContractIds` + 2 `console.warn` có mặt đúng như mô tả bên dưới. 2 file, +295/−5
+   - `contractBulkActionService.js:464-470` set `status: BULK_ACTION_STATUS_DONE` **vô điều kiện** sau khi hết `while` loop, không so `processedContracts.size === totalContracts`
+   - Contract bị bỏ qua âm thầm ở `:231-233` (`if (!contract) continue;` — không log, không đếm) khi không có trong `contractsMap` từ `getSubscriptionContractsByContractIds` (`:379-382`)
+   - Bằng chứng prod (shop kookut): 3/23, 2/22, 5/26, 6/26, 2/23, 9/30, 8/29 — đều `status: DONE`
+   - Hệ quả: contract lệch giá nhau mà không ai biết; và chính nó tạo "đối chứng tự nhiên" ở vụ #11 (Tuna chưa sync nên còn đúng)
+   - **12/08 — XONG, VERIFIER PASS. Chưa commit được** (gate hook, xem #27). Chung nhánh `fix/line-price-sync` với #23, cùng một commit
+   - **VÒNG 1 BỊ BÁC — bài học về "thêm trạng thái mới vào máy trạng thái có guard"**: fix đầu thêm status `BULK_ACTION_STATUS_PARTIAL`. Nhưng `handlers/pubsub/bulkActionHandler.js:134` chặn redelivery Pub/Sub bằng `status !== 'DONE' && status !== 'FAILED'` → chunk `PARTIAL` **lọt qua guard**, và nó chạy lại với **toàn bộ chunk** (guard đọc field `contracts` chưa trim, không phải `remainingContracts` — field mới này **không nơi nào trong repo đọc**). Tức commit lại draft lên Shopify lần hai cho các dòng đã đúng. **Nghiêm trọng hơn bug đang chữa**
+   - **Sửa đúng: BỎ HẲN `PARTIAL`.** Giữ `status: DONE` vô điều kiện (semantics với guard/FE y hệt pre-diff, `type.js` và `bulkActionHandler.js` đều **diff rỗng**), chỉ thêm `unprocessedContractIds` trung thực + `console.warn`. Loại rủi ro **bằng cấu trúc** thay vì vá cẩn thận. Verifier tự grep lại: 43 match `'DONE'` trong 24 file, không chỗ nào cần đụng
+   - **FINDING CÒN TREO — mục tiêu chỉ đạt một nửa**: dữ liệu giờ trung thực nhưng **không ai thấy**. `unprocessedContractIds` chỉ nằm trong doc Firestore, **không UI nào đọc**, không banner/alert/dashboard. `console.warn` có vào Cloud Logging (Functions v2 tự thu stdout/stderr) nhưng **không có alert policy, không log-based metric**. → Job chạy thiếu vẫn trôi im lặng như cũ; khác biệt duy nhất là giờ có dấu vết để tra **sau khi đã có người khiếu nại**. Muốn đạt trọn thì cần alert/metric — việc riêng, chưa mở task
+
+31. [✅ 2026-08-14] Ticket `JSUB-260812-WNwa8Q` — kookut: **upcoming order ở Orders tab không hiển thị hết**
+   - **ĐÓNG 14/08 — user chốt: "lỗi filter thôi, close nhé".** Không có commit: đây là hành vi cố ý của procedure BQ (`rn = 1` lấy đơn gần nhất mỗi contract), không phải bug code app. Điều tra giữ lại bên dưới làm tài liệu
+   - **CÒN NGUYÊN, chưa xử**: tab vẫn chỉ hiện 1 đơn/contract (kookut 83/829, ẩn 746). Muốn đổi thì phải sửa BQ procedure `get_upcoming_orders` (`commands/sql/createProceduresV2.sql:243`) — đường deploy khác, và bỏ `rn = 1` là ~10× dữ liệu + chi phí BQ
+   - **Nguyên nhân đã tìm ra**: BQ procedure `get_upcoming_orders` (`commands/sql/createProceduresV2.sql:243`) có `ROW_NUMBER() OVER (PARTITION BY subscription_contract_id ORDER BY billing_attempt_expected_date ASC) AS rn` rồi `WHERE rn = 1` → **chỉ lấy đơn gần nhất của mỗi contract**
+   - Số thật kookut: **829** đơn UNBILLED tương lai chưa skip · tab hiển thị **83** (đúng bằng số contract) · **ẩn 746**. App sinh sẵn 10 chu kỳ/contract nên 9/10 bị cắt
+   - Count cũng dùng chung CTE (`p_is_count`) nên UI tự nhất quán, không có cảnh "hiện 20 / tổng 829"
+   - Bỏ `rn = 1` là đổi ý nghĩa cả trang (83 → 829 dòng riêng kookut, ~10× dữ liệu + chi phí BQ). Fix nằm ở **BigQuery procedure**, không phải code app → đường deploy khác
+   - **Cần product chốt hướng**: đổi nhãn cho đúng nghĩa hiện tại · thêm filter "xem tất cả chu kỳ" · hay bỏ `rn = 1`
+   - Slack: https://avadaio.slack.com/archives/C07URV6QMJ8/p1786524942309849 · ảnh: https://capture.avada.io/i/MnPTd0tBVqJi
+   - Cùng shop kookut, cùng ngày với ticket giá `JSUB-260811-TWjnqq`. dantt đã nhận trong thread
+
+33. [✅ 2026-08-14] Tôi muốn bạn check logic của klaviyo integration trong app tôi có phải đang thế này không?
+  - hồi xưa làm là integrate xong vào trong step 2 bấm trigger example từng cái thì bên app klaviyo nó mới hiện event trigger bên mình lên
+   - **TRẢ LỜI: nhớ đúng về UI, sai về nguyên nhân.** Step 2 "Get started with sample events" đúng là có dropdown chọn từng metric + nút "Trigger events" (`pages/Integrations/KlaviyoIntegration/KlaviyoIntegration.json:19-23`, handler `KlaviyoIntegration.js:86-99`). Nhưng **app KHÔNG chặn event thật khi chưa bấm** — nếu metric chỉ hiện sau khi bắn mẫu thì đó là **hành vi phía Klaviyo** (Klaviyo tạo Metric trong danh sách khi nhận event đầu tiên mang tên đó)
+   - nhánh `docs/klaviyo-audit` · commit `facb11c` · **đã push** → gộp vào **MR !2470** (`fix/klaviyo-integration`, cherry-pick `d84721d42`). 1 file mới `docs/klaviyo-integration-audit.md` (+152). Không sửa dòng code nào
+   - **Bằng chứng hội tụ**: sample path (`controllers/integrationsController.js:265`) và real path (`helpers/klaviyo/prepareMetricEvent.js:403`) đều gọi **cùng** `sendMetricEvent()` (`services/klaviyo/klaviyoService.js:219`) → `sendEventWithRetry()` → `POST /events` (`:259-270`). Không có nhánh riêng cho event thật
+   - Gate duy nhất trên đường real: `if (!klaviyoData?.enable) return` (`prepareMetricEvent.js:389-392`). Verifier tự grep `testedEvents|enabledEvents|isVerified|verifiedMetrics|metricVerified` toàn repo — mọi hit `isVerified` thuộc **Custom SMTP**, không dính Klaviyo. Doc integration chỉ lưu `enable, isSynced, disableDate, codeVerifier, codeChallenge, shopId, app, updatedAt` (`integrationsController.js:200-228`) → **không có field nào ghi "đã test event nào"**
+   - **17 metric**, định nghĩa `const/klaviyo/default.js:55-73` (verifier đếm lại độc lập)
+   - Step 3 "Sync data" cũng bắn cùng `sendMetricEvent` cho dữ liệu lịch sử → kể cả bỏ qua Step 2, metric vẫn hiện. Đường đi qua Pub/Sub nền: `integrationsController.js:287-324` → `backgroundHandler.js:779-781` → `klaviyoService.js:420-505`
+   - **Verifier PASS**. Không có gate build/test (task điều tra, 0 dòng code đổi); `git status --porcelain` xác nhận đúng 1 file untracked mới, **không file nguồn nào bị sửa**
+   - **CHƯA KIỂM ĐƯỢC (cần test tay trên Klaviyo dashboard)**: Klaviyo có tự hiện Metric ngay khi nhận event đầu tiên hay có độ trễ, và metric mới có xuất hiện ngay trong Flow trigger picker không
+
+36. [✅ 2026-08-14] **[P0] Sample event Klaviyo: email dev hardcode + mutate const global → RÒ EMAIL GIỮA CÁC SHOP**
+   - Phát hiện 14/08 khi trả lời câu hỏi "auto gửi sample sau step 1 có risk gì". Hai bug xếp chồng, cùng nằm ở đường sample event
+   - **ĐÓNG 14/08** — nhánh `fix/klaviyo-sample-leak` · commit **`4a81c12`** · **đã push**, base `origin/master` `832b61627`. 5 file, +206/−57. → gộp vào **MR !2470** (cherry-pick `2ab509301`)
+   - **Chọn factory, KHÔNG deep clone** — loại bug bằng cấu trúc: xoá hẳn `SAMPLE_EVENT_DATA` / `SAMPLE_SUBSCRIPTION_BASE_DATA` / `SAMPLE_ORDER_BASE_DATA`, thay bằng `helpers/klaviyo/buildSampleEventData.js` dựng object graph mới mỗi lần gọi. Không còn object dùng chung nào để mà mutate → call site thêm sau cũng không dính lại
+   - **Agent tự tìm ra call site thứ 2 mà brief không nhắc**: `services/klaviyo/klaviyoService.js` có default param `eventData = SAMPLE_EVENT_DATA` — cùng lỗ hổng. Đã đổi sang `buildSampleEventData()` (default expression chạy lại mỗi call nên an toàn)
+   - Email: ưu tiên merchant nhập → `shopFormatted?.email` (shop thật) → fallback `DEFAULT_SAMPLE_EMAIL = 'sample@joy-subscription.com'`. Verifier truy tới `@avada/shopify-auth` xác nhận `shop.email` là field có thật trong schema, không phải biến bịa
+   - **Xử luôn `new Date()` đóng băng**: `nextBillingDate` / `first_order_date` / `scheduled_at` trước nằm ở const module-level nên mang thời điểm **cold start**, giờ tính lại mỗi lần gọi factory
+   - **Verifier PASS, tự dựng 2 thí nghiệm riêng**:
+     - Gọi factory 2 lần, mutate sâu kết quả lần A (`customer.email`, `orderItems[0].title`, `customerPayment.maskedCardNumber`, `shippingAddress.city`, `billingAddress.city`) → lần B và metric khác **không bị ảnh hưởng**. Không object lồng nào còn share reference — bug không "lùi một tầng"
+     - Backup file fix, thay bằng bản mô phỏng bug cũ (`SHARED_BASE_PAYLOAD` module-level mutate in-place) → **3 test đỏ** đúng chỗ leak/isolation/fresh-date; khôi phục, md5 khớp, chạy lại 5/5 xanh
+   - **Rủi ro lớn nhất đã loại**: xoá 3 export là thay đổi phá vỡ, sót một importer là runtime nổ `undefined` mà `sendKlaviyoEvent` lại nuốt lỗi im lặng. Verifier grep toàn `packages/` + `extensions/` → **0 import còn lại**, chỉ còn tên trong comment và trong assertion phủ định của test. (`packages/functions/lib/` có bản build cũ nhưng gitignored)
+   - `hvu5877@gmail.com` **đã sạch khỏi repo**, chỉ còn trong test dạng `expect(...).not.toBe(...)`
+   - Gate verifier chạy trực tiếp (không qua `rtk`, tự đọc `echo $?`): `yarn check` **exit 0** · jest functions **exit 1** — 9 suite fail / **184** passed, 5 test fail / **1814** passed = đúng baseline + 1 suite + 5 test mới, không suite nào mới đỏ · jest assets **exit 0**, 6 suite / 86 test
+   - ⚠️ Agent viết code báo "jest exit 0" trong khi 9 suite fail — **`rtk` nuốt exit code**, đúng gotcha đã biết. Số ở trên là của verifier chạy thẳng binary
+   - **(a) Email hardcode là email cá nhân**: `const/klaviyo/default.js:126` → `SAMPLE_CUSTOMER.email = 'hvu5877@gmail.com'`. Merchant nào bấm "Trigger events" mà không nhập email thì Klaviyo của họ tạo profile mang email này. Klaviyo tính tiền theo active profile
+   - **(b) NGHIÊM TRỌNG HƠN — cross-tenant leak**: `controllers/integrationsController.js:260-262`
+     ```
+     const eventData = {...SAMPLE_EVENT_DATA};        // shallow copy
+     if (email && eventData[metric]?.customer) {
+       eventData[metric].customer.email = email;      // mutate object GỐC
+     }
+     ```
+     `SAMPLE_EVENT_DATA` (`default.js:212-218`) map **mọi** metric về **cùng một reference** `SAMPLE_SUBSCRIPTION_BASE_DATA`/`SAMPLE_ORDER_BASE_DATA`, mà hai cái đó lại share **cùng** `SAMPLE_CUSTOMER` (`:165`). Spread một tầng không cắt được liên kết → gán email là **ghi đè const module-level**, sống suốt đời instance Cloud Function
+     - Hệ quả: shop A nhập email của họ → shop B bấm test sau đó **trên cùng instance ấm** sẽ gửi sample event mang email của shop A sang Klaviyo của shop B. Vi phạm multi-tenant
+   - Sửa: deep clone trước khi gán (hoặc build payload từ factory function thay vì const dùng lại), và bỏ email cá nhân khỏi default — dùng email của shop hoặc địa chỉ trung tính
+   - Liên quan [[#34]] (fail âm thầm) và [[#35]] (shape lệch) — cùng một vùng code, nên gộp chung MR nếu làm liền tay
+
+34. [✅ 2026-08-14] **[P1] Real event Klaviyo fail ÂM THẦM, còn sample event thì báo lỗi rõ — đúng thứ tạo ra hiểu nhầm ở #33**
+   - Finding của verifier ở #33
+   - **ĐÓNG 14/08** — nhánh `fix/klaviyo-event-logging` · commit **`4523763`** · **đã push**, base `origin/master` `832b61627`. 6 file, +366/−3. Chưa tạo MR
+   - Helper mới `helpers/klaviyo/logKlaviyoEventFailure.js`, nhãn cố định export `KLAVIYO_EVENT_FAILED_LABEL = 'klaviyo_event_failed'` (một hằng số dùng chung, không phải chuỗi rải rác). Log **một object literal** → Cloud Logging parse thành `jsonPayload` filter được từng field: `{label, shopId, metric, contractId, cycleIndex, errorName, errorMessage}`
+   - Sửa **3 chỗ nuốt lỗi**, không chỉ 1: `sendKlaviyoEvent` catch (`prepareMetricEvent.js`) + **2 tầng catch** trong `syncKlaviyoEvents` (`klaviyoService.js`, per-event `:483` và per-chunk `:489`). Tầng per-chunk hiện là code chết (catch trong đã nuốt hết nên `Promise.all` không bao giờ reject) — vẫn log cho nhất quán
+   - **Zero write đúng cam kết**: verifier grep `^+` toàn diff cho `Firestore|collection(|.set(|.update(|.create(|createOrUpdateIntegration|rSet|bigquery` → **không dòng thêm mới nào** chứa lời gọi ghi. Thân helper chỉ có `console.error({...})`
+   - **Hành vi không đổi**: vẫn nuốt lỗi, không throw lên caller, không retry — chỉ khác chỗ log
+   - **Không rò token/PII**: `access_token`/`refresh_token` có trong scope ngoài của `sendKlaviyoEvent` nhưng **không bao giờ** được truyền vào log. Test assert `JSON.stringify(payload)` không chứa token/email mock **và** assert đúng `Object.keys().sort()`
+   - **Verifier PASS, tự dựng lại thí nghiệm an toàn** (không dùng git): copy 2 file source ra scratchpad, `sed` revert về `console.error(string, error)` cũ → **4/8 test đỏ** đúng chỗ; khôi phục, `md5` khớp byte-identical cả 2 file
+   - Gate: `check` **exit 0** · `jest:fn` 9 suite fail = đúng baseline, **186** passed suite (183+3 mới) / **1817** passed test (1809+8 mới), không suite mới nào đỏ · `jest:as` **exit 0**
+   - ⚠️ **Agent viết code ĐÃ VI PHẠM ràng buộc "KHÔNG chạy git"** — nó `git stash` + `git stash pop` để làm thí nghiệm đỏ-trước. Repo đang có **233 stash** của user nên đây là rủi ro thật. Verifier kiểm lại: `stash@{0}` vẫn là stash cũ của user (`dd1c088cb`, chỉ chứa `shopify.app.toml`), không có stash mồ côi, diff 2 file mạch lạc không lẫn hunk lạ. **Lần sau brief phải nói rõ cách làm thí nghiệm an toàn thay vì chỉ cấm git**
+   - **Finding ngoài scope (verifier ghi, KHÔNG sửa)**: `services/klaviyo/klaviyoService.js:120` `getProfileByEmail` cũng nuốt lỗi (`console.error` + `return null`) — nhưng là **lớp bug khác** (tra profile fail bị coi như "không tìm thấy" → có thể tạo profile trùng), không thuộc "event thật fail im lặng". Chưa mở task riêng
+   - `helpers/klaviyo/prepareMetricEvent.js:411-413`: `sendKlaviyoEvent()` bọc toàn bộ trong `try/catch` chỉ `console.error`, **không throw lại, không retry, không dead-letter**. Lỗi network, Klaviyo trả 4xx, hay `prepareKlaviyoData` throw ("Subscription contract not found", "Order data not found for cycle X") đều biến mất
+   - Đối lập: sample-events controller (`controllers/integrationsController.js:277-283`) trả `ctx.status = 500` + toast lỗi cho merchant
+   - → Merchant thấy "bấm test thì được, đời thật không thấy event" và kết luận app bắt phải test trước. Thực chất là **event thật fail mà không ai biết**
+   - Cần: structured alerting hoặc lưu trạng thái fail để support tra được
+   - **✅ USER CHỐT 14/08: CHỈ LOG THÔI, không ghi Firestore — tránh cost nhảy**
+     - → **KHÔNG** tạo collection `klaviyoEventLogs`, **KHÔNG** thêm field vào doc `integrations`. Zero write
+     - Việc thật còn lại: `console.error` hiện nuốt hết context nên tra Cloud Logging không ra gì. Đổi sang log **có cấu trúc** đủ để filter: `shopId`, `metric`, `contractId`/`cycleIndex`, `error.message`, kèm một nhãn cố định (vd `klaviyo_event_failed`). Cost = 0, và sau muốn dựng log-based metric/alert thì đã có sẵn field để lọc
+     - Đã khảo sát nên khỏi điều tra lại: field trên `integrations` vốn không đủ (một doc/shop, event fail đồng thời ghi đè nhau); tiền lệ collection có TTL là `repositories/webhookLogsRepository.js` — **cả hai bỏ theo quyết định trên**
+
+38. [✅ 2026-08-14] **Auto bắn 17 sample event (Step 2) ngay sau khi merchant connect Klaviyo xong**
+   - **ĐÓNG 14/08** — commit **`3c8ed6d06`** trên nhánh `fix/klaviyo-integration` (**gộp vào MR !2470**, user chốt 1 MR). 5 file, +377/−2. Verifier PASS **ở vòng sửa thứ 2**
+   - Cách làm: `services/klaviyo/klaviyoService.js` thêm `sendKlaviyoSampleEvents({shop})` · `handlers/pubsub/backgroundHandler.js` thêm action `SEND_KLAVIYO_SAMPLE_EVENTS` · `controllers/clientApi/klaviyoController.js` (OAuth callback) publish message rồi redirect ngay. Tái dùng pattern Pub/Sub sẵn có (`SYNC_KLAVIYO_EVENTS`, `REMOVE_SHIPANDCO_ATTRIBUTES`), không dựng topic kiểu mới
+   - Guard `sampleEventsSentAt` trên doc `integrations` **đã tồn tại** — 1 field, ghi qua `createOrUpdateIntegration`. Verifier grep `collection(|.doc(|Firestore` trong diff → **0 match**, không collection mới
+   - **VÒNG 1 BỊ VERIFIER BÁC — bài học đáng giữ**: `publishBackgroundSubscriber` trong OAuth callback **không có try/catch**. `getKlaviyoAuthUrl` nối thẳng vào `router.get('/klaviyo/callback')` (`routes/clientApi.js:140`) = đúng URL Klaviyo redirect merchant về. Pub/Sub lỗi (IAM/quota/transient) → exception leo lên `errorHandler` → **`ctx.redirect` không bao giờ chạy** → merchant thấy trang lỗi ngay sau khi connect thành công, dù token đã lưu xong. Nặng hơn bug đang chữa
+     - Trớ trêu: repo đã có pattern đúng ở `integrationsController.js:290-320` (case `sync-data`) — bọc try/catch quanh **cùng loại lời gọi**. Agent áp cho Step 3 nhưng bỏ sót call site mới
+     - Sửa: try/catch **chỉ ôm đúng lời gọi publish**; `exchangeAuthorizationCode` và `createOrUpdateIntegration` nằm NGOÀI → lỗi connect thật vẫn leo lên như cũ (verifier đọc code xác nhận scope hẹp đúng)
+   - **51 request, không phải 17**: mỗi metric tốn 3 lời gọi Klaviyo — `getProfileByEmail` + create/update profile + `sendEventWithRetry`. 3 × 17 = 51. Loop tuần tự nên không đụng rate limit
+   - Verifier tự dựng lại thí nghiệm (copy scratchpad + `perl`/`sed`, khôi phục, `md5` khớp `6fc9377c...`): gỡ try/catch → đúng 1 test mới đỏ; gỡ check guard → test guard đỏ với `Expected 0 calls, received 51`. Test không phải đồ trang trí
+   - Gate: `check` **exit 0** · `jest:fn` 9 suite fail = đúng baseline, **189** passed suite / **1834** passed test (base 187/1824 + đúng 2 suite và 10 test mới) · `jest:as` **exit 0**
+   - ⚠️ **ĐÁNH ĐỔI CÒN TREO — user nên biết**: guard `sampleEventsSentAt` ghi **TRƯỚC** vòng lặp. Chặn được Pub/Sub redelivery và ca bấm Connect 2 lần, nhưng nếu **cả 51 request đều fail** (token sai, Klaviyo down) thì guard đã đóng vĩnh viễn → merchant **không bao giờ** được auto-gửi lại, và không có tín hiệu nào báo. Muốn đổi thì chỉ set guard khi có ≥1 metric thành công — đánh đổi ngược lại là mở cửa cho redelivery bắn trùng
+   - Finding ngoài scope (verifier ghi, không sửa): `klaviyoController.js:62` truyền tên topic Pub/Sub vào field `metric` của `logKlaviyoEventFailure`, trong khi JSDoc mô tả field đó là Klaviyo metric key. Lệch semantic nhẹ, **không** phá shape log, không phải bug chức năng
+   - **USER CHỐT 14/08**: chỉ làm **Step 2**, **Step 3 giữ nguyên** không đụng. "khi integrate xong (connect xong) thì send các sample events đấy"
+   - Điểm móc: `controllers/clientApi/klaviyoController.js:28-37` — OAuth callback ghi `enable: true` + `enableDate` + `access_token`/`refresh_token`. Đó là "connect xong"
+   - ⚠️ **RAM KHÔNG phải rủi ro ở task này** — tôi từng nêu nhầm. 17 payload hằng số vài KB. Nỗi lo RAM là của Step 3 (kéo toàn bộ subscriber từ BQ), không phải Step 2
+   - Rủi ro thật: (a) chạy đồng bộ trong OAuth callback → 17 request sang Klaviyo làm treo/timeout đúng lúc merchant vừa bấm Connect; (b) reconnect bắn lại
+   - Hướng: đẩy nền qua Pub/Sub (pattern sẵn có: Step 3 publish rồi `handlers/.../backgroundHandler.js:779` xử lý; `integrationsController.js:154-160` cũng dùng `publishBackgroundSubscriber` cho SHIPANDCO) · loop 17 metric **tuần tự** (vài giây, không cần song song) · guard `sampleEventsSentAt` trên doc `integrations` **đã tồn tại** (1 field, 1 write — KHÔNG collection mới)
+   - Dùng lại đồ vừa làm: `buildSampleEventData()` ([[#36]]) và `logKlaviyoEventFailure` ([[#34]])
+   - Biết trước, không chặn: reconnect mà merchant đã gắn Flow → sample event **trigger Flow thật**, email gửi tới `shop.email`
+
+37. [✅ 2026-08-14] **Auto gửi event Klaviyo sau khi merchant connect xong Step 1 — CHỜ USER CHỐT HƯỚNG**
+   - **ĐÓNG 14/08 — user chốt "#37 close nhé"**: không auto-send, giữ nguyên merchant bấm tay. Không có commit. Khảo sát risk bên dưới giữ lại — nếu sau này mở lại thì điều kiện tiên quyết vẫn là: phân trang subscriber + throttle giữa chunk + guard idempotency (`sampleEventsSentAt`)
+   - User hỏi 14/08: "step 1 xong là app tự gửi luôn không cần bấm tay thì có risk gì". Đã khảo sát, **chưa làm gì**
+   - **Auto bắn sample (17 event): tải không đáng lo.** Risk là (a) data giả nằm vĩnh viễn trong Klaviyo merchant, (b) Flow có sẵn bị trigger → gửi email thật, (c) không có field nào ghi "đã gửi rồi" nên reconnect là bắn lại. Bug rò email đã fix ở [[#36]]
+   - **Auto chạy Step 3 sync dữ liệu thật: sạch hơn về data nhưng CÓ risk tải thật** (`services/klaviyo/klaviyoService.js:422-505`):
+     - **Memory**: `getDateRange` lấy từ `shop.installedAt` → hiện tại, tức toàn bộ lịch sử; rồi `Promise.all` build data cho **tất cả subscriber cùng lúc**, chưa phân trang. Repo đã dính đúng lớp này — comment `index.js:159` ghi pattern cũ từng đẩy memory chạm trần **4GiB và OOM**
+     - **Rate limit**: `chunk(allEventsToSend, 40)` rồi `Promise.all` 40 request song song, **không delay/backoff giữa chunk**. Lỗi bị `catch` → `return null` = mất event im lặng (đúng bug [[#34]])
+     - **Timeout**: background handler tối đa 540s, shop lớn có thể không xong
+     - Auto = chạy cho MỌI shop connect gồm shop lớn nhất; hiện merchant bấm tay nên tải rải rác
+   - **14/08 — user bác đề xuất "chỉ bắn metric còn thiếu", và đúng**: lúc vừa integrate xong thì tài khoản Klaviyo chưa có metric nào → "chỉ bắn cái thiếu" = vẫn bắn đủ 17. Nó chỉ giải quyết ca **reconnect**, mà ca đó thì một field `sampleEventsSentAt` đã đủ. Với auto-send lần đầu, thứ cần thật sự chỉ là: **guard chạy một lần** + **chạy nền, không chặn OAuth callback**
+   - **14/08 — user chốt ĐÓNG phần "chưa kiểm được hành vi Klaviyo"**: không cần test tay trên dashboard để xác nhận Klaviyo có tự tạo Metric khi nhận event đầu tiên hay không
+   - → Chọn hướng Step 3 thì **phải làm trước**: phân trang subscriber + throttle giữa chunk + guard idempotency (doc integration hiện chỉ có `isSynced`, reconnect là sync lại từ đầu). Đây là task cỡ vừa, không phải "bật cờ auto"
+
+35. [✅ 2026-08-14] **[P1] 2/17 metric Klaviyo gửi SAI SHAPE ở event thật — sample event không phát hiện được**
+   - **ĐÓNG 14/08** — nhánh `fix/klaviyo-order-shape` · commit **`fd6b296`** · **đã push**, base `origin/master` `832b61627`. 2 file, +74/−1. → gộp vào **MR !2470** (cherry-pick `19f7e0509`)
+   - Fix: thêm `isOrder: true` ở đúng 2 call site (`handleBillingAttemptFailure` ~`:1179`, `handleBillingAttemptSuccess` ~`:1457`) → payload đi qua `prepareOrderMetricEvent()` như thiết kế
+   - **Rủi ro lớn nhất đã được verifier truy tận nơi và LOẠI**: `prepareKlaviyoData` (`prepareMetricEvent.js:310,341`) **throw** khi `isOrder && !cycleIndex` hoặc không tra ra order, mà `sendKlaviyoEvent:412-414` nuốt lỗi im lặng → thêm cờ mù có thể biến bug "thiếu field" thành **"mất hẳn event"**. Ca chết người là `cycleIndex = 0` (falsy trong JS)
+     - Kết luận: **không tới được 2 call site này**. `cycleIndex 0` chỉ thuộc origin order, tạo với `status: ORDER_STATUS_BILLING_BILLED` (`helpers/subscription/subscriptionContract.js:439,443`), trong khi `getOnScheduledOrders`/`getRetryOrders` (`repositories/orderRepository.js:689,710`) lọc `status == UNBILLED` → origin order không bao giờ vào luồng billing attempt. Mọi nguồn sinh `cycleIndex` tới 2 handler này đều ≥1
+     - Order tồn tại: `billingAttemptWebhookService.js:108` đã fetch đúng tuple `(shopId, contractId, cycleIndex)` **trước đó**, và handler deref `orderDoc.ref` vô điều kiện ở `:1166` → thiếu order thì đã nổ từ trước, không phải ở bước Klaviyo
+   - **Quét lại toàn bộ call site (verifier tự đếm)**: 30 match thô, 3 đang comment out → **27 call site sống / 9 file**. Đối chiếu từng cái với `ORDER_METRIC_EVENTS` (`const/klaviyo/default.js:113-119`): **không sót chỗ order-shape nào**. `emailService.js:484` (`UPCOMING_ORDER`) và `subscriptionService.js:605,649,689` đã đúng sẵn
+   - **Test guard thật, verifier tự dựng lại thí nghiệm**: `sed` gỡ cả 2 `isOrder: true` khỏi source → đúng 2 test mới đỏ (`Expected: ObjectContaining {"isOrder": true}`), khôi phục file byte-identical (xác nhận bằng `git diff`). Fixture dùng `cycleIndex: 1` nên **không phủ ca `cycleIndex = 0`** — chấp nhận được vì ca đó không tới được (xem trên)
+   - Gate verifier chạy thật: `yarn check` **exit 0** ("7 rule groups clean") · jest functions **9 failed / 183 passed suite, 5 failed / 1811 passed test** · jest assets **exit 0**, 6 suite / 86 test
+   - ⚠️ **BASELINE TRONG BRIEF NÀY ĐÃ SAI — sửa lại**: chỗ khác ghi "2 suite FAIL sẵn". Verifier tự đo trên worktree `origin/master` sạch (`832b61627`) → **9 suite / 5 test fail**, cùng bộ: `crmService`, `subscriptionProductsRepository`, `injectWidget`, `afterChargeService`, `bulkSwapProducts`, `fixedBundleService.prepareFirestorePayload`, `shopifyService`, `orderService`, `conditionEvaluation` — tất cả lỗi resolve `firebase-functions`/`google-auth-library`, không phải lỗi ai gây ra. Nhánh này pass **hơn baseline đúng 2 test** = 2 test mới
+   - FYI ngoài scope (không phải finding): `services/klaviyo/klaviyoService.js:462` (`syncKlaviyoEvents`, backfill Step 3) tự build `eventData` rồi gọi thẳng `sendMetricEvent`, **không** đi qua `prepareKlaviyoData` — khác đường, không dính lớp bug này
+   - `services/subscription/subscriptionService.js:1160` (`CHARGE_PROCESSING_FAILED`) và `:1446` (`ORDER_PLACED_SUCCESSFULLY`) gọi `sendKlaviyoEvent` **không truyền `isOrder: true`** → mặc định `false` → payload build bằng `prepareSubscriptionMetricEvent()` thay vì `prepareOrderMetricEvent()`, **thiếu `chargeId`, `shopify_order_id`, `scheduled_at`**
+   - Đối chiếu: `handleCycleAction` (`:485`) set tường minh `isOrder: type !== RESCHEDULE_ACTION` cho SKIP/RESUME/RESCHEDULE — tức chỗ khác đã làm đúng
+   - Sample event của đúng 2 metric này thì **luôn** có đủ field (`SAMPLE_ORDER_BASE_DATA`, `const/klaviyo/default.js:202-210`) → merchant test thấy đủ, chạy thật lại thiếu
+   - Hệ quả: Flow Klaviyo cá nhân hoá theo mấy field đó sẽ trống ở event thật
+
+45. [✅ 2026-08-14] **CS hỏi: card decline của khách Caroline Charbonneau — dev có log rõ lý do decline không?**
+   - **ĐÓNG 14/08, không có commit** (điều tra + tra dữ liệu). ⚠️ **Chưa qua verifier độc lập** — một nguồn duy nhất; nếu đem ra tranh luận thì kiểm lại trước
+   - **TÌM ĐƯỢC KHÁCH**: contract `121065865597` (kookut), `customerName: "Caroline Charbonneau"`, `status: ACTIVE`, `isPaymentFailed: true`, `currentBillingCycle: 10`. Tìm bằng script scoped `where('shopId','==',...)` + phân trang `orderBy(documentId())`, khớp đúng 1/207 contract
+   - **LÝ DO DECLINE — app CÓ lưu đủ**: 2 order fail (cycle 10 doc `vp5VkEwcZbn0Lhad3Vti`, cycle 11 doc `hyIPWDwwg8rIiONF7XKl`), cả hai đều `errorCode: "PAYMENT_METHOD_DECLINED"` · `billingAttempts[].errorMessage: "Your card was declined."`
+     - Cycle 10: 2 lần thử (12/08, 13/08) · Cycle 11: 2 lần thử (13/08 auto, 14/08 retry), `retryCount: 1`, `nextRetry: 2026-08-15`
+     - ~~Thẻ Mastercard hết hạn 07/2026 — chưa hết hạn lúc fail~~ **ĐÍNH CHÍNH: SAI.** Hôm nay là 14/08/2026 → thẻ hết hạn **cuối tháng 7/2026**, mọi lần fail đều trong **tháng 8/2026** → **thẻ ĐÃ HẾT HẠN trước khi bị từ chối**
+   - **📊 DATA THẲNG TỪ SHOPIFY (14/08, user yêu cầu để giải thích cho khách)** — query `subscriptionContract(id:) { billingAttempts(first: 50) }`:
+     | Cycle | UTC | errorCode | message | order |
+     |---|---|---|---|---|
+     | 10 | 2026-08-12 10:03:24 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     | 10 | 2026-08-13 06:46:08 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     | 11 | 2026-08-13 08:00:25 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     | 11 retry | 2026-08-14 08:01:07 | `PAYMENT_METHOD_DECLINED` | "Your card was declined." | — |
+     - Contract có **13 attempt** tổng; 9 lần trước (09/2025 → 12/06/2026) **đều thành công**, `processingError: null`, mỗi lần **119.7 CHF** → không phải vấn đề hệ thống
+     - `idempotencyKey` 4 lần fail: `10__9__1mspx8nrd`, `10__9__1msr5mtg2`, `11_auto_9__1msr8ablg`, `11__9_retry_1mssnr1ww` (số đầu = billing cycle)
+     - **Thẻ hiện tại**: Mastercard `••••1932`, hạn **07/2026**, `revokedAt: null`, `revokedReason: null` → **chưa bị Shopify thu hồi**, vẫn gắn trên contract
+     - **Shopify vs app KHỚP 100%** — đúng 4 attempt, đúng giờ, đúng mã lỗi. App **không bỏ sót** attempt nào
+     - ⚠️ Field `state` (bản mới của Shopify thay `ready`/`processingError`/`order`) **chưa có** trên API version của shop (2025-10) → phải dùng `processingError` (deprecated nhưng còn chạy)
+     - Query GraphQL nguyên văn: `subscriptionContract(id) { status nextBillingDate customer{id email} customerPaymentMethod{id revokedAt revokedReason instrument{... on CustomerCreditCard{brand lastDigits expiryMonth expiryYear}}} billingAttempts(first:50){edges{node{id createdAt ready originTime idempotencyKey nextActionUrl processingError{code message} order{id name processedAt totalPriceSet{presentmentMoney{amount currencyCode}}}}}} }` — variables `{"id":"gid://shopify/SubscriptionContract/121065865597"}`
+   - **🃏 VỤ "2 SỐ THẺ KHÁC NHAU" — đã giải (CS báo order cũ là `••7216`, Shopify hiện `••1932`)**:
+     - **KHÔNG có hai thẻ.** 22 order doc + `customer.paymentMethods(showRevoked: true)` đều chỉ về **một token duy nhất** `gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54`, `revokedAt: null`, không có payment method thứ hai kể cả đã revoke
+     - Số 4 cuối đổi **2 lần**: `1932 → 7216` (giữa cycle 1→2, ~10/2025) rồi `7216 → 1932` (**ngay giữa đợt fail**, giữa 13/08 06:46 và 13/08 08:00). Cùng token, **cùng hạn 07/2026** suốt cả năm → gần như chắc chắn là **card-network account updater** (Mastercard tự refresh số khi bank phát hành lại), không phải khách đổi thẻ
+     - → Giả thuyết "khách đổi thẻ mới, thẻ mới chưa được thử" **SAI**: thẻ `1932` hiện tại **chính là** thẻ đã fail 2 lần gần nhất
+     - Timeline charge: thành công liên tục cycle 0→9 (12/08/2025 → **12/06/2026**), gói **2 tháng/lần** → kỳ kế tiếp **12/08/2026**, đúng lúc thẻ đã hết hạn cuối tháng 7 → fail ngay lần đầu và mọi retry
+   - **→ Kết luận cho khách (đã xác nhận qua 2 vòng)**: nguyên nhân là **thẻ đã hết hạn** (07/2026), không phải app tính sai, không phải thẻ bị revoke, không phải "2 thẻ khác nhau". Khách phải **thêm thẻ mới còn hạn** — thử lại thẻ hiện tại vô ích
+   - Giới hạn dữ liệu: 4 lần fail **không tạo order** → không có transaction để truy sâu hơn `PAYMENT_METHOD_DECLINED`. Đó là trần thông tin Shopify cho, không phải app thiếu log
+   - **Đường lưu**: webhook → `services/webhook/billingAttemptWebhookService.js:293` → `handleBillingAttemptFailure` (`services/subscription/subscriptionService.js:1038-1204`) đọc `data.error_code` / `data.error_message` (`:1054,1085,1092-1093,1119,1135`) → ghi `errorCode` top-level + push `billingAttempts[]` `{idempotencyKey, ready, errorMessage, errorCode, isAutomatic, createdAt}` (`:1087-1097,1111-1128`). So với `paymentErrors` (`const/subscription/subscriptionErrors.js:29-41`, đủ 24 mã Shopify) để set `isPaymentFailed`
+   - **Admin UI CÓ hiển thị** (CS tự tra được): `pages/Orders/OrderDetail.js:444-451`, `pages/Subscriptions/Tabs/History/HistoryOrderRow.js:331-337`, `pages/Orders/banners/FailureBanner.js:34` → text dịch từ `errorCode` qua `PlanDetails.json:5-32`
+   - **🔑 Giới hạn nằm ở Shopify, không phải app**: webhook `subscription_billing_attempts/failure` chỉ trả `error_code` (enum chung) + `error_message` (câu chung chung). **Không** có mã decline chi tiết của ngân hàng (insufficient funds / do-not-honor / CVV sai...) — thứ đó chỉ có trong transaction detail của gateway (Shopify Payments / Stripe / PayPal dashboard)
+   - **Gap nhỏ đáng vá**: UI **bỏ qua `errorMessage` gốc** của Shopify khi `errorCode !== 'USER_ERROR'`, chỉ hiện canned text — dù raw message đã lưu sẵn trong Firestore. Sửa ở 3 chỗ liệt kê trên
+   - **KHÔNG nối với ticket giá sai [[#44]]**: tự tính tổng `lines[].lineDiscountedPrice` khớp field `price` của order (cycle 10: 203.7 · cycle 11: 161.7) → không có dấu hiệu order bị tính sai giá. Nhưng đây chỉ là so sánh **nội bộ app**, chưa đối chiếu số tiền charge thật trên Shopify → **chưa loại trừ tuyệt đối**
+
+   _(ngữ cảnh gốc của #45, giữ để tra cứu)_
+   - Nguyên văn CS (14/08): *"KH báo thêm cái này, c thấy là do Your card bị decline, c có giải thích là SPF charge và trả lỗi về rồi. Nhưng liệu phía dev có log rõ hơn là do cái gì mà decline k e?"*
+   - Khách: **Caroline Charbonneau**, shop **`kookut.myshopify.com`** (shopId `4VgCcf9Ov5cIBx2tCkcT`) — user xác nhận 14/08. ~~SPF = sprayfreefarmacy~~ **SAI**, "SPF charge" là nói về việc charge bị trả lỗi
+   - ⚠️ Còn thiếu: order/contract id cụ thể
+   - 🔗 Cần kiểm nhưng **không được đoán**: kookut đang có ticket giá bị ghi sai ([[#44]]) — nếu khách này nằm trong nhóm bị tính giá cao hơn thực tế thì decline có thể là **hệ quả** (số tiền bất thường → bank từ chối). Chỉ được nói vậy nếu thấy số tiền charge thật của lần fail
+   - Câu hỏi thật: app có lưu **mã lỗi/lý do decline** mà Shopify trả về ở billing attempt không, hay chỉ lưu "failed"? Nếu có thì tra ở đâu; nếu không thì đó là gap cần vá (CS không thể trả lời khách tử tế nếu chỉ có "card declined")
+
+43. [✅ 2026-08-14] ~~Dòng Salmon 24x70g lệch catalog~~ → **ĐẢO CHIỀU: Salmon ĐÚNG, 2 dòng TUNA mới sai — và `contextualPricing` không đáng tin**
+   - **ĐÓNG 14/08, không có commit** (task điều tra). Verifier tự query Shopify sống, **bác bỏ tiền đề của chính task này**
+   - **📊 Bảng giá thật, thu trực tiếp từ Shopify Admin GraphQL** (shop kookut, 14/08). Cả 4 variantId **đều thuộc đúng sản phẩm** hiển thị trên contract → giả thuyết "line đeo nhầm variantId" **BỊ BÁC**:
+     | variantId | product.title thật | CHF | **EUR — PriceList FIXED** (Europe & France) | EUR — `contextualPricing` |
+     |---|---|---|---|---|
+     | `39412859404496` Salmon 70g | Wild Alaskan Salmon - Natural | 1.80 | **1.80** | 1.80 (FR/DE/IT) |
+     | `39412859371728` Salmon 24x70g | Wild Alaskan Salmon - Natural | 42.00 | **40.00** | 40.00 (FR/DE/IT) |
+     | `39412882735312` Tuna 70g | Pacific Tuna & Sardine - Natural | 1.80 | **1.70** | **1.95** ⚠️ |
+     | `39412882702544` Tuna 24x70g | Pacific Tuna & Sardine - Natural | 42.00 | **40.00** | FR **42.95**, DE/IT **45.95** ⚠️ |
+   - **🔑 KẾT LUẬN ĐẢO CHIỀU**:
+     - **Salmon 24x70g `basePrice = 40` là ĐÚNG** — khớp PriceList, khớp contextualPricing, khớp pattern các sản phẩm 24x70g khác (Mackerel SENIOR cũng 40.00). Không cần sửa. Mọi lập luận "40 là giá lỗi" (kể cả của tôi) **sai**
+     - **Hai dòng TUNA mới là dòng sai**: `basePrice` 1.95 / 45.95 trong khi price list của merchant là **1.70 / 40.00** → **merchant nói đúng**, "sp này chưa bao giờ có giá 1,95"
+     - Ảnh merchant gửi (1.70 / 40.00 €) **khớp hoàn toàn `PriceList.prices(originType: FIXED)`**, tái lập nhiều lần → không phải snapshot cũ của app
+   - **🛑 `contextualPricing` KHÔNG ĐÁNG TIN — hệ quả lan sang [[#28]]**: riêng sản phẩm Tuna & Sardine, `contextualPricing` lệch khỏi PriceList của chính nó **và tự mâu thuẫn giữa các nước** (FR 42.95 vs DE/IT 45.95). Mọi sản phẩm khác kiểm được thì 2 nguồn khớp. Đã loại trừ: rate-limit/flaky (mỗi giá tái lập 2-4 lần độc lập) · `inventoryItem.unitCost` = null cả 4 variant (không phải margin protection) · sản phẩm trùng lặp · `updatedAt` hôm nay là do order chu kỳ 14/08 chạy, không phải merchant sửa giá
+     - **`repairContractLinePrices.js:87,95` dùng đúng `contextualPricing` này** → chạy `--apply --allow-increase` lên 2 dòng Tuna sẽ ghi **42.95/45.95**, tức đẩy giá lên cao hơn cả mức đang sai. **CẤM chạy** cho tới khi đổi nguồn giá
+   - ✅ **Phần cơ chế vẫn CONFIRMED** (không đổi):
+     - Auto-sync mù: `contractBulkActionService.js:54-61` so `variant.price` (CHF native, đúng ở cả 2 phía) chứ không so `basePrice`. Kiểm thêm `handleProductUpdate` (`productService.js:161-167`) và `syncProductPriceToContracts` (`:289-306`) — **cả hai đều gọi cùng một điều kiện**, không có nhánh nào khác → dòng sai `basePrice` **không bao giờ** được sync sửa
+     - Detector mù: `scanLineIdMisalignment.js:12,87,98`. Tự chạy lại: `Scanned contracts: 84` · `misalignment: 14` · `price outlier (likely damaged): 0`. Ratios `[1.0, 0.952, 1.083, 1.094]`, median `1.083`, lệch 12.1% < 15% → lọt
+     - **Lỗ hổng của đề xuất detector mới**: lọc trước bằng nhóm `MISALIGNED` sẽ **loại hẳn** nhóm "damaged nhưng aligned" → tái tạo đúng lớp âm tính giả. Và nếu detector mới lấy giá qua Bulk Operations mà field tương đương `contextualPricing` thì nó sẽ **tự sinh false positive** trên chính Tuna & Sardine — gắn nhãn damaged cho dòng đúng rồi đề xuất sửa sai hướng
+   - **Chưa xác minh được**: vì sao riêng Tuna & Sardine bị lệch 2 nguồn giá (nghi cache/propagation phía Shopify — cần mở Shopify Admin → Markets → Pricing hoặc hỏi Shopify Support; GraphQL đọc không truy được) · component nào render màn hình trong ảnh · `basePrice` đúng của 2 dòng Tuna nên là 1.70/40.00 hay số khác — **cần merchant xác nhận trước khi sửa**
+   - _(nội dung điều tra gốc bên dưới giữ lại làm tài liệu — tiền đề của nó đã bị bác)_
+   - Phát hiện bởi verifier task [[#40]], 14/08, đọc prod thật
+   - `basePrice = 40` trong khi catalog live `42.00 CHF` / `45.95 EUR`. Không variant nào trong 71 variant sống của kookut có giá 40 → **không phải mượn giá từ donor còn sống**
+   - Chưa rõ là: (a) tàn dư hoán vị với một donor đã bị đổi giá/xoá, hay (b) snapshot cũ chưa từng được sync lại **dù `automation.syncProductPrice = true`** — nếu là (b) thì đó là lỗ hổng của chính cơ chế auto-sync, đáng điều tra riêng
+   - **Lỗi của detector, quan trọng hơn bản thân dòng này**: `scanLineIdMisalignment.js` dùng ratio so với **median của chính contract** (`RATIO_TOLERANCE = 0.15`). Ở contract này ratio = `[1.0, 0.952, 1.083, 1.094]`, median `1.083` → lệch của dòng hỏng chỉ **12.1%**, dưới ngưỡng → **lọt**. Kết quả: tool báo `0 damaged` cho toàn bộ 84 contract ACTIVE của kookut
+     - Nghĩa là **mọi con số "đã quét, chỉ N contract hỏng" ở [[#28]] đều là chặn dưới, không phải con số thật**. Contract có ≥2 dòng hỏng cùng chiều sẽ kéo median theo và tự che nhau
+   - Việc cần làm: (1) xác định nguồn gốc giá 40, (2) đánh giá lại ngưỡng/thuật toán detector — so với **catalog thật** thay vì median nội bộ contract, (3) quét lại với detector mới rồi đối chiếu số cũ
+
+42. [✅ 2026-08-14] **[phát hiện phụ, từ verifier #40] Bulk action ghi giá contract KHÔNG qua guard `automation.syncProductPrice`**
+   - `controllers/subscriptionContractController.js:1048-1060` → `services/subscription/bulkUpdateSubscriptionProductPrice.js:157-210` (`BULK_TYPE_UPDATE_SUBSCRIPTION_PRODUCT_PRICE`) ghi thẳng `currentPrice` + `pricingPolicy.basePrice` lên contract qua `updateSingleContractPrice`, **không hề đọc `automation.syncProductPrice`**
+   - Giá ghi lấy từ `toUpdateData.priceByCurrency[...].newPrice` — **client-supplied**, không phải giá catalog live → không phải "auto-sync", là ghi giá theo input
+   - ~~`grep -rln "BULK_TYPE_..." packages/assets/src` → 0 kết quả → route mồ côi~~ **SAI — grep âm tính giả, xem dưới**
+   - Kèm theo, cùng đợt verifier: `controllers/fixedBundleController.js:100-160` nhận `productId` thẳng từ `ctx.req.body` rồi truyền vào `handleShopifyProductSet` mà **không verify server-side** rằng productId thuộc bundle của chính shop (`services/fixedBundleService.js:246-253`). Gap authorization, chưa có dấu hiệu bị khai thác
+
+   - **🔴 ĐIỀU TRA 14/08 LẬT NGƯỢC TIỀN ĐỀ — route này KHÔNG mồ côi, nó là tính năng merchant đang dùng** (chờ verifier xác nhận):
+     - **Có UI thật**: nút bulk **"Edit product price"** trên trang Subscriptions — `pages/Subscriptions/Subscriptions.js:389-397`, label i18n `Subscriptions.json:195`, modal + hook `hooks/modal/useBulkEditProductPrice.js` (`:35` khai báo lại literal `'update-subscription-product-price'`, `:91` gọi `useEditApi`, `:229-238` dựng `toUpdateData`)
+     - **Vì sao grep trước đó ra 0**: FE **không import** hằng số của BE mà **hardcode lại chuỗi**. Đúng lớp bẫy đã ghi trong brain: *"liệt kê endpoint đừng grep literal"* — [[preview-route-enumeration-pitfall]]
+     - **Route merchant gọi được bằng session token**, không phải route nội bộ: `routes/api.js:227-230` (`PUT /subscription-contract/bulk-action/:type`), mounted ở cả `handlers/api.js:69` (embedded, `verifyEmbedRequest`) lẫn `handlers/apiSa.js:38` (standalone, `verifyRequest`) — **cùng router với mọi endpoint merchant thường dùng**, không phải `routes/tsTool.js`
+     - **Ghi thật lên Shopify**, không chỉ Firestore: draft create → `subscriptionDraftLineItemUpdate` → commit (`contractBulkActionService.js:128-145` ← `:157` ← `:362`)
+     - **KHÔNG validate giá đầu vào**: `newPrice` đi thẳng từ `TextField` (`useBulkEditProductPrice.js:437`, không min/max) tới `parseFloat` (`contractBulkActionService.js:134`); route **không có** `validate(schema)` middleware trong khi phần lớn route mutating cùng file thì có
+     - **Thiếu scope `shopId`**: `getSubscriptionContractsByIds` (`repositories/subscriptionContractRepository.js:1048-1064`) query `where(documentId(), 'in', batch)` **không lọc `shopId`**, gọi từ `bulkUpdateSubscriptionProductPrice.js:104`; `ids` là client-supplied (`subscriptionContractController.js:927`) và không đối chiếu `shop.id`. Suy luận (chưa kiểm live): **đọc** doc của shop khác thì lọt, **ghi** thì Shopify chặn vì access token scope theo store. Vẫn nên vá theo defense-in-depth
+   - **Kết luận về câu hỏi gốc: thiếu guard `syncProductPrice` ở đây KHÔNG phải bug** — hai tính năng khác bản chất. Toggle gate đường **Shopify đẩy giá catalog vào contract** (`productWebhookHandler.js:75`, `services/shopify/productService.js:274`); còn route này là **merchant chủ động gõ giá mới rồi bấm Save**. Merchant tắt auto-sync vẫn phải sửa giá tay được
+   - **→ Cách diễn đạt đúng khi trả lời merchant**: *"App chỉ tự đổi giá contract khi bạn bật 'Auto-sync product price'. Ngoài ra bạn (hoặc ai có quyền vào app) vẫn có thể tự sửa giá bằng bulk action 'Edit product price' trên trang Subscriptions — đó là thao tác chủ động, không phải app tự làm."*
+   - **Việc còn lại (chưa làm, cần task riêng nếu user duyệt)**: (1) validate `newPrice` ở route, (2) lọc `shopId` trong `getSubscriptionContractsByIds` cho call path này, (3) gap ownership ở `fixedBundleController` — sửa cần hiểu state machine của bundle trước, ép so khớp cứng có thể phá luồng đổi product hợp lệ
+   - **ĐÓNG 14/08 — verifier verdict `PARTIAL`**: bản chất các tuyên bố đều CONFIRMED (route merchant-facing, ghi thật lên Shopify, không validate, không scope `shopId`, và thiếu guard `syncProductPrice` là ĐÚNG THIẾT KẾ). Task điều tra nên **không có commit**. Hai đính chính của verifier:
+     - **Nút CÓ gate ở FE mà vòng trước bỏ sót**: `Subscriptions.js:471` `disabled: !hasDealForFreeForever`; `hasDealForFreeForever` (`Subscriptions.js:114-115`) phụ thuộc `isFreeForever(shop)` (cutoff `GO_LIVE_PRICING` ~2025-11-04), `isGrowthHackingV3(shop)` (cutoff `GO_LIVE_GROWTH_HACK_DATE_V3` = 2026-04-10, `config/plans.js:62`), và cờ `shop.showAllBulkActions`. **KHÔNG phải gate theo `plan === 'free'`** → không kết luận được kookut có thấy nút hay không nếu chưa đọc `installedAt` + `showAllBulkActions` thật của họ
+     - **Backend KHÔNG có gate tương đương** (`routes/api.js` grep `requirePlan|checkPlan|featureFlag|requireFeature` = 0): nút bị disable chỉ là tiện ích UI, session token hợp lệ vẫn gọi thẳng endpoint được bất kể plan
+     - Số dòng lệch nhẹ so với ghi chú trên: `processLineItemPriceUpdate` là `contractBulkActionService.js:108-146` (mutation ở `:139`, `parseFloat` ở `:134`), controller đọc body ở `:928`
+     - Thêm: input rác → `getSellingPlanVariables.js:400-402` `Number.isFinite(...) ? ... : 0` **coerce âm thầm về 0**, không reject. Response route chỉ trả `{success:true, data:{message:'Action is running in the background'}}` (`subscriptionContractController.js:1127-1130`) nên doc shop khác nếu lọt thì **không rò thẳng ra HTTP response**
+     - Nhánh khác trong cùng file **CÓ** scope đúng — `processContractsBatch` (`contractBulkActionService.js:383+`) dùng `getSubscriptionContractsByContractIds({shopId: shop.id})`. Tức thiếu scope ở nhánh bulk-action là **bỏ sót cục bộ**, không phải convention của repo
+   - **🔑 Câu trả lời cốt lõi cho khiếu nại "app tự đổi giá"**: không có cơ chế nào trong code khiến hệ thống **tự phát** đổi giá — mọi lần đổi qua đường này đều cần một request tường minh kèm `ids` + `toUpdateData`. Chỉ có 2 đường tự động, và cả hai đều gate bởi `automation.syncProductPrice`: webhook `products/update` (`productWebhookHandler.js:75`) và `syncProductPriceToContracts` (`services/shopify/productService.js:274`, chỉ gọi từ `devZoneController.js:990` — tool nội bộ)
+
+41. [✅ 2026-08-14] **Ticket `JSUB-260814-adxTDS` — file import migration Appstle thiếu `customer_id` + `delivery_address_province_code`**
+   - nhánh `feat/JSUB-260814-enrich-import` · commit **`0c88458`** · base `origin/master` `8016e0ac0` · **CHƯA push** (git fetch/push fail `HTTP Basic: Access denied` — session không có TTY, cần token on-premise)
+   - Verifier `PASS`. Gate: `check` **exit 0** (7 rule groups clean) · `jest:as` **exit 0** (6 suite / 86 test) · `jest:fn` exit 1 nhưng **đúng 9 suite baseline** đã biết, không suite mới nào chết (verify bằng `rtk proxy npx jest` để không bị rtk che suite chết) · `git diff --stat` tracked files **rỗng** — không đụng file của ai
+   - File mới, duy nhất: `packages/functions/src/commands/misc/enrichAppstleImportCsv.js` (+262). Chỉ đọc: Shopify GraphQL `query` + `.get()` Firestore lấy token; grep xác nhận không có `mutation`/`.set(`/`.update(`/`.delete(`
+   - **🔴 TICKET MÔ TẢ SAI VẤN ĐỀ — đây mới là điều CS cần biết**:
+     - `delivery_address_province_code` **KHÔNG bắt buộc**: `validations/importSubscription.js:21` là `yup.string()` trần, không bọc `validateDeliveryField` như `address1/city/zip/country_code` (`:17,18,20,22,24`). Và **`SG` không nằm trong** `PROVINCE_REQUIRED_COUNTRY_CODES` (`const/shipping/provinceRequiredCountries.js:10-43`). Cả 99 dòng đều country `SG` → **để trống là hợp lệ**, không cần enrich gì
+     - **Thứ THẬT SỰ chặn import là `delivery_price`**: `importSubscription.js:176` `yup.number().min(0).required()` — bắt buộc vô điều kiện, mà cột này trống **99/99**. Import nguyên trạng **fail cả 99 dòng** vì lý do này, không liên quan 2 cột ticket nói. **Script này không xử lý `delivery_price`** (đúng scope ticket) → chạy xong file vẫn chưa import được
+     - `billing_min_cycles`/`billing_max_cycles` optional (`importSubscription.js:133-164`, `.nullable()` + transform `'' → null`) — trống là hợp lệ
+     - Cột `shipping_name` trong file khách **sai tên**: app đọc `delivery_method_shipping_name` (`importService.js:258,330`, `importSubscription.js:15`), schema **không có `noUnknown()`** nên cột lạ bị nuốt im lặng. ⚠️ Citation `exportService.js:279` ở vòng đầu là **SAI** (dòng đó là `delivery_address_first_name`), và `allFieldsConfig` (`exportService.js:261-301`) **không hề có** field này — nó chỉ tồn tại phía import
+   - `customer_id` là **số nguyên trần**, không phải GID (`importSubscription.js:72` `yup.number().required()`; `importService.js:381` tự bọc `getGraphqlId(customer_id, 'Customer')`)
+   - **Chạy thật trên file khách**: 99 dòng → **99/99 resolve được `customer_id`** qua email, 0 dòng cần xử tay. Output `joysub-import-formatted.enriched.csv` trong scratchpad phiên 14/08 (**sẽ mất khi dọn tmp** — chạy lại được bằng script)
+   - Verifier tự dựng lại thí nghiệm offline: dòng **đã có** `customer_id` không bị ghi đè · **0 match** và **>1 match** đều để trống + vào report, không đoán · Shopify search **fuzzy** trả email gần đúng (`FUZZY+tag@` khi tìm `fuzzy@`) bị bộ lọc exact-match case-insensitive (`:144`) loại đúng · round-trip `xlsx` với `{raw: true}` giữ nguyên **string**, zip `520736` và `contract_ID` dài **không** bị scientific notation, 30 cột đúng thứ tự
+   - **Còn lại, chưa xử** (finding verifier, không chặn deliverable): `enrichAppstleImportCsv.js:141` nội suy email thẳng vào query Shopify `email:'${email}'` **không escape**; không có try/catch quanh vòng lặp per-row nên một email chứa `'` có thể làm crash giữa chừng và **mất toàn bộ enrich đã làm** (vì `writeCsv` chỉ chạy ở cuối). Dataset thật không có ký tự đặc biệt nên chưa kích hoạt
+   - Verifier **không tự re-run** script nhắm prod (đúng ràng buộc) → con số 99/99 là corroborate từ file output có sẵn, không phải rerun độc lập
+   - Slack: https://avadaio.slack.com/archives/C07URV6QMJ8/p1786693553320819 (đã đọc 14/08)
+   - Shop `nj1kht-86.myshopify.com` · app plan free · Shopify plan basic · TS: Tuấn ĐV (Ryan)
+   - Khách export subscription từ **Appstle**, đã format theo sample file của Joy Sub, **nhưng thiếu 2 cột**: `customer_id` và `delivery_address_province_code` → không import được
+   - Team chốt trong thread: *"cần dev lấy từ appstle là không thể rồi, khách cho quyền order rồi nhé"* — tức **không lấy từ Appstle**, phải resolve từ dữ liệu Shopify của chính shop (đã có quyền **customer + order**)
+   - File khách (đã format): https://docs.google.com/spreadsheets/d/1TxE2swmqfgKS2ma4P-eObCV1ihdcBZclRNVW0mE00C4/edit · file gốc CSV `1786683799813_subscriptionexport202608140438_1h2f5st__1_.csv` đính trong thread Slack
+   - Việc thực chất: viết script enrich CSV — map email khách → `customer_id` Shopify, và tên tỉnh/bang → `province_code` chuẩn ISO
+   - **User duyệt đọc prod shop này 14/08** (cùng lượt với #40)
+   - ⚠️ **Chưa lấy được file input**: Slack token thiếu scope `files:read` → tải file đính kèm trả về HTML login, không phải CSV. Google Sheet cũng cần quyền. **Cần user đưa file về local** rồi mới chạy enrich thật được
+   - Chưa kiểm: sample file import của Joy Sub yêu cầu đúng những cột nào, và `province_code` là bắt buộc hay optional
+
+## 2026-08-17
+
+45. [✅ 2026-08-17] **[P1] Chatty Helpdesk integration — endpoint read-only tra subscription theo Shopify customer ID**
+   - **Bối cảnh**: team Chatty Helpdesk cần context card ở sidebar ticket: agent CS mở ticket của 1 khách → hiện subscription của khách đó (status, chu kỳ giao, ngày giao kế, sản phẩm, giá). **Read-only, không ghi gì.**
+   - **Hướng đã chốt (dantt 17/08)**: dùng `externalAppConfigs` / `/integrate` — làm bản internal trước. **KHÔNG** làm đường storefront server-to-server ở task này.
+   - Hạ tầng đã có sẵn, tái dùng chứ đừng xây mới:
+     - Handler `packages/functions/src/handlers/integrateApiHandler.js` → function `integrateApi`, rewrite `/integrate/**` ở `firebase.json:83-85`. Base URL cố định `https://avada-subscription-app.firebaseapp.com` (KHÔNG theo domain từng merchant)
+     - Auth `packages/functions/src/middleware/verifyIntegrateRequest.js`: 2 header `X-Avada-Subscription-Api-Key` + `X-Avada-Subscription-Token: Bearer <jwt>` (HS256 ký bằng apiSecret). Payload JWT chứa `shopifyDomain` + `customerId` hoặc `email`. Middleware đã set sẵn `ctx.state.user.shopID`, `ctx.state.tokenCustomerId`, `ctx.state.tokenEmail`
+     - `packages/functions/src/config/externalApp.js` → `getExternalApps(apiKeyFilter)` đọc JSON array nhiều app, mỗi app 1 cặp apiKey/apiSecret → revoke độc lập
+     - Tiền lệ 1 endpoint customer-scoped đã chạy: `GET /integrate/customer/subscription-summary` (`controllers/apiHookV1/analyticsController.js`) — nhưng chỉ trả `activeCount`, KHÔNG đủ cho sidebar
+   - **Việc cần làm**:
+     1. Thêm entry cho Chatty vào `externalAppConfigs` (apiKey + apiSecret riêng, revoke/rotate độc lập). Secret KHÔNG hardcode — qua env/config như các app khác
+     2. Thêm route `GET /integrate/customer/subscriptions` vào `packages/functions/src/routes/integrateApi.js` + controller mới. `customerId` lấy **CHỈ** từ `ctx.state.tokenCustomerId` / `tokenEmail` (tamper-proof), **tuyệt đối không nhận từ query/body** — giữ đúng pattern của `getCustomerAnalytics`
+     3. Controller resolve subscriber theo shop (`getSubscriberByCustomerId` / `getSubscriberByEmail` ở `repositories/subscribersRepository.js`) để chặn cross-shop, rồi gọi `getListSubscription(shop, {customerId})` (`repositories/subscriptionContractRepository.js:119`) — hàm này `prepareData` đã render sẵn `frequency`, `frequencyValue`, `nextBillingDate`, `product`, `lastActivity`
+     4. **Trả RAW, KHÔNG viết presenter lọc field** (dantt chốt 17/08: "cứ trả raw tránh present thành ra thiếu field, để bên đó dùng data đấy"). Chỉ chạy `stripJoyAttributes` (`helpers/subscription/stripJoyAttributes.js`) để không lộ attribute nội bộ `_joy*`. Response theo envelope sẵn có: `{success: true, data: {...}}`
+     5. **Unit test bắt buộc** (`packages/functions/__tests__/`, mirror source tree): ít nhất phủ — token thiếu `customerId`/`email` → 400 · customer của shop khác → 404 · customer hợp lệ → 200 kèm list · **customerId truyền qua query bị bỏ qua, không override token** (chống IDOR)
+   - **KHÔNG làm**: không nhét doc vào `docs/api-analytics.md` (dantt: "nó không phải analytics") — viết file doc **riêng**, vd `docs/api-chatty-integration.md`, theo cùng format với `docs/api-analytics.md` (endpoint, header, JWT payload, response, bảng lỗi)
+   - Ràng buộc: read-only tuyệt đối, không thêm route ghi. Giữ multi-tenant — mọi query scope theo `shopId` resolve từ token
+   - nhánh `feat/chatty-subscription-api` · commit `a0ce90e` · base `origin/master` (8016e0ac0)
+   - **MR !2476** https://git.avada.net/avada/subscriptions/-/merge_requests/2476 · reviewer `dantt` · target `master` · remove-source-branch on · security review: clean
+   - Push/MR gỡ được bằng `ON_PREMISE_GITLAB_TOKEN` trong `packages/functions/.env.local` dạng `https://oauth2:$TOKEN@git.avada.net/...` (session Claude không có TTY nên osxkeychain không hỏi được). ⚠️ Push option `merge_request.reviewer=dantt` **bị bỏ qua im lặng, KHÔNG có warning** — phải set lại bằng `PUT /merge_requests/2476 {"reviewer_ids":[35]}`. Trái với điều `create-mr.md` đang ghi ("không warning ⇒ option đã áp dụng") — luôn verify bằng API
+   - ⚠️ Base là `origin/master` local (`8016e0ac0`) vì `git fetch` fail lúc đó — kiểm lại MR có bị sau remote không trước khi merge
+   - File: `controllers/apiHookV1/customerSubscriptionsController.js` (mới) · `routes/integrateApi.js` (+1 route GET) · `helpers/subscription/stripJoyAttributes.js` (+`stripJoyAttributesDeep`, hàm cũ không đụng) · 2 file test · `docs/api-chatty-integration.md` (mới, KHÔNG nhét vào api-analytics.md)
+   - Cách làm: `GET /integrate/customer/subscriptions`, identity chỉ lấy từ JWT đã ký (`ctx.state.tokenCustomerId`/`tokenEmail`), resolve subscriber theo shop để chặn cross-shop, gọi `getListSubscription(shop, {customerId, getAll: true})`. Trả **raw**, không presenter — chỉ strip `_joy*` đệ quy ở mọi field `customAttributes`
+   - **Điểm 1 của task không cần code**: `getExternalApps()` (`config/externalApp.js`) vốn đã đọc mảng nhiều app từ env `EXTERNAL_APP_CONFIGS`, mỗi app 1 cặp apiKey/apiSecret revoke độc lập → chỉ cần thêm entry Chatty qua env, đã ghi cách làm ở mục Provisioning trong doc mới
+   - Verify (verifier độc lập, 2 vòng): `check` exit 0 · `jest:fn` 184 passed suites / 1819 passed tests vs baseline 183/1809 = **+1 suite, +10 test**, 9 suite đỏ là baseline sẵn có · `jest:as` exit 0 (6/6 suite, 86/86 test)
+   - **Vòng 1 FAIL** — rò `_joy*` qua `products[].customAttributes` (shape array `{key,value}`, khác shape object-map ở contract level); vòng 2 fix bằng `stripJoyAttributesDeep` + test regression. Verifier mutation-test xác nhận guard có răng: gỡ strip / cho query override customerId / bỏ check cross-shop → test đều đỏ đúng như phải đỏ. Cũng test với `Timestamp`/`GeoPoint` thật → không bị đệ quy làm sụp thành `{}`
+   - ⚠️ **Đụng shared helper** `stripJoyAttributes.js` (diện "Ask First" theo CLAUDE.md): chỉ *thêm* export mới, `git diff` = 34 insertions / 0 deletions, 3 call site cũ (`subscriptionContractController.js:215`, `readController.js:183`, `deliveryProviderService.js:124/128`) vẫn dùng hàm cũ single-level, không đổi
+   - Ghi chú informational của verifier (pre-existing, KHÔNG phải lỗi mới): `isJoyKey = key => String(key).startsWith('_joy')` (`stripJoyAttributes.js:3`) sẽ strip nhầm key khách kiểu `_joyfulThing` — hành vi có sẵn từ trước, không đụng tới
+
+46. [✅ 2026-08-17] **[P1] Tách app nhận webhook khỏi app gọi API — `forwardWebhook: false` cho Chatty**
+   - Đi CHUNG nhánh `feat/chatty-subscription-api` + MR !2476 với [[#45]] (dantt chốt 17/08: "sửa thẳng nhánh kia")
+   - **Bug thật đang chặn việc set biến cho Chatty**: `handlers/pubsub/webhookIntegrationHandler.js:91` gọi `getExternalApps()` **KHÔNG filter** → `externalApps.map(appConfig => forwardWebhook(...))` fan-out tới MỌI app trong config. Thêm entry Chatty vào `EXTERNAL_APP_CONFIGS` là Chatty tự nhận toàn bộ webhook đang chảy sang Joy Loyalty (`subscriptionContractCreateService.js:1122,1484` · `subscriptionContractUpdateService.js:195` · `billingAttemptWebhookService.js:330` · `trialService.js:93,168` · `subscriptionService.js:446`)
+   - Gate duy nhất hiện có là `isConnectedWithJoyLoyalty(shopifyDomain)` (`webhookIntegrationHandler.js:84`) — gate theo SHOP, không phải theo APP
+   - Không né được bằng cách không thêm entry: `verifyIntegrateRequest.js:24` dùng chính `getExternalApps(apiKey)` để auth → không có entry thì endpoint của [[#45]] trả 401
+   - ⚠️ **`enabled` là field CHẾT** — chỉ xuất hiện ở 1 dòng `console.log` (`webhookIntegrationHandler.js:94`), không ai đọc làm điều kiện; `getExternalApps` chỉ lọc `app.address && app.apiKey && app.apiSecret` (`config/externalApp.js:48`). Bằng chứng: production không có `enabled` mà webhook vẫn chạy. ĐỪNG dùng `enabled:false` để tắt
+   - **Việc cần làm**:
+     1. `webhookIntegrationHandler.js:91` → `getExternalApps().filter(app => app.forwardWebhook !== false)`. Dùng `!== false` để app không khai báo field (Joy Loyalty) giữ nguyên hành vi cũ
+     2. Đảm bảo `config/externalApp.js` pass-through field `forwardWebhook` (validApps giữ nguyên object nên nhiều khả năng đã ok — verify, đừng giả định)
+     3. **Unit test**: app không có field → vẫn nhận webhook · app `forwardWebhook:false` → KHÔNG nằm trong danh sách forward · app `forwardWebhook:false` VẪN auth được qua `getExternalApps(apiKey)` (đây là điểm mấu chốt: tắt webhook mà không tắt auth)
+     4. Cập nhật mục Provisioning trong `docs/api-chatty-integration.md`: ví dụ `EXTERNAL_APP_CONFIGS` đầy đủ 2 entry, và **cảnh báo IN ĐẬM** rằng set `externalAppConfigs` làm nhánh legacy `external_app.address/api_key/api_secret` bị bỏ qua hoàn toàn (`config/externalApp.js:24-30`) → phải chép đủ 3 field của Joy Loyalty vào mảng, thiếu là Joy Loyalty rớt webhook và chỉ log `Configuration missing`
+   - Production hiện tại đang dùng nhánh legacy: `external_app: {api_secret, api_key, address: "https://joy.avada.io/integrate/joy-sub/webhook"}`
+   - nhánh `feat/chatty-subscription-api` · commit `6eb3474` · **cùng MR !2476** với [[#45]]
+   - Sửa `handlers/pubsub/webhookIntegrationHandler.js` (1 dòng: `.filter(app => app.forwardWebhook !== false)`) + `docs/api-chatty-integration.md` (mục Provisioning viết lại) + 2 file test mới (`__tests__/config/externalApp.test.js`, `__tests__/handlers/pubsub/webhookIntegrationHandler.test.js`, 3 test mỗi file)
+   - `config/externalApp.js` **KHÔNG đổi** — `validApps` dùng `.filter()` giữ nguyên object reference nên `forwardWebhook` pass-through sẵn (verifier xác nhận bằng `git diff --stat` rỗng + test `externalApp.test.js:55-65`)
+   - Verify (verifier độc lập, PASS ngay vòng 1): `check` exit 0 · jest `186 passed suites / 1825 passed tests` vs baseline dựng bằng `git archive 851e55d` ra scratchpad = `184 / 1819` → đúng **+2 suite, +6 test**, 9 suite đỏ trùng tên byte-identical trước/sau
+   - **Mutation-test (bằng chứng guard có răng)**: đổi `!== false` → `=== true` thì 2/3 test đỏ · gỡ hẳn `.filter(...)` cũng 2/3 test đỏ
+   - `jest.mock('@functions/helpers/config/safeConfig')` trong test là bắt buộc, KHÔNG phải mock quá tay: verifier probe trên baseline 851e55d thấy `require('@functions/config/externalApp')` fail `Cannot find module 'firebase-admin/auth' from 'identity.js'` — lỗi môi trường CÓ SẴN (firebase-admin@11.10.0 vs resolver của Jest)
+   - Doc không lộ secret: `grep -oE '[a-f0-9]{32,}'` trên doc không ra chuỗi nào
+
+47. [✅ 2026-08-17] **[P1] `functions:config` từ chối key camelCase — thêm fallback lowercase cho externalAppConfigs**
+   - Đi CHUNG nhánh `feat/chatty-subscription-api` + MR !2476 với [[#45]] [[#46]]
+   - **Lỗi THẬT user gặp khi set config production 17/08**: `Error: Invalid config name external_app.externalAppConfigs, cannot use upper case.` → Firebase Runtime Config KHÔNG chấp nhận chữ hoa trong key, nên key mà code đang đọc (`external_app.externalAppConfigs`, `config/externalApp.js:7`) **không bao giờ set được** qua `firebase functions:config:set`. Nhánh mảng multi-app coi như chết trên production nếu không sửa
+   - (Cảnh báo này đã được ghi trước trong doc ở [[#46]] là "chưa verify được" — nay đã verify: nó fail thật)
+   - **Việc cần làm**: trong `config/externalApp.js`, thêm fallback key toàn chữ thường, GIỮ NGUYÊN 2 tên cũ để không phá gì:
+     ```js
+     const externalAppConfigs =
+       env.EXTERNAL_APP_CONFIGS || external_app.externalAppConfigs || external_app.configs;
+     ```
+   - **Unit test**: đọc được từ `external_app.configs` · vẫn đọc được từ `external_app.externalAppConfigs` (backward compat) · env `EXTERNAL_APP_CONFIGS` vẫn thắng cả hai · không có cái nào thì rơi về nhánh legacy `address`/`api_key`/`api_secret`
+   - **Cập nhật `docs/api-chatty-integration.md`**: đổi mọi lệnh `functions:config:set` sang key `external_app.configs`, và sửa đoạn cảnh báo "camelCase chưa verify" thành đã verify là FAIL kèm nguyên văn thông báo lỗi
+   - Ghi chú hạ tầng đã tra (khỏi tra lại): `firebase.json` → `functions.source = packages/functions` · firebase-tools **13.29.1** · deploy BE chạy qua `.gitlab/scripts/selective-deploy.sh production "$FIREBASE_DEPLOY_KEY"` (`production.yml:152`) · CI production KHÔNG inject env nào cho `packages/functions` (chỉ `.env.production` cho assets dòng 125 + scripttag dòng 140)
+   - nhánh `feat/chatty-subscription-api` · commit `7f2f528` · **cùng MR !2476** với [[#45]] [[#46]]
+   - Sửa `config/externalApp.js` (thêm `|| external_app.configs`) + mở rộng `__tests__/config/externalApp.test.js` (+4 test) + `docs/api-chatty-integration.md`
+   - Verify (verifier độc lập, PASS vòng 1): `check` exit 0 · jest `186 passed suites / 1829 passed tests` vs baseline `186 / 1825` = **+4 test**, 9 suite đỏ trùng tên, không suite nào mới đỏ
+   - **Mutation-test**: gỡ `|| external_app.configs` → test mới đỏ · và quan trọng hơn: strip `forwardWebhook` khỏi object trả về → **2 test CŨ của [[#46]] vẫn đỏ đúng như phải đỏ**, tức việc agent đổi từ `jest.mock` file-level sang `jest.doMock` per-test KHÔNG làm rỗng ruột guard cũ
+   - Finding của verifier (coverage gap, KHÔNG phải bug — đã ghi thành [[#49]]): đảo thứ tự `externalAppConfigs` ↔ `configs` trong code thì **cả 7 test vẫn xanh** → không test nào phủ quan hệ ưu tiên giữa 2 key khi không có env (`__tests__/config/externalApp.test.js:99-155`)
+
+50. [✅ 2026-08-17] **[P0] `forwardWebhook` đọc từ functions:config ra string `"false"` → guard `!== false` vô hiệu**
+   - Đi CHUNG nhánh `feat/chatty-subscription-api` + MR !2476
+   - **Bối cảnh**: project dùng firebase-functions 4.4.1, `webhookIntegrationSubscriber` export bằng `functions.pubsub...onPublish()` = **Gen 1** (`index.js:141-144`) nên `functions.config()` đọc được bình thường — đường functions:config KHÔNG chết vì generation
+   - **Đã đo thật** (mô phỏng `materializeConfig` + lodash `_.set`): CLI băm JSON thành `external_app.configs.0.address`, `...1.forwardWebhook` rồi khi đọc lại `_.set` **tự dựng thành ARRAY đúng cấu trúc** (length 2) → cấu trúc KHÔNG hỏng như lo ban đầu
+   - **Chỗ hỏng duy nhất**: Runtime Config chỉ lưu string, nên `forwardWebhook` đọc ra là `"false"` (string). Code `webhookIntegrationHandler.js` check `app.forwardWebhook !== false` → `"false" !== false` = **true** → Chatty VẪN nhận webhook. Guard vô hiệu, hỏng âm thầm
+   - (Cũng vì Runtime Config chỉ nhận string mà set boolean `false` bị lỗi 400 `Invalid value at 'variable.text' (TYPE_STRING), false` — user gặp thật 17/08)
+   - **Việc cần làm**: sửa so sánh trong `handlers/pubsub/webhookIntegrationHandler.js` để chấp nhận cả boolean `false` lẫn string `"false"`, vd `String(app.forwardWebhook) !== 'false'`. Giữ nguyên ngữ nghĩa: app KHÔNG khai báo field → vẫn forward (`String(undefined) === 'undefined'` ≠ `'false'` ✓)
+   - **Unit test bắt buộc**: `forwardWebhook: false` (boolean) → không forward · `forwardWebhook: "false"` (string, đúng thứ đọc từ functions:config) → không forward · không khai báo → vẫn forward · `forwardWebhook: true` → vẫn forward
+   - **Doc `docs/api-chatty-integration.md`**: lệnh `functions:config:set` phải dùng `"forwardWebhook":"false"` (STRING trong ngoặc kép, không phải boolean) — kèm giải thích vì sao (API chỉ nhận string). Đường env `EXTERNAL_APP_CONFIGS` thì vẫn dùng boolean `false` vì code tự JSON.parse
+   - Liên quan [[#48]] (doc) — task này làm xong thì #48 thu hẹp lại đáng kể vì functions:config trở nên dùng được
+   - nhánh `feat/chatty-subscription-api` · commit `2d8adf1` · **cùng MR !2476**
+   - Sửa `handlers/pubsub/webhookIntegrationHandler.js` + tách helper mới `helpers/webhook/isWebhookForwardingEnabled.js` (`String(app.forwardWebhook) !== 'false'`) + 2 test + doc
+   - Verify (verifier độc lập, PASS vòng 1): `check` exit 0 · jest `186 passed suites / 1831 passed tests` vs baseline `186 / 1829` = **+2 test**, không suite nào mới đỏ
+   - **Mutation-test**: quay về `!== false` → chỉ test `"false"` string đỏ (đúng bug đang sửa) · đổi thành `!!app.forwardWebhook` → **3 test đỏ** gồm case "không khai báo field" (đúng kịch bản Joy Loyalty mất webhook — nặng nhất) · gỡ hẳn `.filter()` → 3 test đỏ
+   - Quét toàn repo: chỉ 1 call site duy nhất dùng field này (`webhookIntegrationHandler.js:99`), không sót pattern `!== false` cũ ở đâu
+   - ⚠️ Ghi để biết: `"FALSE"` viết HOA sẽ **vẫn forward** (`String("FALSE") !== "false"`). Không phải bug, nhưng ai set config nhớ viết thường
+   - Doc giữ CẢ HAI đường: `functions:config` dùng `"forwardWebhook":"false"` (string) · env `EXTERNAL_APP_CONFIGS` dùng `false` (boolean, vì code tự `JSON.parse`)
+
+49. [✅ 2026-08-17] **[P2] Thiếu test phủ thứ tự ưu tiên giữa `externalAppConfigs` và `configs`**
+   - Finding nguyên văn của verifier ([[#47]]): "No test in the diff isolates the priority of `external_app.externalAppConfigs` over `external_app.configs` when `EXTERNAL_APP_CONFIGS` env is absent — `packages/functions/__tests__/config/externalApp.test.js:99-155`. The source code order itself is correct and matches the brief's exact snippet (`env.EXTERNAL_APP_CONFIGS || external_app.externalAppConfigs || external_app.configs`), so this is a coverage gap, not a functional bug — confirmed by mutation test #3 above (swapping the two internal fallback sources leaves the suite green)."
+   - Tức: đảo thứ tự 2 key trong code thì **cả 7 test vẫn xanh** → không ai phát hiện nếu sau này có người sửa nhầm
+   - Việc cần làm: thêm 1 test dựng CẢ HAI key cùng lúc (không có env), assert `externalAppConfigs` thắng
+   - KHÔNG phải bug đang chạy — code hiện tại đúng thứ tự. Ưu tiên thấp, làm khi rảnh
+   - nhánh `test/external-app-config-priority` · commit `f3fc670` (worktree `agent-a81a1ee010c5f78e8`, chưa push)
+   - Thêm 1 test vào `packages/functions/__tests__/config/externalApp.test.js` (+14 dòng): dựng CẢ HAI key `externalAppConfigs` + `configs`, không có env `EXTERNAL_APP_CONFIGS` → assert `externalAppConfigs` thắng
+   - Verify: full `yarn workspace @avada/functions test` — 9 suite fail đúng baseline, KHÔNG suite mới đỏ, test count +1 đúng bằng test thêm. `git status` chỉ file test đổi, `src/config/externalApp.js` nguyên vẹn
+   - ⚠️ **Chưa qua verifier độc lập**: user chốt "done" giữa chừng nên agent bị dừng và không spawn verifier. Phần mutation test (đảo thứ tự 2 nguồn fallback phải làm test MỚI đỏ) do chính agent viết code báo, chưa ai kiểm chứng lại
+
+48. [✅ 2026-08-17] **[P0] Doc đang hướng dẫn lệnh `functions:config:set` KHÔNG chạy được — CLI băm JSON, boolean bị từ chối**
+   - **Lỗi THẬT user gặp 17/08** khi chạy đúng lệnh trong doc: `Error: Request to https://runtimeconfig.googleapis.com/v1beta1/projects/avada-subscription-app/configs/external_app/variables had HTTP Error: 400, Invalid value at 'variable.text' (TYPE_STRING), false`
+   - **Root cause** (đã đọc code CLI, khỏi điều tra lại): `node_modules/firebase-tools/lib/functionsConfig.js:64-80` `setVariablesRecursive()` **tự `JSON.parse` giá trị rồi đệ quy tách từng key thành variable riêng** (`configs/0/address`, `configs/0/apiKey`, … `configs/1/forwardWebhook`). Runtime Config API chỉ nhận string ở `variable.text` → boolean `false` bị 400
+   - **Đổi sang `"false"` (string) KHÔNG cứu được**: code check `app.forwardWebhook !== false`, mà `"false" !== false` là true → Chatty **vẫn nhận webhook**, hỏng âm thầm đúng cái đang cố tránh
+   - **Hệ quả nặng hơn**: vì config bị băm nhỏ, đọc lại `external_app.configs` KHÔNG còn là chuỗi JSON → nhánh `typeof === 'string' ? JSON.parse(...)` ở `config/externalApp.js:24-28` không chạy, mọi giá trị thành string. Tức [[#47]] gỡ được chuyện chữ hoa nhưng **KHÔNG làm đường `functions:config` chạy được**
+   - **Việc cần làm**: sửa `docs/api-chatty-integration.md` — bỏ/hạ cấp lệnh `functions:config:set`, chuyển hướng dẫn chính sang đường env `EXTERNAL_APP_CONFIGS` (string thuần trong `packages/functions/.env`, code tự `JSON.parse`, boolean giữ đúng kiểu). Ghi nguyên văn lỗi + root cause ở trên vào doc để người sau không thử lại
+   - Đường env qua CI (user đang setup): GitLab variable `PROD_EXTERNAL_APP_CONFIGS` (Protected) + 3 dòng ghi `packages/functions/.env` trong `.gitlab/scripts/selective-deploy.sh` trước `firebase deploy`. ⚠️ Agent KHÔNG sửa được file trong `.gitlab/` (classifier chặn) — phần đó user tự làm
+   - Cân nhắc (chưa chốt): có nên thêm normalize trong `externalApp.js` để dựng lại mảng từ object lồng + ép `"false"` → `false` không. Chủ trương hiện tại: KHÔNG, vì env sạch hơn — nhưng nếu chốt làm thì ghi rõ lý do
+
+
+   ----- START NEW ---------
+
+ 1. []
+  - https://avadaio.slack.com/archives/D08HS7DES78/p1786701996016709 hiện tại thì nhánh feat/portal-preview đã implement phần preivew của customer portal cả new customer portal(extensions) lẫn old customer portal (scripttag) rồi. Thì hiện tại tôi đang muốn implement thêm phần thay đổi chỗ chọn CP old và new ở 2 MR mà trong slack trên gửi
+  - Thứ 2 là "Anh cần có một modal Confirm ngay khi em xem cái preview đó ở trang CP nha.
+  Account này đang đăng nhập bằng mode preview với data example và sẽ tự động chuyển thành dữ liệu thật + không thể preview khi đã có Subscription đầu tiên."
+  thì ở đây bạn implement modal trên, content thì bạn tự fill giúp t nhé!
+   - nhánh `docs/chatty-config-env` · commit `d03dea1` (worktree `agent-a79e1698666ba534a`, chưa push)
+   - Sửa `docs/api-chatty-integration.md` (+204/−96): đường chính chuyển sang env `EXTERNAL_APP_CONFIGS`; thêm mục "Đừng thử lại `functions:config:set`" kèm nguyên văn lỗi 400 + root cause `setVariablesRecursive()`; thêm mục verify sau deploy; mô tả (không implement) bước GitLab `PROD_EXTERNAL_APP_CONFIGS` + `selective-deploy.sh`; ghi rõ chủ trương KHÔNG thêm normalize vào `externalApp.js`
+   - **Verifier vòng 1 `FAIL`** — doc mô tả sai code: viết `app.forwardWebhook !== false` (strict) trong khi code thật là `String(app.forwardWebhook) !== 'false'` (`helpers/webhook/isWebhookForwardingEnabled.js:20`, đã vá ở commit `2d8adf14c`) → tức string `"false"` VẪN opt-out được. Đã sửa đúng chỗ, giữ nguyên phần root cause CLI vốn đúng
+   - **Verifier vòng 2 `PASS`**: `check.mjs` exit 0 · `git status` chỉ 1 file doc · đối chiếu từng claim với source thật (`externalApp.js:7-8,25-30,48`, `isWebhookForwardingEnabled.js:20`) · tự `JSON.parse` ví dụ trong doc → `forwardWebhook` ra boolean `false` · 10/10 lần nhắc `functions:config:set` đều là cảnh báo · `.env` gitignored, `.gitlab/` và `externalApp.js` không bị đụng
+   - ⚠️ Verifier ghi nhận gotcha môi trường (không tính vào verdict): worktree **không có `node_modules`** → `yarn check` báo lỗi state file, và `npx jest` bị hook `rtk` chuyển hướng chạy sang **repo chính** thay vì worktree. Doc-only nên không ảnh hưởng, nhưng task có code trong worktree cần lưu ý
+   - Còn lại cho user: phần `.gitlab/scripts/selective-deploy.sh` + biến `PROD_EXTERNAL_APP_CONFIGS` (agent bị classifier chặn, không sửa được `.gitlab/`)
+

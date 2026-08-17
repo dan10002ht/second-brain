@@ -1,0 +1,164 @@
+# CHIEU 4/6 — PAYMENT / BILLING FAIL — kookut.myshopify.com
+# READ-ONLY. Khong ghi Firestore/Shopify. Khong chay lenh git.
+# shopId kookut = 4VgCcf9Ov5cIBx2tCkcT
+
+## Cach chay lai (cwd = /Users/dantt1002/projects/subscriptions/packages/functions)
+BASE='set -a && . ./.env.local && set +a && SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app \
+  SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD" \
+  NODE_PATH=/Users/dantt1002/projects/subscriptions/node_modules:/Users/dantt1002/projects/subscriptions/packages/functions/node_modules'
+
+Script (deu doc-only, nam trong scratchpad nay):
+  findCaroline.js        -> tim contract theo ten khach
+  carolineOrders.js      -> dump toan bo order doc cua contract 121065865597  -> payment-billing-raw.txt
+  liveCaroline.js        -> query LIVE Shopify: contract PM + customer.paymentMethods + subscriptionBillingCycles
+  scanKookutPayments.js  -> quet 1476 order doc kookut: mismatch lastDigits/maskedNumber, errorCode, the het han  -> payment-scan1.txt
+  scan2.js               -> quet idempotencyKeys shopifyCycleIndex + so LIVE vs STORED payment method  -> payment-scan2.txt
+
+## 1. Contract cua Caroline Charbonneau
+Firestore doc hYLVeAy3tg4iYGGsoru7
+  subscriptionContractId = 121065865597, status ACTIVE, createdAt 2025-08-12
+  customer 6712397070544, charbonneau.caroline@hotmail.fr, locale fr-CH
+  tags: [Active subscriber, Login with Shop, Ordered, Payment failure, Shop]
+  contract.customerPaymentMethod = {id .../7d1ab3dd35a61456fdfc974f317d0b54, mastercard,
+                                    exp 7/2026, lastDigits 1932, maskedNumber "•••• •••• •••• 1932"}
+
+## 2. LIVE Shopify (liveCaroline.js) — 2026-08-17
+subscriptionContract(121065865597).customerPaymentMethod:
+  id gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54
+  revokedReason null, CustomerCreditCard, mastercard, exp 7/2026,
+  lastDigits 1932, maskedNumber "•••• •••• •••• 1932"
+customer.paymentMethods(first:10, showRevoked:true) -> **CHI CO 1 NODE**, chinh la card tren.
+=> KHONG TON TAI card ••••7216 nao trong Shopify. Ca 6 lan charge deu danh vao 1932.
+
+LIVE subscriptionBillingCycles (index 1..12), moi cycle deu masked = 1932:
+  cycle 1 BILLED  #6988   2025-09-12
+  cycle 2 UNBILLED
+  cycle 3 BILLED  #7266   2025-10-12
+  cycle 4 BILLED  #7541   2025-11-12
+  cycle 5 BILLED  #7808   2025-12-12
+  cycle 6 BILLED  #8119   2026-01-12
+  cycle 7 BILLED  #8535 / #8894 / #9271 (3 attempt)
+  cycle 8 BILLED  #10041  2026-06-12
+  cycle 9 UNBILLED edited=true — **6 attempt, TAT CA "Your card was declined."**
+        2026-08-12T10:03:25 / 08-13T06:46:08 / 08-13T08:00:26 / 08-14T08:01:07
+        / 08-15T08:02:07 / 08-16T08:03:06
+  cycle 10,11,12 UNBILLED
+
+## 3. Order doc trong Firestore (carolineOrders.js) — cot lastDigits vs maskedNumber
+cycle  status    lastDigits  maskedNumber   updatedAt
+0      BILLED    (khong co customerPaymentMethod)
+1..9   BILLED    1932        ....7216       2026-08-14T08:32:29
+10     UNBILLED  1932        ....7216       2026-08-14T08:32:29   err PAYMENT_METHOD_DECLINED
+11     UNBILLED  1932        ....1932       2026-08-16T08:03:16   err PAYMENT_METHOD_DECLINED retryCount 3
+12..21 UNBILLED  1932        ....1932       2026-08-14T08:32:29
+=> Trong CUNG 1 object: lastDigits=1932 nhung maskedNumber=....7216 (cycle 1..10).
+
+billingAttempts trong Firestore:
+  doc cycle 10: 10__9__1mspx8nrd (08-12 10:03), 10__9__1msr5mtg2 (08-13 06:46)
+  doc cycle 11: 11_auto_9__1msr8ablg (08-13 08:00), 11__9_retry_1mssnr1ww (08-14 08:01),
+                11__9_retry_1msu38797 (08-15 08:02), 11__9_retry_1msvipbwe (08-16 08:03)
+  => key format {appCycle}_{auto}_{shopifyCycle}_{retry}_ : ca 6 attempt deu shopifyCycle = 9,
+     nhung bi chia lam 2 order doc app (cycle 10 va 11). Shopify chi thay 1 cycle (index 9).
+
+## 4. Mismatch nay la HE THONG tren kookut (payment-scan1.txt / payment-scan2.txt)
+kookut orders scanned: 1476 | co maskedNumber: 1248 | MISMATCH last4(maskedNumber) != lastDigits: **190**
+mismatch tren **38 contract**, vd:
+  129462731133 cycles 1..18 sai, cycle 19 dung
+  127423086973 cycles 1..19
+  140389712253 cycles 1..15
+  142987559293 cycles 1..11
+  121065865597 cycles 1..10  (Caroline)
+
+So LIVE Shopify vs STORED (scan2.js, 5/5 contract kiem tra):
+  contract       LIVE last / LIVE masked          STORED last / STORED masked
+  122251772285   4954 / ....4954 (exp 12/2031)    4954 / ....1685
+  142987559293   5704 / ....5704 (exp 12/2031)    5704 / ....0540
+  140389712253   8964 / ....8964 (exp 1/2031)     8964 / ....1763
+  129462731133   8906 / ....8906 (exp 3/2029)     8906 / ....2034  (cycle 19 = 8906, dung)
+  127423086973   9396 / ....9396 (exp 1/2027)     9396 / ....5986
+=> STORED lastDigits LUON dung. STORED maskedNumber LUON la so cu/khac (nghi la last4 cua
+   network token / DPAN thoi diem sync dau). Shopify hien tra masked == lastDigits.
+
+## 5. Duong code — vi sao UI hien so SAI
+(a) Hien thi lay maskedNumber TRUOC:
+    packages/scripttag/src/customerPortal/pages/OrderDetails/OrderDetails.js:1013
+      <div>{orderDetailData.customerPaymentMethod?.maskedNumber}</div>   <-- KHACH tu nhin thay
+    packages/assets/src/components/atoms/PaymentCardInfo/PaymentCardInfo.js:38
+      <span>{paypalAccountEmail || maskedNumber}</span>                  <-- ADMIN nhin thay
+    extensions/.../CustomerInfoCard/CustomerInfoCard.js:214
+      digits: customerPaymentMethod?.maskedNumber || customerPaymentMethod?.lastDigits
+    packages/functions/src/helpers/klaviyo/prepareMetricEvent.js:83
+      maskedCardNumber: data?.customerPaymentMethod?.maskedNumber            <-- EMAIL/Klaviyo
+
+(b) Duong "refresh live tu Shopify" cua order detail DA CHET HAN:
+    packages/functions/src/repositories/orderRepository.js:770-810 (getPaginateOrderById)
+      goi getCustomerPaymentMethodById(...) roi:
+        customerPaymentMethod: !isEmpty(customerPaymentMethodShopify) ? ... : customerPaymentMethod
+    packages/functions/src/services/graphql/customerService.js:355-410
+      query customerPaymentMethodById($id: ID!, showRevoked: Boolean) {
+        customerPaymentMethod(id: $id, showRevoked: showRevoked) { ... }
+                                       ^^^^^^^^^^^  THIEU DAU '$'
+    Validate bang Shopify Dev MCP validate_graphql_codeblocks (admin, 2026-04):
+      "GraphQL syntax error: Syntax Error: Expected \"$\", found Name \"showRevoked\"."
+    => luon vao nhanh errors -> return {} -> luon fallback ve ban STALE trong Firestore.
+    Ham nay chi co 1 call-site (orderRepository.js:773) => 100% dead code.
+
+## 6. getFailedData hardcode shopifyCycleIndex: 1
+    packages/functions/src/services/cron/automaticBillingAttemptService.js:104-118
+      idempotencyKey: generateUniqueId({cycleIndex: orderData.cycleIndex, shopifyCycleIndex: 1})
+    Key nay KHONG gui len Shopify (nhanh catch = createBillingAttempt da throw), no chi duoc GHI xuong:
+      packages/functions/src/controllers/orderController.js:287-320
+        idempotencyKeys: idempotencyKey          (field don, GHI DE)
+        billingAttempts: arrayUnion({... isCreateAttemptFailed: true})
+    Consumer that su cua shopifyCycleIndex:
+      packages/functions/src/helpers/subscription/subscriptionContract.js:378-389
+        const {shopifyCycleIndex} = extractDataFromUniqueId(idempotencyKeys);
+        getUpcomingBillingCycles({startIndex: shopifyCycleIndex || cycleIndex,
+                                  endIndex:   shopifyCycleIndex || cycleIndex})
+        return {...order, ...shopifyOrder, ...}
+      goi tu services/subscription/bulkSwapProducts.js:468 va services/subscription/contractService.js:486
+    => Neu key do getFailedData sinh ra, ham se keo Shopify billing cycle **1** (ky dau tien, gia cu)
+       roi spread de len order dang loi. Day la duong lay nhiem gia/line — cung ho voi #28/#44.
+    KIEM THUC TE tren kookut (scan2.js):
+      billingAttempts co isCreateAttemptFailed = true : **0**
+      => nhanh getFailedData CHUA TUNG chay tren kookut. Bug that, nhung KHONG phai nguyen nhan
+         cua bat ky su co kookut nao. (32 order co key dang `X__1__...` la key hop le tu duong
+         charge thuong, khong phai tu getFailedData.)
+
+## 7. Buc tranh billing-fail rong hon cua kookut (payment-scan1.txt)
+209 contract | isPaymentFailed = 20 | isMaximumRetry = 0 | customerPaymentMethod.revoked = 8
+
+failed billing attempt theo errorCode (toan bo lich su):
+  PAYMENT_METHOD_DECLINED     123
+  INSUFFICIENT_FUNDS           77
+  PAYMENT_METHOD_NOT_FOUND     66   <-- app charge vao PM Shopify khong con
+  INSUFFICIENT_INVENTORY       26
+  INVALID_PAYMENT_METHOD       18   <-- nt
+  UNEXPECTED_ERROR             14
+  PURCHASE_TYPE_NOT_SUPPORTED  11
+  EXPIRED_PAYMENT_METHOD        6
+  FRAUD_SUSPECTED               5
+
+Contract fail nhieu nhat:
+  123521991037  50 fail  {FRAUD_SUSPECTED 5, PAYMENT_METHOD_NOT_FOUND 45}  2026-03-09 -> 2026-04-23
+  117661663613  35 fail  11 cycle  {INSUFFICIENT_FUNDS 13, PAYMENT_METHOD_DECLINED 21, UNEXPECTED_ERROR 1}
+                2025-07-15 -> 2026-06-16  (fail lien tuc gan 1 NAM, van ACTIVE)
+  129462731133  29 fail  {PAYMENT_METHOD_DECLINED 16, INVALID_PAYMENT_METHOD 10, INSUFFICIENT_INVENTORY 3}
+                2026-02-16 -> 2026-08-16  (van dang fail HOM NAY)
+  117302198653  26 fail  11 cycle  {INSUFFICIENT_FUNDS 12, PAYMENT_METHOD_DECLINED 7, EXPIRED_PAYMENT_METHOD 6}
+  123476083069  17 fail | 117269365117 16 | 135604175229 16 | 128167674237 12 (PAYMENT_METHOD_NOT_FOUND 11)
+  121065865597   6 fail  (Caroline)
+isMaximumRetry = 0 tren CA 209 contract => co che "dung retry sau N lan" chua bao gio kich hoat o shop nay.
+
+Contract ACTIVE ma THE DA HET HAN (se decline ky toi):
+  119254778237  Lorène Stempfel     exp 6/2026  ....8619
+  119901487485  Martina Liebich     exp 7/2026  ....4939
+  121065865597  Caroline Charbonneau exp 7/2026 ....1932
+  135604175229  Elena Unverricht    exp 6/2026  ....0499
+
+## 8. KET LUAN
+- "Khong phai loi he thong" DUNG ve nguyen nhan decline: Shopify tra "Your card was declined."
+  6 lan lien tiep tren dung 1 card mastercard ••••1932 het han 07/2026, charge 08/2026.
+- Nhung ket luan do CHUA DU: mau thuan ••••7216 la BUG THAT cua app (hien thi so the sai),
+  anh huong 190 order doc / 38 contract cua rieng kookut, va khach nhin thay truc tiep
+  o customer portal. Dev khong the noi "khong phai loi he thong" cho phan nay.

@@ -1,0 +1,437 @@
+=== MARKET CATALOGS ===
+gid://shopify/MarketCatalog/13368197328 "Switzerland" status=ACTIVE priceList=gid://shopify/PriceList/37466079613 CHF markets=[Switzerland]
+gid://shopify/MarketCatalog/22292398288 "Europe" status=ACTIVE priceList=gid://shopify/PriceList/20665794768 EUR markets=[Europe EUR]
+gid://shopify/MarketCatalog/22293053648 "France" status=ACTIVE priceList=gid://shopify/PriceList/20665860304 EUR markets=[Europe (other currencies), Europe EUR, France]
+loaded priceList gid://shopify/PriceList/37466079613 "Switzerland" CHF: 4 FIXED prices
+loaded priceList gid://shopify/PriceList/20665794768 "Europe" EUR: 58 FIXED prices
+loaded priceList gid://shopify/PriceList/20665860304 "France" EUR: 62 FIXED prices
+
+=== SAME-CURRENCY CATALOG DIVERGENCE ===
+EUR: "Europe" vs "France" -> same=56 diff=2 onlyIn_Europe=0 onlyIn_France=4
+   39404525027536: Europe=92 vs France=48
+   42888438022352: Europe=48 vs France=93
+
+=== CONTRACTS (209 total docs for shop) ===
+by status: {"PAUSED":73,"ACTIVE":86,"CANCELLED":50} scanned ACTIVE+PAUSED: 159
+
+=== LINES WHERE basePrice != PriceList FIXED (all matching catalogs) : 36 ===
+
+contract 117269365117 doc=4EQjqKoF3Z89EYe54KNt ACTIVE CHF country=CH
+  [1] Chicken & Turkey Dry Food for Kitten / 1.5kg vid=39404501663952 qty=1 basePrice=11.9 currentPrice=11.305 variant.price=11.9 | catalog: Switzerland=23.8 | expectedCurrent=22.61 deltaPerCycle=-11.30
+
+contract 155113881981 doc=A5lPuYi3PdcnA98JTpOc ACTIVE EUR country=FR
+  [0] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=1 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=5.65
+
+contract 125403431293 doc=EU4zTeDNNAfWqZ5EYSm1 ACTIVE EUR country=FR
+  [2] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=6 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=1.43
+
+contract 144211050877 doc=Jpmc1tddwfwLzZ2ujoXt ACTIVE EUR country=DE
+  [0] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=5 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=1.19
+
+contract 151147970941 doc=KGc5t81ZquCuDATu84Ef ACTIVE EUR country=FR
+  [2] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=6 basePrice=1.95 currentPrice=1.853 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.62 deltaPerCycle=1.43
+  [3] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=1 basePrice=45.95 currentPrice=43.653 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=5.65
+
+contract 155055489405 doc=MqEl21yhZdKPQ747fncW ACTIVE EUR country=FR
+  [3] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=4 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.95
+
+contract 153490162045 doc=NkdEhOeHo5Pe0IaZfL6n ACTIVE EUR country=FR
+  [0] Kookut wet food discovery set / null vid=43340379422928 qty=1 basePrice=18 currentPrice=18 variant.price=18 | catalog: Europe=17 France=17 | expectedCurrent=17.00 deltaPerCycle=1.00
+
+contract 121601032573 doc=T4CJN89BXkQtAihtxeO0 PAUSED EUR country=FR
+  [0] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=16 basePrice=1.7 currentPrice=1.62 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.72 deltaPerCycle=-1.52
+
+contract 121496043901 doc=ULFVAbK6Hl5uwkxiJX3h PAUSED CHF country=CH
+  [0] Chicken & Turkey Dry Food for Kitten / 5kg vid=39404501696720 qty=1 basePrice=31 currentPrice=29.45 variant.price=31 | catalog: Switzerland=62 | expectedCurrent=58.90 deltaPerCycle=-29.45
+
+contract 127202525565 doc=VbTL5pMKhq0d1QhyZWJS PAUSED EUR country=FR
+  [3] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=7 basePrice=1.7 currentPrice=1.62 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.72 deltaPerCycle=-0.67
+
+contract 127309513085 doc=W5WVSlUeIq2vHzEHJDxq PAUSED EUR country=CH
+  [2] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=1 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=5.65
+
+contract 117124989309 doc=Wf7WBWS7VJzaSs3w0J4q PAUSED EUR country=FR
+  [0] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=4 basePrice=1.7 currentPrice=1.615 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.71 deltaPerCycle=-0.38
+  [12] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=1 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=5.65
+  [13] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=4 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.95
+
+contract 125123395965 doc=Y7MHzySJQpIZGIzM96Fp PAUSED EUR country=FR
+  [1] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=3 basePrice=1.7 currentPrice=1.62 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.72 deltaPerCycle=-0.29
+  [6] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=4 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.95
+
+contract 118510846333 doc=YdiYtM6sAePJ3135npcC ACTIVE EUR country=FR
+  [0] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=2 basePrice=1.7 currentPrice=1.615 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.71 deltaPerCycle=-0.19
+
+contract 153346408829 doc=Z8PH9DYp6xa4CubVkYmY ACTIVE EUR country=FR
+  [1] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=11 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=2.61
+
+contract 139969659261 doc=ZgUF2s0T47BaMTEH3nEJ ACTIVE EUR country=FR
+  [5] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=6 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=1.43
+  [8] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=6 basePrice=1.7 currentPrice=1.615 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.71 deltaPerCycle=-0.57
+
+contract 132447240573 doc=bM6FMVFBnmhnbdMtChyb PAUSED EUR country=FR
+  [0] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=1 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=5.65
+
+contract 153505399165 doc=fkn3qEFCGT5nwlQXEvD7 ACTIVE EUR country=FR
+  [9] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=1 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.24
+  [12] Free Run Chicken & Duck - Natural / 70g vid=57407416893821 qty=5 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=1.19
+
+contract 150985212285 doc=gcyJES4ZMe2NFOwCemd9 ACTIVE EUR country=FR
+  [10] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=4 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.95
+
+contract 148935999869 doc=m15YnBK0K3xrGeaLxxw0 PAUSED EUR country=FR
+  [6] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=4 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.95
+
+contract 147905085821 doc=msoctfkTMveAkRdYY86T ACTIVE EUR country=FR
+  [2] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=3 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.71
+  [7] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=3 basePrice=1.7 currentPrice=1.615 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.71 deltaPerCycle=-0.29
+
+contract 116999324029 doc=oY5M3H8BCxKeqGJhwRkg PAUSED EUR country=FR
+  [0] Chicken & Turkey Dry Food for Kitten / 5kg vid=39404501696720 qty=1 basePrice=31 currentPrice=29.45 variant.price=31 | catalog: Europe=58 France=58 | expectedCurrent=55.10 deltaPerCycle=-25.65
+
+contract 118354313597 doc=p5KzrEzF6NPMbWsAPISr PAUSED EUR country=FR
+  [0] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=2 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=11.31
+
+contract 153432359293 doc=rpKEt3l5BT9MXrGScnNI ACTIVE EUR country=FR
+  [2] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=1 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=5.65
+
+contract 119156867453 doc=tBd9SvrC8GAugCzidyct PAUSED EUR country=FR
+  [0] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=3 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=0.71
+  [4] Wild Alaskan Salmon - Natural / 70g vid=39412859404496 qty=2 basePrice=1.7 currentPrice=1.62 variant.price=1.8 | catalog: Europe=1.8 France=1.8 | expectedCurrent=1.72 deltaPerCycle=-0.19
+
+contract 116972159357 doc=wT323OUDajmFqWgVxe4v PAUSED EUR country=FR
+  [0] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=2 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=11.31
+
+contract 125391667581 doc=zKgC6qu2xs7V6o8IY5il PAUSED EUR country=FR
+  [3] Pacific Tuna & Sardine - Natural / 70g vid=39412882735312 qty=9 basePrice=1.95 currentPrice=1.8525 variant.price=1.8 | catalog: Europe=1.7 France=1.7 | expectedCurrent=1.61 deltaPerCycle=2.14
+
+contract 139056447869 doc=znKhyw6HjxTAYZKPC98k ACTIVE EUR country=FR
+  [0] Pacific Tuna & Sardine - Natural / 24x70g vid=39412882702544 qty=1 basePrice=45.95 currentPrice=43.6525 variant.price=42 | catalog: Europe=40 France=40 | expectedCurrent=38.00 deltaPerCycle=5.65
+
+Contracts affected: 28  lines: 36  OVERCHARGE total/cycle=80.99  UNDERCHARGE total/cycle=-70.50
+
+=== LINES WITH NO FIXED PRICE IN ANY MATCHING CATALOG : 242 ===
+contract 126360224125 PAUSED CHF country=CH
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+contract 151260234109 ACTIVE CHF country=CH
+   vid=39404565364944 Salmon & White Fish Dry Food for Dog/6kg basePrice=58
+contract 127336219005 PAUSED CHF country=CH
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+contract 142987559293 ACTIVE CHF country=CH
+   vid=43779845095632 Chicken & Duck Dry Food for Cat/10kg (2*5kg) basePrice=112
+contract 144516907389 PAUSED CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+contract 149369225597 PAUSED CHF country=CH
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412844462288 Free Run Chicken - Natural/70g basePrice=1.8
+contract 117269365117 ACTIVE CHF country=CH
+   vid=39412873986256 Free Run Chicken & Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+contract 152031887741 ACTIVE CHF country=CH
+   vid=39404512968912 Chicken & Duck Dry Food for Cat/1.5kg basePrice=23.8
+contract 119399743869 PAUSED CHF country=CH
+   vid=39412895416528 Free Run Chicken & Shrimps - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+   vid=39412968882384 Pacific Tuna & Seaweed - Natural/24x70g basePrice=42
+contract 123476083069 ACTIVE CHF country=CH
+   vid=40679244595408 Chicken & Duck Dry Food for Dog/12kg (2*6kg) basePrice=95
+contract 142490108285 PAUSED CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+contract 157283811709 ACTIVE CHF country=CH
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=57407623790973 Mackerel & Zucchini - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=1.8
+   vid=39412925694160 Pacific Tuna & Baby Clams - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412844462288 Free Run Chicken - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+contract 119254778237 ACTIVE CHF country=CH
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+contract 129000407421 PAUSED CHF country=CH
+   vid=56078525006205 Free Run Chicken & Zucchini - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+   vid=39412968882384 Pacific Tuna & Seaweed - Natural/24x70g basePrice=42
+   vid=39412957249744 Free Run Chicken & Pumpkin - Natural/24x70g basePrice=42
+contract 119901487485 ACTIVE CHF country=CH
+   vid=43779864789200 Chicken & Duck Dry Food for Dog/24kg (4*6kg) basePrice=180
+contract 147888865661 ACTIVE CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=1.8
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412844462288 Free Run Chicken - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+contract 118869197181 PAUSED CHF country=CH
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=56078525006205 Free Run Chicken & Duck - Natural/24x70g basePrice=42
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+contract 144430989693 ACTIVE CHF country=CH
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+contract 149971370365 ACTIVE CHF country=CH
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=57407623790973 Mackerel & Zucchini - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=39412925694160 Pacific Tuna & Baby Clams - Natural/70g basePrice=1.8
+contract 118220980605 ACTIVE CHF country=CH
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=62
+   vid=39412895416528 Free Run Chicken & Shrimps - Natural/24x70g basePrice=42
+   vid=56078525006205 Free Run Chicken & Zucchini - Natural/24x70g basePrice=42
+contract 116862943613 PAUSED CHF country=CH
+   vid=39412882702544 Pacific Tuna & Sardine - Natural/24x70g basePrice=42
+   vid=39412934869200 Pacific Tuna & Green Mussels - Natural/24x70g basePrice=42
+   vid=39412968882384 Pacific Tuna & Seaweed - Natural/24x70g basePrice=42
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 143805874557 PAUSED CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+contract 125161177469 PAUSED CHF country=CH
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412844462288 Free Run Chicken - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=39412925694160 Pacific Tuna & Baby Clams - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+contract 127423086973 ACTIVE CHF country=CH
+   vid=39404512968912 Chicken & Duck Dry Food for Cat/1.5kg basePrice=23.8
+contract 152572723581 ACTIVE CHF country=CH
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=1.8
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=39412925694160 Pacific Tuna & Baby Clams - Natural/70g basePrice=1.8
+   vid=39404512968912 Chicken & Duck Dry Food for Cat/1.5kg basePrice=23.8
+contract 146666324349 PAUSED CHF country=CH
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+   vid=57407416861053 Free Run Chicken & Duck - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 122343686525 PAUSED CHF country=CH
+   vid=43779845095632 Chicken & Duck Dry Food for Cat/10kg (2*5kg) basePrice=112
+contract 138065936765 PAUSED CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 141028327805 PAUSED CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+contract 117174239613 PAUSED CHF country=CH
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=62
+   vid=39412844462288 Free Run Chicken - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+contract 117302198653 ACTIVE CHF country=CH
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=62
+contract 122251772285 PAUSED CHF country=CH
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+   vid=56078525038973 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+contract 118553739645 PAUSED CHF country=CH
+   vid=39404530335952 Chicken & Duck Dry Food for Dog/6kg basePrice=50
+contract 127795102077 PAUSED CHF country=CH
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+contract 157835723133 ACTIVE CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 129462731133 ACTIVE CHF country=CH
+   vid=39404515688656 Salmon & White Fish Dry Food for Cat/1.5kg basePrice=26.8
+   vid=39404512968912 Chicken & Duck Dry Food for Cat/1.5kg basePrice=23.8
+contract 144996204925 ACTIVE CHF country=CH
+   vid=39412895416528 Free Run Chicken & Shrimps - Natural/24x70g basePrice=42
+   vid=56078525006205 Free Run Chicken & Zucchini - Natural/24x70g basePrice=42
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+contract 142623801725 PAUSED CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 133127799165 PAUSED CHF country=CH
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+contract 119399776637 PAUSED CHF country=CH
+   vid=56078525006205 Free Run Chicken & Zucchini - Natural/24x70g basePrice=42
+contract 147972751741 ACTIVE CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 142398423421 ACTIVE CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+contract 123521991037 ACTIVE CHF country=CH
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=65
+   vid=39404515721424 Salmon & White Fish Dry Food for Cat/5 kg basePrice=32.5
+contract 145084875133 PAUSED CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412844462288 Free Run Chicken - Natural/70g basePrice=1.8
+contract 131706454397 PAUSED CHF country=CH
+   vid=39412882702544 Pacific Tuna & Sardine - Natural/24x70g basePrice=42
+contract 154299138429 ACTIVE CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 155222278525 ACTIVE CHF country=CH
+   vid=57407623790973 Mackerel & Zucchini - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+contract 117505720701 PAUSED CHF country=CH
+   vid=39412957249744 Free Run Chicken & Pumpkin - Natural/24x70g basePrice=42
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+contract 126643536253 PAUSED CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 141951172989 ACTIVE CHF country=CH
+   vid=57407416861053 Free Run Chicken & Duck - Natural/24x70g basePrice=42
+contract 130226651517 PAUSED CHF country=CH
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=62
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+contract 121424478589 PAUSED CHF country=CH
+   vid=39404512968912 Chicken & Duck Dry Food for Cat/1.5kg basePrice=23.8
+contract 151563338109 ACTIVE CHF country=CH
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+   vid=39412844429520 Free Run Chicken - Natural/24x70g basePrice=42
+contract 123423588733 PAUSED CHF country=CH
+   vid=39412968882384 Pacific Tuna & Seaweed - Natural/24x70g basePrice=42
+contract 150579708285 ACTIVE CHF country=CH
+   vid=39404512968912 Chicken & Duck Dry Food for Cat/1.5kg basePrice=23.8
+contract 140389712253 ACTIVE CHF country=CH
+   vid=39404512968912 Chicken & Duck Dry Food for Cat/1.5kg basePrice=23.8
+contract 128382566781 PAUSED CHF country=CH
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+contract 151474471293 ACTIVE CHF country=CH
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=57407623790973 Mackerel & Zucchini - Natural/70g basePrice=1.8
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+contract 134381273469 PAUSED CHF country=CH
+   vid=39412957249744 Free Run Chicken & Pumpkin - Natural/24x70g basePrice=42
+contract 117977317757 PAUSED CHF country=CH
+   vid=40679244595408 Chicken & Duck Dry Food for Dog/12kg (2*6kg) basePrice=95
+contract 121065865597 ACTIVE CHF country=CH
+   vid=57407623758205 Mackerel & Zucchini - Natural/24x70g basePrice=42
+contract 126862066045 ACTIVE CHF country=CH
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412925661392 Pacific Tuna & Baby Clams - Natural/24x70g basePrice=42
+contract 148748632445 ACTIVE CHF country=CH
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+   vid=39412957249744 Free Run Chicken & Pumpkin - Natural/24x70g basePrice=42
+   vid=39412873986256 Free Run Chicken & Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412895416528 Free Run Chicken & Shrimps - Natural/24x70g basePrice=42
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=62
+   vid=39412925661392 Pacific Tuna & Baby Clams - Natural/24x70g basePrice=42
+   vid=57638152634749 Free Run Chicken & Pacific Tuna - Natural - Breeders/24x280g basePrice=86.4
+contract 116934836605 PAUSED CHF country=CH
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+contract 140586680701 ACTIVE CHF country=CH
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=57407623790973 Mackerel & Zucchini - Natural/70g basePrice=1.8
+contract 127324094845 PAUSED CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412895416528 Free Run Chicken & Shrimps - Natural/24x70g basePrice=42
+contract 117131379069 PAUSED CHF country=CH
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412874019024 Free Run Chicken & Pacific Tuna - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=26.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39404515688656 Salmon & White Fish Dry Food for Cat/1.5kg basePrice=13.4
+contract 117687419261 ACTIVE CHF country=CH
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+contract 130859991421 PAUSED CHF country=CH
+   vid=43779845095632 Chicken & Duck Dry Food for Cat/10kg (2*5kg) basePrice=112
+contract 141318652285 PAUSED CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+contract 119272440189 ACTIVE CHF country=CH
+   vid=39412873986256 Free Run Chicken & Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412968882384 Pacific Tuna & Seaweed - Natural/24x70g basePrice=42
+contract 149075001725 PAUSED CHF country=CH
+   vid=57407416893821 Free Run Chicken & Duck - Natural/70g basePrice=1.8
+   vid=39412895449296 Free Run Chicken & Shrimps - Natural/70g basePrice=1.8
+   vid=57407623790973 Mackerel & Zucchini - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+contract 130418442621 PAUSED CHF country=CH
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412844462288 Free Run Chicken - Natural/70g basePrice=1.8
+   vid=39412957282512 Free Run Chicken & Pumpkin - Natural/70g basePrice=1.8
+   vid=56078525038973 Free Run Chicken & Zucchini - Natural/70g basePrice=1.8
+contract 157303243133 ACTIVE CHF country=CH
+   vid=43779845095632 Chicken & Duck Dry Food for Cat/10kg (2*5kg) basePrice=112
+contract 118053044605 ACTIVE CHF country=CH
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+   vid=39412925694160 Pacific Tuna & Baby Clams - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+contract 138085138813 ACTIVE CHF country=CH
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=62
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=57786892616061 Chicken & Duck SENIOR - Natural/70g basePrice=1.8
+   vid=57638455345533 Pacific Tuna & Green Mussels - Natural - Breeders/280g basePrice=4.8
+   vid=57638455345533 Pacific Tuna & Green Mussels - Natural - Breeders/280g basePrice=4.8
+contract 137506062717 PAUSED CHF country=CH
+   vid=39404513001680 Chicken & Duck Dry Food for Cat/5kg basePrice=62
+contract 137810739581 PAUSED CHF country=CH
+   vid=39404530303184 Chicken & Duck Dry Food for Dog/1.5kg basePrice=16.8
+contract 155542454653 ACTIVE CHF country=CH
+   vid=39412934901968 Pacific Tuna & Green Mussels - Natural/70g basePrice=1.8
+   vid=39412882735312 Pacific Tuna & Sardine - Natural/70g basePrice=1.8
+   vid=39406932328656 Pacific Tuna - Natural/70g basePrice=1.8
+   vid=57407623790973 Mackerel & Zucchini - Natural/70g basePrice=1.8
+   vid=39412968915152 Pacific Tuna & Seaweed - Natural/70g basePrice=1.8
+   vid=39412925694160 Pacific Tuna & Baby Clams - Natural/70g basePrice=1.8
+contract 118512550269 PAUSED CHF country=CH
+   vid=39412859404496 Wild Alaskan Salmon - Natural/70g basePrice=1.8
+contract 119768351101 ACTIVE CHF country=CH
+   vid=39412934869200 Pacific Tuna & Green Mussels - Natural/24x70g basePrice=42
+   vid=39412968882384 Pacific Tuna & Seaweed - Natural/24x70g basePrice=42
+   vid=39412882702544 Pacific Tuna & Sardine - Natural/24x70g basePrice=42
+   vid=56078525006205 Free Run Chicken & Duck - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+contract 120464900477 ACTIVE CHF country=CH
+   vid=39405861470416 Pacific Tuna - Natural/24x70g basePrice=42
+   vid=39412957249744 Free Run Chicken & Pumpkin - Natural/24x70g basePrice=42
+   vid=39412859371728 Wild Alaskan Salmon - Natural/24x70g basePrice=42

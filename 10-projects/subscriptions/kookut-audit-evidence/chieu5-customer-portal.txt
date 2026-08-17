@@ -1,0 +1,158 @@
+CHIEU 5/6 — CUSTOMER PORTAL / SELF-SERVICE — kookut.myshopify.com
+shopId 4VgCcf9Ov5cIBx2tCkcT · settings doc adJpckNJ2ilYo4ZC0H4E
+Ngay chay: 2026-08-17. TOAN BO READ-ONLY. Khong mutation, khong git.
+
+=====================================================================
+0. LENH CHAY LAI (tat ca chi-doc)
+=====================================================================
+cwd = /Users/dantt1002/projects/subscriptions/packages/functions
+Chung: set -a && . ./.env.local && set +a && NODE_PATH=/Users/dantt1002/projects/subscriptions/node_modules \
+  SA_ENV=prod GOOGLE_CLOUD_PROJECT=avada-subscription-app \
+  SHOPIFY_ACCESS_TOKEN_KEY="$ACCESS_TOKEN_KEY_PROD" node <script>
+
+Script tu viet (deu o scratchpad nay):
+  dumpSettings.js       -> kookut-settings.json     (settings doc day du)
+  portalProbe.js        -> portal-probe.txt         (customerAccountPages, metafield, metafieldDefinitions)
+  plansProbe.js         -> plans-probe.txt          (50 plan: gate minimumOrder/hideSubActions)
+  shopInfoProbe.js                                   (shopInfos doc, shops doc keys)
+  pageProbe.js                                       (pages storefront, shop gid)
+  contractPlanProbe.js                               (86 contract ACTIVE: plan gate)
+Ngoai ra:
+  curl -sL https://www.kookut.com/pages/joy-subscription  -> portal-page.html (classic portal con song)
+
+=====================================================================
+1. KOOKUT DUNG PORTAL NAO — DA XAC MINH
+=====================================================================
+settings.customerPortalVersion = "NEW_CUSTOMER_ACCOUNTS"   (kookut-settings.json:40)
+=> Portal that = extension `customer-account-ui` (customer-account.page.render), KHONG phai classic scripttag.
+
+customerAccountPages (Admin API, portal-probe.txt:25-28):
+  handle/appExtensionUuid = 9e804f0e-00c0-431a-9fe4-f7e74f29e11c  title "Subscriptions"
+=> PAGE EXTENSION DA DUOC ADD. Gia thuyet "khach chua add extension nen 404" -> BAC BO.
+
+Block extension `customer-account-ui-block` (profile + order-index) — KHONG kiem duoc qua Admin API.
+accessLink.customerPortalNavigation = false (kookut-settings.json:5-7) -> khong co menu link o storefront.
+=> Duong vao portal cua khach: (a) muc "Subscriptions" trong customer account, (b) nut email
+   settings.customizeEmail.subscriptionUrlButton =
+   https://shopify.com/56157405392/account/pages/9e804f0e-00c0-431a-9fe4-f7e74f29e11c   (kookut-settings.json:56)
+
+Classic portal VAN CON SONG song song:
+  page handle `joy-subscription` ("Manage Subscription", isPublished=true) — pageProbe
+  HTML that co #Avada-SubscriptionManagement__Container + window.AVADA_SUBSCRIPTION (portal-page.html)
+=> Hai UI khac nhau cung ton tai -> CS/merchant test o classic, khach dung CAU => mo ta lech nhau.
+
+=====================================================================
+2. FINDING P0 — LANDING URL CUA PORTAL BI PARSE THANH contractId
+=====================================================================
+extensions/customer-account-ui/src/index.jsx:10-18
+  const url = new URL(navigation.currentEntry.url);
+  const pathParts = url.pathname.split('/').filter(Boolean);
+  const isOrderView = pathParts.includes('order');
+  const id = pathParts[pathParts.length - 1] || '';
+  ...
+  {currentId ? (viewType==='order' ? <OrderDetail/> : <SubscriptionDetail contractId={currentId}/>) : <Subscriptions/>}
+
+Hinh dang URL that (comment trong chinh repo, extensions/customer-account-ui/src/pages/OrderDetail.js:180):
+  https://shopify.com/71200702663/account/pages/dev-9ebaa5f0-.../order/CBVRhOyjV1p03i6Dmi0h
+=> URL landing (khong co sub-path) = .../account/pages/<appExtensionUuid>
+=> pathParts cuoi = CHINH UUID cua page  => id != '' => KHONG BAO GIO render <Subscriptions/>,
+   ma render <SubscriptionDetail contractId="9e804f0e-00c0-431a-9fe4-f7e74f29e11c">
+
+Hau qua day chuyen (moi mat xich co file:line):
+  useFetchApi url=`/subscription/9e804f0e-...`  (SubscriptionDetail.js:86)
+  -> route packages/functions/src/routes/clientApi.js:59
+  -> controller subscriptionContractController.js:159-172:
+       parseInt("9e804f0e-...") === 9  -> getSubscriptionContractByContractId tra rong
+       -> `contract.customerId` NEM TypeError -> catch -> ctx.body = {success:false, error}
+  -> extensions/customer-account-ui/src/hooks/api/useFetchApi.js:57-66:
+       setFetched(true) NAM TRONG `if (success)` -> that bai => fetched giu false VINH VIEN
+  -> SubscriptionDetail.js:275  <Page loading={!fetchedContract || isChanging}>
+       => skeleton loading VINH VIEN, khong co thong bao loi nao
+
+Trung khop moc thoi gian: Olivia add block 16/07/26 -> 22/07 "customer tried but couldn't see it"
+-> 14/08 "I can't modify anything on my end". Dung giai doan chuyen sang NEW_CUSTOMER_ACCOUNTS.
+
+MUC DO CHAC: code + hinh dang URL da xac minh bang file trong repo. CHUA chay runtime duoc
+(khong the mo customer account cua khach). CACH XAC NHAN 1 PHUT: dang nhap 1 tai khoan khach
+tren kookut roi mo dung link o kookut-settings.json:56. Neu thay skeleton/trang trang => xac nhan.
+Neu thay danh sach subscription => bac bo, va phai xem lai `navigation.currentEntry.url`.
+
+=====================================================================
+3. FINDING P0 — MOI LOI FETCH DEU IM LANG, KHONG CO ERROR STATE
+=====================================================================
+a) extensions/customer-account-ui/src/hooks/api/useFetchApi.js:57-66
+   `if (success) { setData(...); setFetched(true); }` — khong co else, khong set error.
+   catch chi console.error. => that bai = loading vinh vien (xem muc 2).
+b) extensions/customer-account-ui/src/helpers/fetchApi.js:24-25
+   `await response.json()` KHONG check response.ok -> 5xx tra HTML => throw => nhu tren.
+c) packages/functions/src/controllers/clientApi/subscriptionContractController.js:145-149
+   nhanh loi cua getSubscriptions tra {status:false, message} — KHONG co `success`, KHONG co `data`.
+   Client chi doc `success` => coi nhu that bai.
+d) extensions/customer-account-ui/src/pages/Subscriptions.js:35-51
+   fetchData() KHONG co try/catch: neu fetchMetafields() reject thi setLoading(false) khong bao gio chay
+   => Spinner vinh vien o man hinh danh sach.
+e) extensions/customer-account-ui/src/constants/config.js:4
+   SHOPIFY_CUSTOMER_ACCOUNT_API dung API version **unstable** trong production.
+f) useFetchApi.js:46-47: `url += '?' + params` sua bien closure -> goi lai lan 2 sinh `?a=1?a=1`.
+
+=> Day la ly do vi sao moi bao cao cua khach deu la "page loi HAY KHONG HIEN GI" chu khong bao gio
+   la mot thong bao loi cu the: app khong co duong nao hien loi cho khach ca.
+
+=====================================================================
+4. GATE TUNG THAO TAC — CONFIG THAT CUA KOOKUT (DA XAC MINH)
+=====================================================================
+settings.customerPortal (kookut-settings.json:73-100) VA metafield storefront (portal-probe.txt:53) KHOP NHAU:
+  pauseSubscription true · resumeSubscription true · reactivateSubscription true
+  cancelSubscription TRUE · editDeliveryFrequency true · editShippingAddress true
+  editPaymentInformation true · editShippingOption true · productSwapOptions true
+  addProducts true · removeProducts true · editQuantityOfProducts true · changeProductVariant true
+  skipUpcomingOrders true · rescheduleUpcomingOrders true · orderNowOption true
+  cannotEditSubscriptionProduct false · cannotSkipUpcomingOrder false
+  editShippingAddressUpcoming true
+  >>> editPaymentInformationUpcoming = FALSE  <<<
+  allowStoreCreditForUpcomingOrders false
+
+Gate tang plan: 50 plan (plans-probe.txt) — TAT CA enabledMinimumOrder=false, hideSubActions=false/undefined.
+Gate tang contract: 86 contract ACTIVE (contractPlanProbe) — khong contract nao co enabledMinimumOrder=true.
+
+=> checkShouldCancelSubscription (packages/functions/src/helpers/checkPermissionCustomerPortal.js:60-70)
+   khong bi chan boi bat cu dieu kien nao.
+   ⇒ CAU TRA LOI CHO REPORT CS #12 ("khach khong cancel duoc sub — team noi do config KH"):
+     **KHONG PHAI CONFIG.** Config cho phep cancel. Khach dung, team sai. (Luu y: chi khang dinh
+     duoc cho trang thai HIEN TAI 17/08/26; khong doc duoc lich su settings ngay 28/05.)
+
+=> Cho DUY NHAT bi tat that su: **editPaymentInformationUpcoming = false**
+   -> khach KHONG doi duoc payment method tren upcoming order.
+   Doc tai packages/functions/src/helpers/orderDetailHelper.js:138 va
+   packages/scripttag/src/customerPortal/pages/OrderDetails/OrderDetails.js:194.
+   Noi thang vao chuoi "payment fail / the het han 07/2026" (report CS #11): khach khong tu cuu duoc.
+   Khach VAN doi duoc payment method o cap contract (editPaymentInformation=true,
+   CustomerCard.js:33) — nen day la kho chiu chu khong phai be tac tuyet doi.
+   Luu y key rac: settings con giu `editPaymentInformationUpcomming` (2 chu m) = true —
+   KHONG CODE NAO DOC key nay (grep toan repo chi ra `...Upcoming`). Key cu chet, de nham cho CS.
+
+=====================================================================
+5. "PAGE NOT FOUND" 21/11/25 — CAC GIA THUYET DA BAC BO
+=====================================================================
+- embed-route-404 (App Bridge 4 thieu prefix /embed): la loi ADMIN EMBEDDED, khong ap dung cho portal.
+  Ca 2 portal khach dung deu khong chay React Router cua packages/assets. => KHONG LIEN QUAN.
+- "Trang /pages/joy-subscription bi xoa": BAC BO — page ton tai, isPublished=true, container con nguyen
+  (pageProbe + portal-page.html).
+- "Extension chua duoc add nen navigate fail": BAC BO — customerAccountPages co page Subscriptions.
+- Nut "View customer portal" trong admin (packages/assets/src/pages/Subscriptions/Edit.js:435-441 va
+  Subscribers/Edit.js:148-154) HARD-CODE `customerPortalVersion: CUSTOMER_ACCOUNTS_CLASSIC`
+  => luon mo CLASSIC portal du shop dang o NEW. Voi kookut link nay VAN 200 (page con song),
+  nen KHONG phai nguon 404 — nhung no la ly do CS va khach nhin thay HAI UI KHAC NHAU.
+- Chua tim duoc nguon 404 cu the cua 21/11/25 (thoi diem do co the con dung classic; khong con log).
+  De o trang thai UNKNOWN, khong doan.
+
+=====================================================================
+6. CAI CHUA KIEM DUOC (ghi ro de khong ai tuong da kiem)
+=====================================================================
+- Block "View Subscription" (customer-account-ui-block) da duoc add vao Profile/Orders chua —
+  Admin API khong expose. Phai xem trong Checkout & accounts editor.
+- Runtime that cua muc 2 (can mo customer account cua 1 khach that).
+- Lich su settings/permission truoc 17/08/26 (Firestore khong luu version).
+- Classic portal khi khach dang nhap bang New Customer Accounts:
+  CustomerPortalManager.js:238-246 goi initiateCustomerAccountLogin() khi isLoginShopify() ma chua co
+  session — neu OAuth fail se roi ve man hinh Login du khach da dang nhap. Chua kiem tren kookut.

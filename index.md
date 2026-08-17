@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-16 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 08-16: 1 digest + 1 resource + 1 proposal cập nhật area)_
+_Cập nhật: 2026-08-17 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 item ngày 08-17: 4 digest + 1 resource + 1 feedback + 1 decision)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -61,6 +61,7 @@ _Cập nhật: 2026-08-16 · Trạng thái: đã seed 12 project + notes học t
 - [[du-lieu-hong-song-sot-vi-ba-lop-nhin-cho-khac]] — một trường dữ liệu hỏng tồn tại lâu không phải vì khó phát hiện, mà vì lớp ghi sai trường A, lớp đồng bộ đối chiếu trường B (luôn đúng ở cả hai phía), và lớp dò tìm lấy chính dữ liệu hỏng làm chuẩn kèm ngưỡng dung sai — mỗi lớp đều "chạy đúng" và báo sạch.
 - [[brief-state-agent-loop]] — `BRIEF.md` là shared state duy nhất sống ngoài mọi context window, nên nó là thứ session sau tin tuyệt đối — và nó thối theo bốn kiểu (checkbox nói dối, lock treo, con số cũ bị đọc như phép đo, doc lạc hậu ở đầu file); dọn nó là một bước của loop chứ không phải việc phụ.
 - [[gate-quet-ma-nguon-bang-ast]] — một gate kiểu "không được log thứ này" viết bằng regex sẽ luôn còn khe (comment, xuống dòng, alias, camelCase) và dễ bị tự-allowlist; dựng trên AST thì cú pháp hết là biến số.
+- [[khong-cache-response-co-auth]] — một API trả dữ liệu riêng theo người gọi mà đi qua CDN/hosting mặc định sẽ phát lại response của lượt gọi trước cho lượt sau; triệu chứng kinh điển là mọi request đều trả cùng một mã lỗi, kể cả request đáng lẽ phải 401.
 
 **Học tập:**
 - `learns/rust/`
@@ -187,6 +188,10 @@ _Cập nhật: 2026-08-16 · Trạng thái: đã seed 12 project + notes học t
 - [[shipped-subscriptions-2026-08-15]] — commit landed 08-14 — master nhận 4 MR dưới 2 tag (`v2.34.68` onboarding v5 UI + `v2.34.69` boot tips, kèm 2 MR tooling không tag): gate commit soi đúng repo đang commit và bộ gate/audit-sweep/security-review trước MR; toàn bộ cụm Klaviyo (5 nhánh, restack) + 2 script chỉ-đọc + fix CI artifacts on-prem còn trên nhánh; không revert trên master, không cờ deploy, không migration.
 - [[digest-subscriptions-2026-08-15]] — dữ liệu giá hỏng ở kookut sống sót vì cả ba lớp đều nhìn chỗ khác (ghi sai `basePrice`, sync so `variant.price`, detector dung sai 15% bỏ lọt lệch 12.1%); nguồn giá đáng tin là `PriceList.prices(originType: FIXED)` chứ không phải `contextualPricing`; kèm ticket import Appstle mô tả sai blocker và ca decline thẻ do account updater đổi 4 số cuối.
 - [[digest-subscriptions-2026-08-16]] — charge recurring tạo order nhưng khách không nhận "Order confirmed" là hành vi đúng của Shopify chứ không phải bug app — `SubscriptionBillingAttemptInput` không có field nào điều khiển email, còn development store (`plan.partnerDevelopment: true`) và order `test: true` thì Shopify cố ý không gửi notification.
+- [[digest-subscriptions-2026-08-17]] — Firebase Hosting cache response 404 của API có auth 600s; `functions:config` băm JSON và từ chối key hoa; `getExternalApps()` không filter nên bật app mới là bắn webhook cho mọi app; detector so `NaN` nên không bao giờ gắn cờ; và chuỗi bug giá kookut chốt bằng dữ liệu prod.
+- [[digest-subscriptions-volume-bundle-2026-08-17]] — Volume Bundle suy tier từ quantity của line nên hai option cùng quantity khác discount thì option thứ hai không bao giờ ăn giảm giá; fix là storefront gửi kèm tier đã chọn và Shopify Function ưu tiên tier đó.
+- [[digest-aws-2026-08-17]] — parser bóc đề từ PDF hỏng theo cách im lặng (nuốt option vào stem, option đứt qua trang); tín hiệu đáng tin là thụt lề của bản `-layout`, và mọi kết luận của agent phải đối chiếu bản gốc chứ không tin report.
+- [[digest-ticket-mcrsv-2026-08-17]] — vá cơ học từng call site chỗ rò seat sẽ đổi lỗ rò lấy oversell vì script Lua release trả toàn bộ seat rồi DEL hold; lời giải là một chokepoint duy nhất kèm test guard chặn call site mới.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -222,6 +227,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-14-staging-4-cho-nhanh-sidekick]] — PDF Invoice gỡ master khỏi `deploy_staging_4` để nhánh `feature/sidekick-agent-extensions` sở hữu trọn slot đó; master chỉ còn `deploy_staging_3` — đổi lại mất một môi trường có sẵn của master và nhánh sidekick vừa mất slot staging 2 trong một merge (review 2026-11-14).
 - [[2026-08-14-verifier-va-agent-mutation-tach-doi]] — giữ nguyên verifier context sạch không sửa file, nhưng chuyển phần "phá code để đo test có bắt lỗi không" sang một agent riêng có Edit + kỷ luật `cp`/`md5` khôi phục, thay vì nới quyền cho verifier (review 2026-11-14).
 - [[2026-08-12-va-triet-de-saga-ticket]] — `ticket-mcrsv` cho phép sửa business logic trong vùng Spec #1 tuyên bố off-limits — vá `LazyStringArrayList`→Hibernate và hoàn thiện reservation ở ticket-service theo hướng đúng nghiệp vụ (partial unique index thay unique toàn cục), thay vì vá tối thiểu để đo hay đẩy G0 xuống sau F1 (review 2026-11-12).
+- [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
 
@@ -239,6 +245,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-git-guard-chi-chan-master]] — hook chặn `git push` của repo được nới lại: chỉ chặn khi đích là `master`/`main`, còn push nhánh feature thì agent làm thẳng, không phải nhờ người dán lệnh.
 - [[feedback-debug-phai-query-data-that]] — khi truy root cause một ca production, không được dừng ở "đọc code rồi kết luận" — phải query dữ liệu prod để chứng minh, vì code chỉ dựng được giả thuyết.
 - [[feedback-khong-khep-viec-khi-con-khe-ho]] — khi còn một lỗ đã biết, không được đề xuất đóng task bằng lý lẽ "đủ tốt rồi" — làm chuẩn để dự án là một standard, không làm ít cho xong.
+- [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable
 

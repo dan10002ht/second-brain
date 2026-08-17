@@ -1,0 +1,94 @@
+shopId=4VgCcf9Ov5cIBx2tCkcT
+
+### 117174239613 status=ACTIVE cur=CHF created=2025-06-08T08:10:46Z nextBilling=2025-08-08T08:00:00Z
+  [0] Free Run Chicken & Pumpkin - Natural / 70g qty=3 base=1.8 current=1.8 spid=gid://shopify/SellingPlan/710589645181
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:1.8}
+  [1] Free Run Chicken & Pacific Tuna - Natural / 70g qty=4 base=1.8 current=1.8 spid=gid://shopify/SellingPlan/710589186429
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:1.8}
+  [2] Pacific Tuna & Green Mussels - Natural / 70g qty=5 base=1.8 current=1.8 spid=gid://shopify/SellingPlan/710589841789
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:1.8}
+  [3] Pacific Tuna - Natural / 70g qty=1 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/710589120893
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  [4] Wild Alaskan Salmon - Natural / 70g qty=2 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/710588891517
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  [5] Free Run Chicken & Shrimps - Natural / 70g qty=1 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/710589546877
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  [6] Chicken & Duck Dry Food for Cat / 5kg qty=1 base=62.0 current=58.9 spid=gid://shopify/SellingPlan/710588399997
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:58.9}
+  [7] Free Run Chicken - Natural / 70g qty=1 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/710589022589
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  [8] Pacific Tuna & Sardine - Natural / 70g qty=1 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/710589383037
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  [9] Pacific Tuna & Seaweed - Natural / 70g qty=1 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/710589743485
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  [10] Free Run Chicken & Zucchini - Natural / 70g qty=4 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/710589940093
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  ORDERS(n=4): #6165@2025-06-08/PAID, #6680@2025-08-08/PAID, #7104@2025-09-25/PAID, #7530@2025-11-11/PAID
+
+### 116934836605 status=ACTIVE cur=CHF created=2025-06-02T23:10:25Z nextBilling=2025-08-02T23:00:00Z
+  [0] Pacific Tuna - Natural / 70g qty=5 base=1.8 current=1.8 spid=gid://shopify/SellingPlan/710589120893
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:1.8}
+  ORDERS(n=2): #6124@2025-06-02/PAID, #6631@2025-08-02/PAID
+
+### 149541781885 status=ACTIVE cur=EUR created=2026-05-29T08:28:56Z nextBilling=2026-06-28T18:30:45Z
+  [0] Pacific Tuna & Seaweed - Natural / 70g qty=11 base=1.7 current=1.7 spid=null
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:1.7}
+  [1] Pacific Tuna & Baby Clams - Natural / 70g qty=11 base=1.7 current=1.7 spid=null
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:1.7}
+  [2] Pacific Tuna & Green Mussels - Natural / 70g qty=11 base=1.7 current=1.7 spid=null
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:1.7}
+  ORDERS(n=0): 
+
+### 153490162045 status=ACTIVE cur=EUR created=2026-07-06T12:35:28Z nextBilling=2026-07-07T01:00:00Z
+  [0] Kookut wet food discovery set / null qty=1 base=18.0 current=18.0 spid=null
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 0% computed:18.0}
+  ORDERS(n=0): 
+
+### 151147970941 status=ACTIVE cur=EUR created=2026-06-14T05:33:01Z nextBilling=2026-07-14T05:00:00Z
+  [0] Pacific Tuna & Sardine - Natural / 70g qty=6 base=1.95 current=1.853 spid=null
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.853}
+  [1] Wild Alaskan Salmon - Natural / 70g qty=6 base=1.8 current=1.71 spid=gid://shopify/SellingPlan/712012038525
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:1.71}
+  [2] Wild Alaskan Salmon - Natural / 24x70g qty=1 base=40.0 current=38.0 spid=null
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:38.0}
+  [3] Pacific Tuna & Sardine - Natural / 24x70g qty=1 base=45.95 current=43.653 spid=null
+       cycleDiscounts(n=1): {afterCycle:0 PERCENTAGE 5% computed:43.653}
+  ORDERS(n=3): #10059@2026-06-14/PAID, #10457@2026-07-14/PAID, #10831@2026-08-14/PARTIALLY_REFUNDED
+
+--- FS 117174239613 status=PAUSED plansN=10 currentBillingCycle=4
+    spid=710589645181 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589186429 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589841789 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589120893 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710588891517 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589546877 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710588399997 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589022589 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589383037 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589743485 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    [contract.plan] enabledDiscount=false enabledAmountDiscount=false discountValue=5 hasDiscountConfig=false
+
+--- FS 116934836605 status=PAUSED plansN=5 currentBillingCycle=2
+    spid=710589120893 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589841789 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589186429 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710589743485 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    spid=710588891517 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    [contract.plan] enabledDiscount=false enabledAmountDiscount=false discountValue=5 hasDiscountConfig=false
+
+--- FS 149541781885 status=ACTIVE plansN=3 currentBillingCycle=1
+    spid=eaa4ab77-fc66-4221-8935-894307fa08af enabledDiscount=false enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=true
+    spid=b813ca11-5e72-4a6e-93eb-a94c6e2525f1 enabledDiscount=false enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=true
+    spid=14334d74-6e37-447b-acaf-0a15557cd6f5 enabledDiscount=false enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=true
+    [contract.plan] enabledDiscount=false enabledAmountDiscount=true discountValue=5 hasDiscountConfig=true
+
+--- FS 153490162045 status=ACTIVE plansN=1 currentBillingCycle=1
+    spid=03cf171f-e921-4ab2-ba9a-c0522bc72ca1 enabledDiscount=false enabledAmountDiscount=false enabledChangeDiscount=false discountValue=0 discountType=percentage hasDiscountConfig=false
+    [contract.plan] enabledDiscount=false enabledAmountDiscount=false discountValue=0 hasDiscountConfig=false
+
+--- FS 151147970941 status=ACTIVE plansN=4 currentBillingCycle=3
+    spid=40501e37-923f-4d20-9b4b-c2b8712650f1 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=true
+    spid=5a906980-e9f4-4081-a2ac-ce5db07dc5fd enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=true
+    spid=7f72b5ce-7433-4631-9e5c-ccb06699f313 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=true
+    spid=679b0509-7c62-4de1-80de-a94a0a8ad213 enabledDiscount=true enabledAmountDiscount=true enabledChangeDiscount=false discountValue=5 discountType=percentage hasDiscountConfig=false
+    [contract.plan] enabledDiscount=true enabledAmountDiscount=true discountValue=5 hasDiscountConfig=false

@@ -1,0 +1,127 @@
+CHIEU DOI KHANG — refute bao cao "fix-completeness"
+Tat ca bang chung duoi day tu doc code master (khong git, khong ghi prod).
+LUU Y CHUNG: chieu bi phan bien danh dau verified:true cho MOI finding nhung
+KHONG chay bat ky lenh prod nao — "verified" o day = doc code, khong = doc data.
+
+=========================================================================
+[F1] "auto-sync gia van chon country/currency theo shop.shopCountry" -> SAI MOT NUA
+-------------------------------------------------------------------------
+services/shopify/productService.js:55-116 getContractsNeedPriceUpdate:
+  :61-71  contractCountryCodes = contract.countryCode
+          || firstOrder.order.billingAddress.countryCode      <-- THEO CONTRACT
+  :86-88  currency = COUNTRY_TO_CURRENCY[countryCode]
+  :91-93  getProductVariantsByProductId({country: countryCode}) <-- THEO CONTRACT
+=> duong auto-sync KHONG dung shop.shopCountry. Dung country CUA CONTRACT.
+
+const/countries.js:48 CH:'CHF'  :78 FR:'EUR'  :61 DE:'EUR'
+=> voi kookut (contract FR/EUR) bang tinh cho ra DUNG currency.
+=> ket luan "day dung la cai market lam hong contract 11/08" KHONG duoc code chong do.
+
+services/graphql/variantService.js:25 hardcode contextualPricing(country: shop.shopCountry)
+NHUNG consumer khong dung field do:
+  services/autoSwapService.js:130  priceByVariantId.set(id, node.price)   <-- node.price (store ccy)
+  cron/updateSubscriptionPlansMetafields.js:126 comment: "node.price ... dollars string"
+=> trich variantService:25 lam bang chung cho "duong sync gia" la sai dia chi.
+
+Gap con lai co that = bang TINH COUNTRY_TO_CURRENCY thay vi Markets map
+(sai khi market bat localCurrencies / country ngoai bang), va contextualPricing
+tu quy doi khi market thieu gia FIXED. Nhung do la gap khac voi gap ho mo ta.
+
+=========================================================================
+[F8] "sua tay khong bi ghi de — dong hong VO HINH" -> REFUTED (nguoc hoan toan)
+-------------------------------------------------------------------------
+contractBulkActionService.js:52-60
+   const shopifyPrice  = variantPriceMap.get(vId)   // tu variantPriceData
+   const contractPrice = Number(p.variant.price)
+   if (shopifyPrice !== undefined && shopifyPrice !== contractPrice) -> ghi
+
+HAI VE KHONG CUNG DON VI:
+ - shopifyPrice: productService.js:110 = variantPricesMap[vid][contract.currency]
+   = contextualPricing theo country cua contract  => EUR cho kookut
+ - p.variant.price: helpers/utils/processContractLines.js:20 -> presentLineItem(x.product)
+   -> subscriptionContractService.js:1006-1010 lineItems.nodes.variant.price
+   = ProductVariant.price = GIA STORE CURRENCY  => CHF cho kookut
+
+=> voi MOI contract cross-currency, EUR != CHF LUON dung => detector ban moi lan
+   webhook product/update chay, bat ke basePrice dang dung hay sai.
+=> ghi dataUpdate.pricingPolicy.basePrice = variantPrice (contractBulkActionService:135)
+=> sua tay basePrice SE bi ghi de o lan sync ke tiep. Cau cua CS §4 la DUNG ve hau qua.
+=> dong thoi detector KHONG bao gio "phat hien" basePrice sai (no khong doc basePrice),
+   nen no vua ghi de vua khong sua dung — ca hai deu xau.
+
+Phu: contractBulkActionService:70-72 `if (currency !== contractCurrency)
+     convertUSDToSpecificCurrency(...)` la NHANH CHET — caller duy nhat
+     productService.js:116 truyen currency = contract.currency.
+
+=========================================================================
+[F2] fallback `|| parseFloat(variant.price)` -> CONFIRMED nhung khac co che ho ta
+-------------------------------------------------------------------------
+productService.js:110 dung. Khi map thieu (GraphQL loi -> graphql/productService.js:1534
+return [] ; countryCode undefined ; currency === storeCurrency bi filter :86-88)
+thi price = gia store MOI tu webhook REST.
+So voi contractPrice = snapshot store cu -> KHAC (vi merchant vua doi gia)
+-> ghi so CHF vao currencyCode EUR. => co the xay ra THAT.
+(Neu gia khong doi thi bang nhau -> skip im lang, khong sai so nhung mat sync.)
+Quy ket "day chinh la bug #5 01/07" = SUY LUAN, khong co bang chung prod.
+
+=========================================================================
+[F3] lock fail-open -> CONFIRMED (code)
+helpers/cache/billingAttemptLock.js:43-44 `if (!r) return NO_REDIS`; :53-56 catch -> NO_REDIS
+helpers/cache/orderCreationLock.js:56 `if (acquired === 'no-redis') return fn()`; :69-71 het retry -> fn()
+helpers/redis/redisClient.js:20-26 maxRetriesPerRequest:1, enableOfflineQueue:false, commandTimeout:500
+NHUNG: lock nay moi (MR !2322). Khong the giai thich cac lan tai dien 2025 (31/05, 23/07)
+xay ra TRUOC khi lock ton tai. Phan "giai thich vi sao fixed >=3 lan van tai dien" = overreach.
+
+=========================================================================
+[F4] dedupe theo app cycleIndex -> code dung, nhung la THIET KE CO Y
+helpers/subscription/billingAttemptGuard.js:18-23 comment noi ro ly do (reschedule).
+helpers/utils/generateUniqueId.js:49-55 filter theo parseInt(cycleIndex).
+Khong co bang chung prod nao cho thay ton tai 2 order doc khac cycleIndex cung 1
+Shopify cycle o kookut. => UNCERTAIN, khong phai finding da chung minh.
+Rieng chi tiet NaN: parseInt(undefined)=NaN, NaN===n false -> bi loai -> dung.
+
+=========================================================================
+[F5] subscriptionDraftLineItemUpdate nuot loi -> CONFIRMED
+services/graphql/contractService.js:683-696: if (errors || userErrors.length) chi console.error,
+khong throw, return undefined.
+Caller contractBulkActionService.js:139-145 khong kiem tra tra ve, sau do commit.
+services/subscription/ensureLineOwnsPlan.js:71-77 goi xong -> :80-86 van tra forked:true.
+
+=========================================================================
+[F6] FX tinh o truc gia -> CONFIRMED nhung mo ta co che SAI
+helpers/subscription/flatPricingPolicy.js:30-41 toContractCurrency -> convertBaseCurrencyToSpecificCurrency
+services/autoSwapService.js:187 toContractCurrency(catalogPrice, shop.currency, contract.currency)
+Nguon gia = autoSwapService.js:130 node.price (GIA STORE CURRENCY), KHONG phai
+contextualPricing theo shopCountry nhu bao cao viet.
+Doi chung fix dung: services/graphql/shippingProfileService.js:514-517 (dung as-is khi cung ccy).
+helpers/subscription/expandBundleLine.js:136,244 cung dung toContractCurrency -> cung dinh.
+
+=========================================================================
+[F7] importedPlans ghep theo index -> CONFIRMED
+services/graphql/subscriptionContractService.js:1198-1202
+  linesData.map((line, index) => line.product.sellingPlanId = line.sellingPlanId =
+     importedPlans[index].sellingPlanId)
+Khong co guard do dai -> importedPlans[index] undefined se throw.
+Chua verify kookut co contract imported (ho cung thua nhan).
+
+=========================================================================
+[F9] company + cleanEmptyField -> CONFIRMED
+helpers/shipping/buildMailingAddressInput.js:16 'company' co trong list; :40 cleanEmptyField(picked)
+helpers/utils/cleanEmptyField.js:7 condition = ['', null, undefined, false]
+=> chuoi rong bi loai => khong xoa duoc company/address2/phone. Dung nhu ho noi.
+Bonus ho bo sot: `false` cung bi loai -> moi call site khac cua cleanEmptyField
+voi field boolean deu mat gia tri false.
+
+=========================================================================
+BO SOT LON NHAT CUA CHIEU NAY
+-------------------------------------------------------------------------
+services/shopify/productService.js:135-151 handleProductUpdate:
+  if (isEnableSyncProductPrice) { existingActivity PENDING? -> `return` }
+`return` nay THOAT CA HAM, khong chi bo qua price sync:
+  - bo qua updateSubscriptionProduct (snapshot title/image/variants) :201-236
+  - bo qua updateProductBundlesFromWebhook :190-199
+  - bo qua createOrUpdateProduct (shopifyProductDoc) :238-241
+=> mot bulk activity PENDING treo la moi webhook product/update sau do bi nuot toan bo.
+=> giai thich truc tiep "sua roi lai bi", snapshot product rong, va cac product bi
+   skip khong bao gio duoc sync lai (chi log, khong tao retry, khong alert).
+kookut co syncProductPrice=true (scratchpad/kookut-settings.json:38).

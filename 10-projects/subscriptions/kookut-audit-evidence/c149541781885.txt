@@ -1,0 +1,369 @@
+=== SHOP ===
+{
+  "shopId": "4VgCcf9Ov5cIBx2tCkcT"
+}
+
+=== CONTRACT doc JsACHu0JO1dBjbVOmg46 ===
+{
+  "subscriptionContractId": 149541781885,
+  "status": "ACTIVE",
+  "deliveryPrice": {
+    "currencyCode": "EUR",
+    "amount": "0.0"
+  },
+  "sellingPlanId": "eaa4ab77-fc66-4221-8935-894307fa08af",
+  "createdAt": {
+    "_seconds": 1780043346,
+    "_nanoseconds": 410000000
+  },
+  "updatedAt": {
+    "_seconds": 1786718040,
+    "_nanoseconds": 318000000
+  }
+}
+--- RAW line items (3) ---
+[0] {
+  "id": "6576498409680",
+  "title": "Pacific Tuna & Seaweed - Natural",
+  "quantity": 11,
+  "variant": {
+    "id": "39412968915152",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/9-Cat-TunaSeaweed.jpg?v=1748013495",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "18",
+  "afterCycle": null,
+  "basePrice": 1.7,
+  "currentPrice": 1.7,
+  "afterCyclesPrice": 1.7,
+  "lineDiscountedPrice": 18.7,
+  "sellingPlanId": "",
+  "customAttributes": [],
+  "contractLineId": "14af644a-03b8-4974-8e93-f0d17be5e022"
+}
+[1] {
+  "id": "6576472588496",
+  "title": "Pacific Tuna & Baby Clams - Natural",
+  "quantity": 11,
+  "variant": {
+    "id": "39412925694160",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/8-Cat-TunaBabyClams.jpg?v=1748013422",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "18",
+  "afterCycle": null,
+  "basePrice": 1.7,
+  "currentPrice": 1.7,
+  "afterCyclesPrice": 1.7,
+  "lineDiscountedPrice": 18.7,
+  "sellingPlanId": "",
+  "customAttributes": [],
+  "contractLineId": "3f9c0bcb-18e1-4901-8a66-4224589d6000"
+}
+[2] {
+  "id": "6576478224592",
+  "title": "Pacific Tuna & Green Mussels - Natural",
+  "quantity": 11,
+  "variant": {
+    "id": "39412934901968",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/7-Cat-TunaMussels.jpg?v=1748013288",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "18",
+  "afterCycle": null,
+  "basePrice": 1.7,
+  "currentPrice": 1.7,
+  "afterCyclesPrice": 1.7,
+  "lineDiscountedPrice": 18.7,
+  "sellingPlanId": "",
+  "customAttributes": [],
+  "contractLineId": "e8167012-6aa4-4e45-8e04-12bc9c204da4"
+}
+
+--- product / productIds / lineId(s) ---
+{
+  "product": {
+    "id": "6576498409680",
+    "title": "Pacific Tuna & Seaweed - Natural",
+    "quantity": 11,
+    "variant": {
+      "id": "39412968915152",
+      "title": "70g",
+      "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/9-Cat-TunaSeaweed.jpg?v=1748013495",
+      "price": 1.8,
+      "compareAtPrice": 0
+    },
+    "categoryId": "18",
+    "afterCycle": null,
+    "basePrice": 1.7,
+    "currentPrice": 1.7,
+    "afterCyclesPrice": 1.7,
+    "lineDiscountedPrice": 18.7,
+    "sellingPlanId": ""
+  },
+  "productIds": [
+    "6576498409680",
+    "6576472588496",
+    "6576478224592"
+  ],
+  "lineId": "14af644a-03b8-4974-8e93-f0d17be5e022",
+  "lineIds": [
+    "14af644a-03b8-4974-8e93-f0d17be5e022",
+    "3f9c0bcb-18e1-4901-8a66-4224589d6000",
+    "e8167012-6aa4-4e45-8e04-12bc9c204da4"
+  ],
+  "isNewVersion": true,
+  "isImported": true,
+  "isManual": true,
+  "currency": "EUR",
+  "shopCurrency": "CHF",
+  "lastLocalUpdateAt": {
+    "_seconds": 1786718038,
+    "_nanoseconds": 875000000
+  },
+  "shopifySyncedAt": {
+    "_seconds": 1786718040,
+    "_nanoseconds": 318000000
+  }
+}
+
+--- deliveryMethod / countryCode ---
+{
+  "deliveryMethod": {
+    "type": "shipping",
+    "name": "Virginie Pisani",
+    "shippingOption": {
+      "title": null,
+      "presentmentTitle": null,
+      "code": null
+    },
+    "address1": "70 Allée des Phéniciens",
+    "address2": "Résidence Tahiti appt 135",
+    "city": "La Grande-Motte",
+    "country": "France",
+    "countryCode": "FR",
+    "firstName": "Virginie",
+    "lastName": "Pisani",
+    "phone": "+33662536752",
+    "zip": "34280",
+    "company": ""
+  },
+  "currency": "EUR",
+  "shopCurrency": "CHF"
+}
+
+--- plans / plan ---
+{
+  "plans": [
+    {
+      "renewalMonthYear": null,
+      "enabledAmountDiscount": true,
+      "hideSubActions": false,
+      "cutOffDayMonth": 5,
+      "discountTypeChanged": "percentage",
+      "hideSubActionAfterOrder": 0,
+      "isNewVersion": true,
+      "renewalDayMonth": "28",
+      "renewalDayYear": "same-day",
+      "frequency": "month",
+      "enabledDiscount": false,
+      "discountValue": 5,
+      "freeShippingFromCycle": 1,
+      "enabledCutOff": false,
+      "minimumOrderCancel": null,
+      "discountConfig": {
+        "tiers": [
+          {
+            "toOrder": "all",
+            "type": "percentage",
+            "fromOrder": 1,
+            "value": 5
+          }
+        ],
+        "enabled": true
+      },
+      "sellingPlanId": "eaa4ab77-fc66-4221-8935-894307fa08af",
+      "subscriptionProductId": "2a877ee3-b089-44d9-964f-d0cf2bd6bacc",
+      "enabledMaximumOrder": false,
+      "numberBeforeChange": 1,
+      "discountType": "percentage",
+      "title": "Every 1 month",
+      "maximumOrderExpire": null,
+      "cutOffDayWeek": 2,
+      "enabledMinimumOrder": false,
+      "renewalDayWeek": "same-day",
+      "enabledChangeDiscount": false,
+      "prepaidFrequency": 1,
+      "trialConfig": {
+        "discountValue": 0,
+        "duration": 5,
+        "afterAction": "active_subscription",
+        "enabled": false,
+        "discountType": "percentage"
+      },
+      "discountValueChanged": 10,
+      "frequencyValue": 1,
+      "enabledFreeShipping": false,
+      "paymentType": "pay-as-you-go"
+    },
+    {
+      "sellingPlanId": "b813ca11-5e72-4a6e-93eb-a94c6e2525f1",
+      "discountConfig": {
+        "enabled": true,
+        "tiers": [
+          {
+            "type": "percentage",
+            "fromOrder": 1,
+            "toOrder": "all",
+            "value": 5
+          }
+        ]
+      },
+      "maximumOrderExpire": null,
+      "title": "Every 1 month",
+      "subscriptionProductId": "c3e2ede6-c44d-4167-9fb9-feeed9b7c700",
+      "enabledMaximumOrder": false,
+      "numberBeforeChange": 1,
+      "discountType": "percentage",
+      "renewalDayWeek": "same-day",
+      "enabledChangeDiscount": false,
+      "cutOffDayWeek": 2,
+      "enabledMinimumOrder": false,
+      "discountValueChanged": 10,
+      "trialConfig": {
+        "duration": 5,
+        "discountValue": 0,
+        "afterAction": "active_subscription",
+        "enabled": false,
+        "discountType": "percentage"
+      },
+      "frequencyValue": 1,
+      "enabledFreeShipping": false,
+      "paymentType": "pay-as-you-go",
+      "prepaidFrequency": 1,
+      "hideSubActions": false,
+      "renewalMonthYear": null,
+      "enabledAmountDiscount": true,
+      "isNewVersion": true,
+      "renewalDayMonth": "28",
+      "cutOffDayMonth": 5,
+      "hideSubActionAfterOrder": 0,
+      "discountTypeChanged": "percentage",
+      "renewalDayYear": "same-day",
+      "frequency": "month",
+      "enabledDiscount": false,
+      "discountValue": 5,
+      "minimumOrderCancel": null,
+      "freeShippingFromCycle": 1,
+      "enabledCutOff": false
+    },
+    {
+      "cutOffDayWeek": 2,
+      "enabledMinimumOrder": false,
+      "renewalDayWeek": "same-day",
+      "enabledChangeDiscount": false,
+      "prepaidFrequency": 1,
+      "discountValueChanged": 10,
+      "trialConfig": {
+        "discountValue": 0,
+        "duration": 5,
+        "afterAction": "active_subscription",
+        "enabled": false,
+        "discountType": "percentage"
+      },
+      "frequencyValue": 1,
+      "enabledFreeShipping": false,
+      "paymentType": "pay-as-you-go",
+      "discountConfig": {
+        "tiers": [
+          {
+            "toOrder": "all",
+            "type": "percentage",
+            "fromOrder": 1,
+            "value": 5
+          }
+        ],
+        "enabled": true
+      },
+      "sellingPlanId": "14334d74-6e37-447b-acaf-0a15557cd6f5",
+      "subscriptionProductId": "2916444d-5124-490a-a326-35097cf05e55",
+      "enabledMaximumOrder": false,
+      "numberBeforeChange": 1,
+      "discountType": "percentage",
+      "maximumOrderExpire": null,
+      "title": "Every 1 month",
+      "renewalDayYear": "same-day",
+      "frequency": "month",
+      "enabledDiscount": false,
+      "discountValue": 5,
+      "freeShippingFromCycle": 1,
+      "enabledCutOff": false,
+      "minimumOrderCancel": null,
+      "renewalMonthYear": null,
+      "enabledAmountDiscount": true,
+      "hideSubActions": false,
+      "cutOffDayMonth": 5,
+      "hideSubActionAfterOrder": 0,
+      "discountTypeChanged": "percentage",
+      "isNewVersion": true,
+      "renewalDayMonth": "28"
+    }
+  ],
+  "plan": {
+    "discountTypeChanged": "percentage",
+    "hideSubActionAfterOrder": 0,
+    "cutOffDayMonth": 5,
+    "isNewVersion": true,
+    "renewalDayMonth": "28",
+    "renewalMonthYear": null,
+    "enabledAmountDiscount": true,
+    "hideSubActions": false,
+    "enabledCutOff": false,
+    "freeShippingFromCycle": 1,
+    "minimumOrderCancel": null,
+    "discountValue": 5,
+    "renewalDayYear": "same-day",
+    "frequency": "month",
+    "enabledDiscount": false,
+    "subscriptionProductId": "2a877ee3-b089-44d9-964f-d0cf2bd6bacc",
+    "enabledMaximumOrder": false,
+    "numberBeforeChange": 1,
+    "discountType": "percentage",
+    "title": "Every 1 month",
+    "maximumOrderExpire": null,
+    "discountConfig": {
+      "tiers": [
+        {
+          "value": 5,
+          "type": "percentage",
+          "fromOrder": 1,
+          "toOrder": "all"
+        }
+      ],
+      "enabled": true
+    },
+    "sellingPlanId": "eaa4ab77-fc66-4221-8935-894307fa08af",
+    "prepaidFrequency": 1,
+    "frequencyValue": 1,
+    "enabledFreeShipping": false,
+    "paymentType": "pay-as-you-go",
+    "trialConfig": {
+      "discountType": "percentage",
+      "afterAction": "active_subscription",
+      "enabled": false,
+      "duration": 5,
+      "discountValue": 0
+    },
+    "discountValueChanged": 10,
+    "enabledMinimumOrder": false,
+    "cutOffDayWeek": 2,
+    "enabledChangeDiscount": false,
+    "renewalDayWeek": "same-day"
+  }
+}

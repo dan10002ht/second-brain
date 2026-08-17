@@ -1,0 +1,56 @@
+
+### contract 155113881981 status=ACTIVE cur=EUR created=2026-07-21T05:48:09.000Z updated=2026-08-14T19:29:01.000Z updateBy=- country=FR
+   line[0] Pacific Tuna & Sardine - Natural/24x70g vid=39412882702544 base=45.95 cur=43.6525 vprice=42 qty=1
+   line[1] Wild Alaskan Salmon - Natural/24x70g vid=39412859371728 base=40 cur=38 vprice=42 qty=1
+   line[2] Pacific Tuna - Natural/24x70g vid=39405861470416 base=40 cur=38 vprice=42 qty=1
+
+### contract 153346408829 status=ACTIVE cur=EUR created=2026-07-05T10:02:43.000Z updated=2026-08-14T14:34:49.000Z updateBy=- country=FR
+   line[0] Pacific Tuna - Natural/70g vid=39406932328656 base=1.7 cur=1.615 vprice=1.8 qty=10
+   line[1] Pacific Tuna & Sardine - Natural/70g vid=39412882735312 base=1.95 cur=1.8525 vprice=1.8 qty=11
+   line[2] Pacific Tuna & Seaweed - Natural/70g vid=39412968915152 base=1.7 cur=1.615 vprice=1.8 qty=11
+
+### contract 116972159357 status=PAUSED cur=EUR created=2025-06-03T18:26:55.000Z updated=2026-08-13T15:09:17.000Z updateBy=- country=FR
+   line[0] Pacific Tuna & Sardine - Natural/24x70g vid=39412882702544 base=45.95 cur=43.6525 vprice=42 qty=2
+
+### contract 125403431293 status=ACTIVE cur=EUR created=2025-10-01T13:52:45.000Z updated=2026-08-14T17:17:42.000Z updateBy=- country=FR
+   line[0] Free Run Chicken & Shrimps - Natural/70g vid=39412895449296 base=1.7 cur=1.615 vprice=1.8 qty=5
+   line[1] Pacific Tuna & Seaweed - Natural/70g vid=39412968915152 base=1.7 cur=1.615 vprice=1.8 qty=6
+   line[2] Pacific Tuna & Sardine - Natural/70g vid=39412882735312 base=1.95 cur=1.8525 vprice=1.8 qty=6
+   line[3] Free Run Chicken & Pumpkin - Natural/70g vid=39412957282512 base=1.7 cur=1.615 vprice=1.8 qty=5
+   line[4] Pacific Tuna & Green Mussels - Natural/70g vid=39412934901968 base=1.7 cur=1.615 vprice=1.8 qty=6
+   line[5] Free Run Chicken & Pacific Tuna - Natural/70g vid=39412874019024 base=1.7 cur=1.615 vprice=1.8 qty=5
+
+### contract 116999324029 status=PAUSED cur=EUR created=2025-06-04T09:36:12.000Z updated=2025-12-30T11:33:31.000Z updateBy=- country=FR
+   line[0] Chicken & Turkey Dry Food for Kitten/5kg vid=39404501696720 base=31 cur=29.45 vprice=31 qty=1
+
+### contract 117269365117 status=ACTIVE cur=CHF created=2025-06-10T10:54:12.000Z updated=2026-05-31T23:00:48.000Z updateBy=system country=CH
+   line[0] Free Run Chicken & Pacific Tuna - Natural/24x70g vid=39412873986256 base=42 cur=39.9 vprice=42 qty=2
+   line[1] Chicken & Turkey Dry Food for Kitten/1.5kg vid=39404501663952 base=11.9 cur=11.305 vprice=11.9 qty=1
+   line[2] Wild Alaskan Salmon - Natural/24x70g vid=39412859371728 base=42 cur=39.9 vprice=42 qty=1
+
+### contract 147905085821 status=ACTIVE cur=EUR created=2026-05-12T19:06:29.000Z updated=2026-08-14T16:14:21.000Z updateBy=- country=FR
+   line[0] Free Run Chicken - Natural/70g vid=39412844462288 base=1.7 cur=1.615 vprice=1.8 qty=6
+   line[1] Free Run Chicken & Shrimps - Natural/70g vid=39412895449296 base=1.7 cur=1.615 vprice=1.8 qty=3
+   line[2] Pacific Tuna & Sardine - Natural/70g vid=39412882735312 base=1.95 cur=1.8525 vprice=1.8 qty=3
+   line[3] Pacific Tuna & Baby Clams - Natural/70g vid=39412925694160 base=1.7 cur=1.615 vprice=1.8 qty=4
+   line[4] Free Run Chicken & Pacific Tuna - Natural/70g vid=39412874019024 base=1.7 cur=1.615 vprice=1.8 qty=3
+   line[5] Pacific Tuna & Green Mussels - Natural/70g vid=39412934901968 base=1.7 cur=1.615 vprice=1.8 qty=3
+   line[6] Pacific Tuna & Seaweed - Natural/70g vid=39412968915152 base=1.7 cur=1.615 vprice=1.8 qty=3
+   line[7] Wild Alaskan Salmon - Natural/70g vid=39412859404496 base=1.7 cur=1.615 vprice=1.8 qty=3
+   line[8] Mackerel & Zucchini - Natural/70g vid=57407623790973 base=1.7 cur=1.615 vprice=1.8 qty=3
+   line[9] Chicken & Duck Dry Food for Cat/1.5kg vid=39404512968912 base=23 cur=21.85 vprice=23.8 qty=1
+
+### contract 151147970941 status=ACTIVE cur=EUR created=2026-06-14T05:33:12.000Z updated=2026-08-14T19:29:32.000Z updateBy=- country=FR
+   line[0] Wild Alaskan Salmon - Natural/70g vid=39412859404496 base=1.8 cur=1.71 vprice=1.8 qty=6
+   line[1] Wild Alaskan Salmon - Natural/24x70g vid=39412859371728 base=40 cur=38 vprice=42 qty=1
+   line[2] Pacific Tuna & Sardine - Natural/70g vid=39412882735312 base=1.95 cur=1.853 vprice=1.8 qty=6
+   line[3] Pacific Tuna & Sardine - Natural/24x70g vid=39412882702544 base=45.95 cur=43.653 vprice=42 qty=1
+
+### contract 148748632445 status=ACTIVE cur=CHF created=2026-05-21T08:44:25.000Z updated=2026-08-12T08:55:21.000Z updateBy=- country=CH
+   line[0] Wild Alaskan Salmon - Natural/24x70g vid=39412859371728 base=42 cur=39.9 vprice=42 qty=1
+   line[1] Free Run Chicken & Pumpkin - Natural/24x70g vid=39412957249744 base=42 cur=39.9 vprice=42 qty=1
+   line[2] Free Run Chicken & Pacific Tuna - Natural/24x70g vid=39412873986256 base=42 cur=39.9 vprice=42 qty=1
+   line[3] Free Run Chicken & Shrimps - Natural/24x70g vid=39412895416528 base=42 cur=39.9 vprice=42 qty=1
+   line[4] Chicken & Duck Dry Food for Cat/5kg vid=39404513001680 base=62 cur=58.9 vprice=62 qty=1
+   line[5] Pacific Tuna & Baby Clams - Natural/24x70g vid=39412925661392 base=42 cur=39.9 vprice=42 qty=1
+   line[6] Free Run Chicken & Pacific Tuna - Natural - Breeders/24x280g vid=57638152634749 base=86.4 cur=82.08 vprice=115 qty=1

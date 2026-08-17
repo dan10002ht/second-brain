@@ -1,0 +1,879 @@
+=== SHOP ===
+{
+  "shopId": "4VgCcf9Ov5cIBx2tCkcT"
+}
+
+=== CONTRACT doc MVznXqf3Ny6X8N8D8bbf ===
+{
+  "subscriptionContractId": 117174239613,
+  "status": "PAUSED",
+  "sellingPlanId": "710589645181",
+  "createdAt": {
+    "_seconds": 1749370258,
+    "_nanoseconds": 351000000
+  },
+  "updatedAt": {
+    "_seconds": 1779783720,
+    "_nanoseconds": 963000000
+  }
+}
+--- RAW line items (10) ---
+[0] {
+  "id": "6576492216528",
+  "title": "Free Run Chicken & Pumpkin - Natural",
+  "quantity": 3,
+  "variant": {
+    "id": "39412957282512",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/10-Cat-ChickenPumpkin.jpg?v=1748013580",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.8,
+  "afterCyclesPrice": 1.8,
+  "lineDiscountedPrice": 5.4,
+  "sellingPlanId": "710589645181",
+  "contractLineId": "20e5d6be-4736-4913-8eec-5bbb6f42a4e8",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[1] {
+  "id": "6576437264592",
+  "title": "Free Run Chicken & Pacific Tuna - Natural",
+  "quantity": 4,
+  "variant": {
+    "id": "39412874019024",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/3-Cat-ChickenTuna.jpg?v=1748012626",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.8,
+  "afterCyclesPrice": 1.8,
+  "lineDiscountedPrice": 7.2,
+  "sellingPlanId": "710589186429",
+  "contractLineId": "33f81e75-55ab-4433-8fb6-e221efa50ac1",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[2] {
+  "id": "6576478224592",
+  "title": "Pacific Tuna & Green Mussels - Natural",
+  "quantity": 5,
+  "variant": {
+    "id": "39412934901968",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/7-Cat-TunaMussels.jpg?v=1748013288",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.8,
+  "afterCyclesPrice": 1.8,
+  "lineDiscountedPrice": 9,
+  "sellingPlanId": "710589841789",
+  "contractLineId": "38268c82-273d-4ac1-814c-be9f7d8fd91f",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[3] {
+  "id": "6574904672464",
+  "title": "Pacific Tuna - Natural",
+  "quantity": 1,
+  "variant": {
+    "id": "39406932328656",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/1-Cat-PacificTuna.jpg?v=1748012356",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.71,
+  "afterCyclesPrice": 1.71,
+  "lineDiscountedPrice": 1.71,
+  "sellingPlanId": "710589120893",
+  "contractLineId": "435c937a-02b4-4677-a209-0e15b606aae4",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[4] {
+  "id": "6576427466960",
+  "title": "Wild Alaskan Salmon - Natural",
+  "quantity": 2,
+  "variant": {
+    "id": "39412859404496",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/2-Cat-AlaskanSalmon.jpg?v=1748012548",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.71,
+  "afterCyclesPrice": 1.71,
+  "lineDiscountedPrice": 3.42,
+  "sellingPlanId": "710588891517",
+  "contractLineId": "6e24be11-2338-4614-b27b-ad104c4b5613",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[5] {
+  "id": "6576451322064",
+  "title": "Free Run Chicken & Shrimps - Natural",
+  "quantity": 1,
+  "variant": {
+    "id": "39412895449296",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/6-Cat-ChickenShrimps.jpg?v=1748013012",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.71,
+  "afterCyclesPrice": 1.71,
+  "lineDiscountedPrice": 1.71,
+  "sellingPlanId": "710589546877",
+  "contractLineId": "772e1137-89a7-4b0a-b6f1-865dbf5f6dc1",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[6] {
+  "id": "6574720745680",
+  "title": "Chicken & Duck Dry Food for Cat",
+  "quantity": 1,
+  "variant": {
+    "id": "39404513001680",
+    "title": "5kg",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/products/5kg_Cat_ChickenDuck_FRONT.jpg?v=1679927735",
+    "price": 62,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 62,
+  "currentPrice": 58.9,
+  "afterCyclesPrice": 58.9,
+  "lineDiscountedPrice": 58.9,
+  "sellingPlanId": "710588399997",
+  "contractLineId": "cbfd8804-8971-42bd-8a6b-3c8062286424",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[7] {
+  "id": "6576417243344",
+  "title": "Free Run Chicken - Natural",
+  "quantity": 1,
+  "variant": {
+    "id": "39412844462288",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/5-Cat-Chicken.jpg?v=1748012845",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.71,
+  "afterCyclesPrice": 1.71,
+  "lineDiscountedPrice": 1.71,
+  "sellingPlanId": "710589022589",
+  "contractLineId": "d4bb9f3a-64e3-4ea6-bc67-953be23c28da",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[8] {
+  "id": "6576443031760",
+  "title": "Pacific Tuna & Sardine - Natural",
+  "quantity": 1,
+  "variant": {
+    "id": "39412882735312",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/4-Cat-TunaSardine_-_Copy.jpg?v=1748012713",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.71,
+  "afterCyclesPrice": 1.71,
+  "lineDiscountedPrice": 1.71,
+  "sellingPlanId": "710589383037",
+  "contractLineId": "d5894d16-a018-49c9-a61e-e0b39d827fbd",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+[9] {
+  "id": "6576498409680",
+  "title": "Pacific Tuna & Seaweed - Natural",
+  "quantity": 1,
+  "variant": {
+    "id": "39412968915152",
+    "title": "70g",
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/9-Cat-TunaSeaweed.jpg?v=1748013495",
+    "price": 1.8,
+    "compareAtPrice": 0
+  },
+  "categoryId": "17",
+  "afterCycle": null,
+  "basePrice": 1.8,
+  "currentPrice": 1.71,
+  "afterCyclesPrice": 1.71,
+  "lineDiscountedPrice": 1.71,
+  "sellingPlanId": "710589743485",
+  "contractLineId": "f702bf6b-2818-4257-9159-76befbd1df9c",
+  "subscriptionBoxId": "",
+  "customAttributes": []
+}
+
+--- product / productIds / lineId(s) ---
+{
+  "product": {
+    "id": "6576492216528",
+    "title": "Free Run Chicken & Pumpkin - Natural",
+    "quantity": 3,
+    "variant": {
+      "id": "39412957282512",
+      "title": "70g",
+      "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/10-Cat-ChickenPumpkin.jpg?v=1748013580",
+      "price": 1.8,
+      "compareAtPrice": 0
+    },
+    "categoryId": "17",
+    "afterCycle": null,
+    "basePrice": 1.8,
+    "currentPrice": 1.8,
+    "afterCyclesPrice": 1.8,
+    "lineDiscountedPrice": 5.4,
+    "sellingPlanId": "710589645181"
+  },
+  "productIds": [
+    "6576492216528",
+    "6576437264592",
+    "6576478224592",
+    "6574904672464",
+    "6576427466960",
+    "6576451322064",
+    "6574720745680",
+    "6576417243344",
+    "6576443031760",
+    "6576498409680"
+  ],
+  "lineId": "20e5d6be-4736-4913-8eec-5bbb6f42a4e8",
+  "lineIds": [
+    "20e5d6be-4736-4913-8eec-5bbb6f42a4e8",
+    "33f81e75-55ab-4433-8fb6-e221efa50ac1",
+    "38268c82-273d-4ac1-814c-be9f7d8fd91f",
+    "435c937a-02b4-4677-a209-0e15b606aae4",
+    "6e24be11-2338-4614-b27b-ad104c4b5613",
+    "772e1137-89a7-4b0a-b6f1-865dbf5f6dc1",
+    "cbfd8804-8971-42bd-8a6b-3c8062286424",
+    "d4bb9f3a-64e3-4ea6-bc67-953be23c28da",
+    "d5894d16-a018-49c9-a61e-e0b39d827fbd",
+    "f702bf6b-2818-4257-9159-76befbd1df9c"
+  ],
+  "isNewVersion": false,
+  "isImported": false,
+  "isManual": true,
+  "currency": "CHF",
+  "shopCurrency": "CHF",
+  "shopifySyncedAt": {
+    "_seconds": 1782924156,
+    "_nanoseconds": 796000000
+  }
+}
+
+--- deliveryMethod / countryCode ---
+{
+  "deliveryMethod": {
+    "type": "shipping",
+    "name": "Sofia Sofia",
+    "shippingOption": {
+      "title": "Standard - SwissPost Economy"
+    },
+    "address1": "Route du Robinson",
+    "address2": "1A",
+    "city": "Granges VS",
+    "country": "Switzerland",
+    "countryCode": "CH",
+    "firstName": "Sofia",
+    "lastName": "Sofia",
+    "phone": "0764836761",
+    "zip": "3977"
+  },
+  "currency": "CHF",
+  "shopCurrency": "CHF"
+}
+
+--- plans / plan ---
+{
+  "plans": [
+    {
+      "enabledDescription": false,
+      "paymentType": "pay-as-you-go",
+      "prepaidFrequency": 6,
+      "frequency": "month",
+      "renewalDayMonth": "same-day",
+      "renewalDayWeek": "same-day",
+      "enabledCutOff": false,
+      "cutOffDayMonth": 5,
+      "cutOffDayWeek": 2,
+      "enabledDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledAmountDiscount": false,
+      "discountType": "percentage",
+      "discountValue": 5,
+      "enabledChangeDiscount": false,
+      "numberBeforeChange": 1,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "appliedTo": "all",
+      "specificVariants": [],
+      "enabledMinimumOrder": false,
+      "minimumOrderCancel": 1,
+      "enabledMaximumOrder": false,
+      "maximumOrderExpire": 150,
+      "position": 2,
+      "subscriptionProductId": "3Vksw0EvsTKFQd4UKV8J",
+      "sellingPlanGroup": "98031599997",
+      "sellingPlanId": "710589645181",
+      "shopId": "4VgCcf9Ov5cIBx2tCkcT",
+      "isNewVersion": false,
+      "createdAt": "2025-05-31T00:54:55.831Z",
+      "description": "Delivery every 2 months, save {{initial_discount}}.",
+      "frequencyValue": 2,
+      "title": "Every 2 months",
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      },
+      "hasContract": true,
+      "updatedAt": "2025-06-02T23:10:37.768Z",
+      "id": "v5WLbwAOMxcpZhL8dmUQ",
+      "identify": "v5WLbwAOMxcpZhL8dmUQ"
+    },
+    {
+      "enabledDescription": false,
+      "paymentType": "pay-as-you-go",
+      "prepaidFrequency": 6,
+      "frequency": "month",
+      "renewalDayMonth": "same-day",
+      "renewalDayWeek": "same-day",
+      "enabledCutOff": false,
+      "cutOffDayMonth": 5,
+      "cutOffDayWeek": 2,
+      "enabledDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledAmountDiscount": false,
+      "discountType": "percentage",
+      "discountValue": 5,
+      "enabledChangeDiscount": false,
+      "numberBeforeChange": 1,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "appliedTo": "all",
+      "specificVariants": [],
+      "enabledMinimumOrder": false,
+      "minimumOrderCancel": 1,
+      "enabledMaximumOrder": false,
+      "maximumOrderExpire": 150,
+      "position": 2,
+      "subscriptionProductId": "ij6lxQ0YHdEG5HH33HfU",
+      "sellingPlanGroup": "98031141245",
+      "sellingPlanId": "710589186429",
+      "shopId": "4VgCcf9Ov5cIBx2tCkcT",
+      "isNewVersion": true,
+      "createdAt": "2025-05-31T00:54:30.242Z",
+      "description": "Delivery every 2 months, save {{initial_discount}}.",
+      "frequencyValue": 2,
+      "title": "Every 2 months",
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      },
+      "hasContract": true,
+      "updatedAt": "2025-06-02T23:10:37.769Z",
+      "id": "ImW36cZoSrOUxGoVTYBw",
+      "identify": "ImW36cZoSrOUxGoVTYBw"
+    },
+    {
+      "enabledDescription": false,
+      "paymentType": "pay-as-you-go",
+      "prepaidFrequency": 6,
+      "frequency": "month",
+      "renewalDayMonth": "same-day",
+      "renewalDayWeek": "same-day",
+      "enabledCutOff": false,
+      "cutOffDayMonth": 5,
+      "cutOffDayWeek": 2,
+      "enabledDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledAmountDiscount": false,
+      "discountType": "percentage",
+      "discountValue": 5,
+      "enabledChangeDiscount": false,
+      "numberBeforeChange": 1,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "appliedTo": "all",
+      "specificVariants": [],
+      "enabledMinimumOrder": false,
+      "minimumOrderCancel": 1,
+      "enabledMaximumOrder": false,
+      "maximumOrderExpire": 150,
+      "position": 2,
+      "subscriptionProductId": "efCcq2fqsUZuO40qEJpV",
+      "sellingPlanGroup": "98031796605",
+      "sellingPlanId": "710589841789",
+      "shopId": "4VgCcf9Ov5cIBx2tCkcT",
+      "isNewVersion": false,
+      "createdAt": "2025-05-31T00:54:55.906Z",
+      "description": "Delivery every 2 months, save {{initial_discount}}.",
+      "frequencyValue": 2,
+      "title": "Every 2 months",
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      },
+      "hasContract": true,
+      "updatedAt": "2025-06-02T23:10:37.769Z",
+      "id": "Jr1f2Lftt9ws5TYjk93q",
+      "identify": "Jr1f2Lftt9ws5TYjk93q"
+    },
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "month",
+      "frequencyValue": 2,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 2 months",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 6,
+      "sellingPlanId": "710589120893",
+      "subscriptionProductId": "hv77dV1qa6CylHFeuDY9",
+      "isNewVersion": false,
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      }
+    },
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "month",
+      "frequencyValue": 2,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 2 months",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 6,
+      "sellingPlanId": "710588891517",
+      "subscriptionProductId": "WVkkEFkA00vcl6TCoy5J",
+      "isNewVersion": false,
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      }
+    },
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "month",
+      "frequencyValue": 2,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 2 months",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 6,
+      "sellingPlanId": "710589546877",
+      "subscriptionProductId": "6IfNPHccd9UYv4Kc8t5Z",
+      "isNewVersion": false,
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      }
+    },
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "month",
+      "frequencyValue": 2,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 2 months",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 6,
+      "sellingPlanId": "710588399997",
+      "subscriptionProductId": "QOLt1mRkY68I0tBJb3Yr",
+      "isNewVersion": false,
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      }
+    },
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "month",
+      "frequencyValue": 2,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 2 months",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 6,
+      "sellingPlanId": "710589022589",
+      "subscriptionProductId": "SWHAybJT1W4HlQNrXILU",
+      "isNewVersion": false,
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      }
+    },
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "month",
+      "frequencyValue": 2,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 2 months",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 6,
+      "sellingPlanId": "710589383037",
+      "subscriptionProductId": "enqc8C67YXofKvuAyRS9",
+      "isNewVersion": false,
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      }
+    },
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "month",
+      "frequencyValue": 2,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 2 months",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 6,
+      "sellingPlanId": "710589743485",
+      "subscriptionProductId": "uvrxLPFUZ86pcAqegpLo",
+      "isNewVersion": false,
+      "translations": {
+        "en": {
+          "title": "Every 2 months",
+          "description": "Delivery every 2 months, save {{initial_discount}}."
+        },
+        "fr": {
+          "title": "Tous les 2 mois",
+          "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+        },
+        "it": {
+          "title": "Ogni 2 mesi",
+          "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+        },
+        "de": {
+          "title": "Alle 2 Monate",
+          "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+        }
+      }
+    }
+  ],
+  "plan": {
+    "enabledDescription": false,
+    "paymentType": "pay-as-you-go",
+    "prepaidFrequency": 6,
+    "frequency": "month",
+    "renewalDayMonth": "same-day",
+    "renewalDayWeek": "same-day",
+    "enabledCutOff": false,
+    "cutOffDayMonth": 5,
+    "cutOffDayWeek": 2,
+    "enabledDiscount": false,
+    "enabledFreeShipping": false,
+    "enabledAmountDiscount": false,
+    "discountType": "percentage",
+    "discountValue": 5,
+    "enabledChangeDiscount": false,
+    "numberBeforeChange": 1,
+    "discountTypeChanged": "percentage",
+    "discountValueChanged": 10,
+    "appliedTo": "all",
+    "specificVariants": [],
+    "enabledMinimumOrder": false,
+    "minimumOrderCancel": 1,
+    "enabledMaximumOrder": false,
+    "maximumOrderExpire": 150,
+    "position": 2,
+    "subscriptionProductId": "ij6lxQ0YHdEG5HH33HfU",
+    "sellingPlanGroup": "98031141245",
+    "sellingPlanId": "710589186429",
+    "shopId": "4VgCcf9Ov5cIBx2tCkcT",
+    "isNewVersion": true,
+    "createdAt": "2025-05-31T00:54:30.242Z",
+    "description": "Delivery every 2 months, save {{initial_discount}}.",
+    "frequencyValue": 2,
+    "title": "Every 2 months",
+    "translations": {
+      "en": {
+        "title": "Every 2 months",
+        "description": "Delivery every 2 months, save {{initial_discount}}."
+      },
+      "fr": {
+        "title": "Tous les 2 mois",
+        "description": "Livraison tous les 2 mois, économisez {{initial_discount}}."
+      },
+      "it": {
+        "title": "Ogni 2 mesi",
+        "description": "Consegna ogni 2 mesi, risparmia {{initial_discount}}."
+      },
+      "de": {
+        "title": "Alle 2 Monate",
+        "description": "Lieferung alle 2 Monate, sparen Sie {{initial_discount}}."
+      }
+    },
+    "hasContract": true,
+    "updatedAt": "2025-06-02T23:10:37.769Z",
+    "id": "ImW36cZoSrOUxGoVTYBw",
+    "identify": "ImW36cZoSrOUxGoVTYBw"
+  }
+}

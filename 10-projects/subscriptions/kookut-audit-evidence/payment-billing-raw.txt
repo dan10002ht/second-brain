@@ -1,0 +1,693 @@
+orders: 22
+
+--- doc QHiywnqtti01yrjoSBLa ---
+{
+  "cycleIndex": 0,
+  "status": "BILLED",
+  "orderId": 12233825452413,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1754999468,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2025-08-12T11:51:21.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "billingAttempts": []
+}
+keys: __id, isOrigin, customer, billingAttemptExpectedDate, orderId, order, status, skipped, subscriptionContractId, shopId, cycleIndex, billingAttempts, product, lineCount, lines, plan, price, variantIds, productIds, processed, originAttemptDate, createdAt, chargeId, updatedAt
+
+--- doc F3RoPPpxG5RD1ce6Ungg ---
+{
+  "cycleIndex": 1,
+  "status": "BILLED",
+  "orderId": 12329375203709,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1757674800,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2025-08-12T11:51:21.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2025-09-12T11:00:08Z",
+      "idempotencyKey": "1_auto_1__1mfgq74nb"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, lines, ready, originAttemptDate, product, isOrigin, price, subscriptionContractId, variantIds, productIds, shopId, createdAt, chargeId, processed, isCurrentCycle, orderId, order, status, billingAttempts, errorCode, idempotencyKeys, plan, updatedAt
+
+--- doc mIOPKq9fV3J3NqxaMvvN ---
+{
+  "cycleIndex": 2,
+  "status": "BILLED",
+  "orderId": 12433982816637,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1760266800,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2025-08-12T11:51:21.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2025-10-12T11:00:03Z",
+      "idempotencyKey": "2_auto_3__1mgnleldx"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, lines, ready, originAttemptDate, product, isOrigin, price, subscriptionContractId, variantIds, productIds, shopId, createdAt, chargeId, processed, isCurrentCycle, orderId, order, status, billingAttempts, errorCode, idempotencyKeys, plan, updatedAt
+
+--- doc tBbY9wlxHLRlgtdFikP8 ---
+{
+  "cycleIndex": 3,
+  "status": "BILLED",
+  "orderId": 12544702579069,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1762948800,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2025-08-12T11:51:21.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2025-11-12T12:00:03Z",
+      "idempotencyKey": "3_auto_4__1mhvy75oh"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, lines, ready, originAttemptDate, product, isOrigin, price, subscriptionContractId, variantIds, productIds, shopId, createdAt, chargeId, processed, isCurrentCycle, orderId, order, status, billingAttempts, errorCode, idempotencyKeys, plan, updatedAt
+
+--- doc qgmgNyTNzwH6bCHmqgYv ---
+{
+  "cycleIndex": 4,
+  "status": "BILLED",
+  "orderId": 12727239803261,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1765540800,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2025-08-12T11:51:21.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2025-12-12T12:00:03Z",
+      "idempotencyKey": "4_auto_5__1mj2tep96"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, lines, ready, originAttemptDate, product, isOrigin, price, subscriptionContractId, variantIds, productIds, shopId, createdAt, chargeId, processed, isCurrentCycle, orderId, order, status, billingAttempts, errorCode, idempotencyKeys, plan, updatedAt
+
+--- doc JrPQRR3CRvocXM5zpvpQ ---
+{
+  "cycleIndex": 5,
+  "status": "BILLED",
+  "orderId": 12833952039293,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1768219200,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2025-08-12T11:51:21.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-01-12T12:00:03Z",
+      "idempotencyKey": "5_auto_6__1mkb424g3"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, lines, ready, originAttemptDate, product, isOrigin, price, subscriptionContractId, variantIds, productIds, shopId, createdAt, chargeId, processed, isCurrentCycle, orderId, order, status, billingAttempts, errorCode, idempotencyKeys, plan, updatedAt
+
+--- doc YG7S28vbQoKy60BNHYMN ---
+{
+  "cycleIndex": 6,
+  "status": "BILLED",
+  "orderId": 12942731608445,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1770897600,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2025-08-12T11:51:21.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-02-12T12:00:03Z",
+      "idempotencyKey": "6_auto_7__1mljepisk"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, customer, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, ready, product, isOrigin, price, subscriptionContractId, variantIds, productIds, shopId, createdAt, chargeId, deliveryMethod, lines, customSubscriptionAttribute, originAttemptDate, cycleStartAt, cycleEndAt, errorCode, processed, isCurrentCycle, orderId, order, status, billingAttempts, idempotencyKeys, plan, updatedAt
+
+--- doc rkLjtNkALAWmsulnIaZd ---
+{
+  "cycleIndex": 7,
+  "status": "BILLED",
+  "orderId": 13037969867133,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1773316800,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2026-02-16T17:13:32.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-02-12T12:00:03Z",
+      "idempotencyKey": "6_auto_7__1mljepisk"
+    },
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-03-12T12:00:03Z",
+      "idempotencyKey": "7_auto_7__1mmnf1d8y"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, lines, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, price, variantIds, productIds, shopId, createdAt, chargeId, processed, orderId, order, status, billingAttempts, idempotencyKeys, plan, updatedAt
+
+--- doc BkzYgvJGIrugrIrJlBPU ---
+{
+  "cycleIndex": 8,
+  "status": "BILLED",
+  "orderId": 13128733819261,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1776002400,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-02-12T12:00:03Z",
+      "idempotencyKey": "6_auto_7__1mljepisk"
+    },
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-03-12T12:00:03Z",
+      "idempotencyKey": "7_auto_7__1mmnf1d8y"
+    },
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-04-12T14:00:04Z",
+      "idempotencyKey": "8_auto_7__1mnvtz45h"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, variantIds, productIds, shopId, createdAt, isCurrentCycle, chargeId, price, lines, processed, orderId, order, status, updatedBy, tags, billingAttempts, idempotencyKeys, plan, updatedAt
+
+--- doc LBJnRD57M2AXN0YqAZpQ ---
+{
+  "cycleIndex": 9,
+  "status": "BILLED",
+  "orderId": 13349539774845,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1781272800,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": null,
+      "ready": true,
+      "createdAt": "2026-06-12T14:00:04Z",
+      "idempotencyKey": "9_auto_8__1mqazu2h0"
+    }
+  ]
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, lineCount, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, variantIds, productIds, shopId, createdAt, chargeId, price, lines, processed, orderId, order, status, updatedBy, tags, billingAttempts, idempotencyKeys, plan, updatedAt
+
+--- doc vp5VkEwcZbn0Lhad3Vti ---
+{
+  "cycleIndex": 10,
+  "status": "UNBILLED",
+  "orderId": null,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1786603578,
+    "_nanoseconds": 71000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "PAYMENT_METHOD_DECLINED",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 7216",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": "PAYMENT_METHOD_DECLINED",
+      "ready": true,
+      "createdAt": "2026-08-12T10:03:25Z",
+      "idempotencyKey": "10__9__1mspx8nrd"
+    },
+    {
+      "errorCode": "PAYMENT_METHOD_DECLINED",
+      "ready": true,
+      "createdAt": "2026-08-13T06:46:08Z",
+      "idempotencyKey": "10__9__1msr5mtg2"
+    }
+  ]
+}
+keys: __id, cycleIndex, skipped, status, cycleEndAt, cycleStartAt, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, subscriptionContractId, shopId, createdAt, chargeId, edited, productIds, variantIds, price, lineCount, originAttemptDate, id, lines, plan, processed, orderId, idempotencyKeys, failedDate, errorCode, billingAttemptExpectedDate, billingAttempts, updatedAt
+
+--- doc hyIPWDwwg8rIiONF7XKl ---
+{
+  "cycleIndex": 11,
+  "status": "UNBILLED",
+  "orderId": null,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1786608000,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-16T08:03:16.000Z",
+  "errorCode": "PAYMENT_METHOD_DECLINED",
+  "retryCount": 3,
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": [
+    {
+      "errorCode": "PAYMENT_METHOD_DECLINED",
+      "ready": true,
+      "createdAt": "2026-08-13T08:00:26Z",
+      "idempotencyKey": "11_auto_9__1msr8ablg"
+    },
+    {
+      "errorCode": "PAYMENT_METHOD_DECLINED",
+      "ready": true,
+      "createdAt": "2026-08-14T08:01:07Z",
+      "idempotencyKey": "11__9_retry_1mssnr1ww"
+    },
+    {
+      "errorCode": "PAYMENT_METHOD_DECLINED",
+      "ready": true,
+      "createdAt": "2026-08-15T08:02:07Z",
+      "idempotencyKey": "11__9_retry_1msu38797"
+    },
+    {
+      "errorCode": "PAYMENT_METHOD_DECLINED",
+      "ready": true,
+      "createdAt": "2026-08-16T08:03:06Z",
+      "idempotencyKey": "11__9_retry_1msvipbwe"
+    }
+  ]
+}
+keys: __id, cycleIndex, skipped, status, cycleEndAt, cycleStartAt, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, subscriptionContractId, shopId, createdAt, chargeId, edited, productIds, variantIds, price, customerPaymentMethod, lineCount, originAttemptDate, id, lines, isRescheduled, updateBy, isFollowUpReschedule, appliedToAll, billingAttemptExpectedDate, processed, orderId, errorCode, enabledRetry, plan, retryCount, failedDate, nextRetry, billingAttempts, idempotencyKeys, updatedAt
+
+--- doc RlkgCLvLvawwjfn10qwV ---
+{
+  "cycleIndex": 12,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1797084000,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:57.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, chargeId, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, isBlackoutDate, skipped, updatedAt
+
+--- doc d7ljWhNCNQOyC8LF4rRX ---
+{
+  "cycleIndex": 13,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1802440800,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, chargeId, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc hpBvGVTMvJV6lyq6HiDO ---
+{
+  "cycleIndex": 14,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1807538400,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, chargeId, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc WrROyUMGH3T5YjvBKYjG ---
+{
+  "cycleIndex": 15,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1812808800,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, chargeId, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc OZj8ba0UrVSOQYceSFhM ---
+{
+  "cycleIndex": 16,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1818079200,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, chargeId, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc 0t0RFov6Nc3fx5EAJmB6 ---
+{
+  "cycleIndex": 17,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1823349600,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-03-17T10:30:38.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, chargeId, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc pPupYLx05Epguuw47NgG ---
+{
+  "cycleIndex": 18,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1828620000,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-04-12T14:00:28.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, chargeId, idempotencyKeys, note, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc 1j9vbQApb3VfWch8dOqZ ---
+{
+  "cycleIndex": 19,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1833976800,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-06-12T14:00:31.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, chargeId, idempotencyKeys, note, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, customerPaymentMethod, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc 6A6EB4hmidcOtHm5ixwX ---
+{
+  "cycleIndex": 20,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1839160800,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-08-12T10:03:37.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, chargeId, idempotencyKeys, note, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, productIds, variantIds, price, lines, lineCount, updatedAt
+
+--- doc 9zeIfyAaiU1VUUl05JVv ---
+{
+  "cycleIndex": 21,
+  "status": "UNBILLED",
+  "billingAttemptExpectedDate": {
+    "_seconds": 1844431200,
+    "_nanoseconds": 302000000
+  },
+  "createdAt": "2026-08-13T08:00:44.000Z",
+  "updatedAt": "2026-08-14T08:32:29.000Z",
+  "errorCode": "",
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/7d1ab3dd35a61456fdfc974f317d0b54",
+    "revoked": false,
+    "__typename": "CustomerCreditCard",
+    "brand": "mastercard",
+    "expiryMonth": 7,
+    "expiryYear": 2026,
+    "lastDigits": "1932",
+    "maskedNumber": "•••• •••• •••• 1932",
+    "name": "Caroline Charbonneau Caroline Charbonneau"
+  },
+  "billingAttempts": []
+}
+keys: __id, billingAttemptExpectedDate, cycleIndex, edited, skipped, status, cycleEndAt, cycleStartAt, billingAttempts, customer, deliveryMethod, customerPaymentMethod, deliveryPrice, shippingPrice, ready, customSubscriptionAttribute, errorCode, chargeId, idempotencyKeys, note, originAttemptDate, subscriptionContractId, processed, shopId, createdAt, productIds, variantIds, price, lines, lineCount, updatedAt

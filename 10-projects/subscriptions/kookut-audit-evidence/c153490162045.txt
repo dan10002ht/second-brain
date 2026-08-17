@@ -1,0 +1,171 @@
+=== SHOP ===
+{
+  "shopId": "4VgCcf9Ov5cIBx2tCkcT"
+}
+
+=== CONTRACT doc NkdEhOeHo5Pe0IaZfL6n ===
+{
+  "subscriptionContractId": 153490162045,
+  "status": "ACTIVE",
+  "deliveryPrice": {
+    "amount": "5.42",
+    "currencyCode": "EUR"
+  },
+  "sellingPlanId": "03cf171f-e921-4ab2-ba9a-c0522bc72ca1",
+  "createdAt": {
+    "_seconds": 1783341338,
+    "_nanoseconds": 140000000
+  },
+  "updatedAt": {
+    "_seconds": 1783373111,
+    "_nanoseconds": 270000000
+  }
+}
+--- RAW line items (1) ---
+[0] {
+  "id": "7881074933968",
+  "title": "Kookut wet food discovery set",
+  "quantity": 1,
+  "variant": {
+    "id": "43340379422928",
+    "title": null,
+    "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/10RecipesEng_1500x1500_93fcc38d-461b-428e-9de4-de3c552fd6a6.png?v=1773157213",
+    "price": 18,
+    "compareAtPrice": 0
+  },
+  "categoryId": "18",
+  "afterCycle": null,
+  "basePrice": 18,
+  "currentPrice": 18,
+  "afterCyclesPrice": 18,
+  "lineDiscountedPrice": 18,
+  "sellingPlanId": "03cf171f-e921-4ab2-ba9a-c0522bc72ca1",
+  "contractLineId": "a1ec846c-3552-4a3f-9738-809055ab8855",
+  "subscriptionBoxId": "",
+  "customAttributes": [
+    {
+      "key": "__selling_plan_id",
+      "value": "03cf171f-e921-4ab2-ba9a-c0522bc72ca1"
+    }
+  ]
+}
+
+--- product / productIds / lineId(s) ---
+{
+  "product": {
+    "id": "7881074933968",
+    "title": "Kookut wet food discovery set",
+    "quantity": 1,
+    "variant": {
+      "id": "43340379422928",
+      "title": null,
+      "image": "https://cdn.shopify.com/s/files/1/0561/5740/5392/files/10RecipesEng_1500x1500_93fcc38d-461b-428e-9de4-de3c552fd6a6.png?v=1773157213",
+      "price": 18,
+      "compareAtPrice": 0
+    },
+    "categoryId": "18",
+    "afterCycle": null,
+    "basePrice": 18,
+    "currentPrice": 18,
+    "afterCyclesPrice": 18,
+    "lineDiscountedPrice": 18,
+    "sellingPlanId": "03cf171f-e921-4ab2-ba9a-c0522bc72ca1"
+  },
+  "productIds": [
+    "7881074933968"
+  ],
+  "lineId": "a1ec846c-3552-4a3f-9738-809055ab8855",
+  "lineIds": [
+    "a1ec846c-3552-4a3f-9738-809055ab8855"
+  ],
+  "isNewVersion": true,
+  "isManual": true,
+  "currency": "EUR",
+  "shopCurrency": "CHF",
+  "shopifySyncedAt": {
+    "_seconds": 1783372947,
+    "_nanoseconds": 517000000
+  }
+}
+
+--- deliveryMethod / countryCode ---
+{
+  "countryCode": null,
+  "deliveryMethod": {
+    "type": "shipping",
+    "name": "HUGUETTE COTTIN",
+    "shippingOption": {
+      "title": "Livraison en relais Pickup"
+    },
+    "address1": "24 IMPASSE JULES ARSENE ECOIFFIER",
+    "city": "FOUCHERANS",
+    "country": "France",
+    "countryCode": "FR",
+    "firstName": "HUGUETTE",
+    "lastName": "COTTIN",
+    "phone": "+33613122472",
+    "zip": "39100"
+  },
+  "currency": "EUR",
+  "shopCurrency": "CHF"
+}
+
+--- plans / plan ---
+{
+  "plans": [
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 0,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": false,
+      "enabledAmountDiscount": false,
+      "frequency": "month",
+      "frequencyValue": 1,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": false,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 1,
+      "maximumOrderExpire": 150,
+      "title": "Every 1 month",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "30",
+      "renewalDayYear": null,
+      "renewalMonthYear": null,
+      "prepaidFrequency": 2,
+      "sellingPlanId": "03cf171f-e921-4ab2-ba9a-c0522bc72ca1",
+      "originSellingPlanId": "",
+      "subscriptionProductId": null,
+      "isNewVersion": true,
+      "isCustomPlan": true
+    }
+  ],
+  "plan": {
+    "paymentType": "pay-as-you-go",
+    "discountType": "percentage",
+    "discountValue": 0,
+    "enabledChangeDiscount": false,
+    "enabledFreeShipping": false,
+    "enabledDiscount": false,
+    "enabledAmountDiscount": false,
+    "frequency": "month",
+    "frequencyValue": 1,
+    "enabledMaximumOrder": false,
+    "enabledMinimumOrder": false,
+    "enabledCutOff": false,
+    "minimumOrderCancel": 1,
+    "maximumOrderExpire": 150,
+    "title": "Every 1 month",
+    "renewalDayWeek": "same-day",
+    "renewalDayMonth": "30",
+    "renewalDayYear": null,
+    "renewalMonthYear": null,
+    "prepaidFrequency": 2,
+    "sellingPlanId": "03cf171f-e921-4ab2-ba9a-c0522bc72ca1",
+    "originSellingPlanId": "",
+    "subscriptionProductId": null,
+    "isNewVersion": true,
+    "isCustomPlan": true
+  }
+}

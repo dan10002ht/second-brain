@@ -1,0 +1,127 @@
+shopCountry = CH  currency = undefined
+
+=== MARKETS ===
+gid://shopify/Market/98311143805 "Europe (other currencies)" handle=europe-other-currencies status=ACTIVE base=CHF localCur=true catalogs=1 regions=[BG,PL,CZ,DK,SE,HU,RO]
+gid://shopify/Market/14129594576 "Europe EUR" handle=europe status=ACTIVE base=EUR localCur=false catalogs=2 regions=[ES,IT,BE,NL,LU,DE,PT,AT,BG,PL,CZ,DK,SE,VA,SK,SI]
+gid://shopify/Market/14129922256 "France" handle=france status=ACTIVE base=EUR localCur=false catalogs=1 regions=[FR]
+gid://shopify/Market/32178384 "Switzerland" handle=ch status=ACTIVE base=CHF localCur=false catalogs=1 regions=[CH]
+
+39412882735312 Pacific Tuna & Sardine - Natural / 70g  variant.price(shop cur)=1.80
+   contextualPricing(FR) = 1.95 EUR
+   contextualPricing(DE) = 1.95 EUR
+   contextualPricing(IT) = 1.95 EUR
+   contextualPricing(BE) = 1.95 EUR
+   contextualPricing(CH) = 1.8 CHF
+   contextualPricing(ES) = 1.95 EUR
+   contextualPricing(NL) = 1.95 EUR
+   priceList[Switzerland] RELATIVE = 1.8 CHF
+   priceList[Europe] FIXED = 1.7 EUR
+   priceList[France] FIXED = 1.7 EUR
+
+39412882702544 Pacific Tuna & Sardine - Natural / 24x70g  variant.price(shop cur)=42.00
+   contextualPricing(FR) = 42.95 EUR
+   contextualPricing(DE) = 45.95 EUR
+   contextualPricing(IT) = 45.95 EUR
+   contextualPricing(BE) = 45.95 EUR
+   contextualPricing(CH) = 42.0 CHF
+   contextualPricing(ES) = 45.95 EUR
+   contextualPricing(NL) = 45.95 EUR
+   priceList[Switzerland] RELATIVE = 42.0 CHF
+   priceList[Europe] FIXED = 40.0 EUR
+   priceList[France] FIXED = 40.0 EUR
+
+39412859404496 Wild Alaskan Salmon - Natural / 70g  variant.price(shop cur)=1.80
+   contextualPricing(FR) = 1.8 EUR
+   contextualPricing(DE) = 1.8 EUR
+   contextualPricing(IT) = 1.8 EUR
+   contextualPricing(BE) = 1.8 EUR
+   contextualPricing(CH) = 1.8 CHF
+   contextualPricing(ES) = 1.8 EUR
+   contextualPricing(NL) = 1.8 EUR
+   priceList[Switzerland] RELATIVE = 1.8 CHF
+   priceList[Europe] FIXED = 1.8 EUR
+   priceList[France] FIXED = 1.8 EUR
+
+39412859371728 Wild Alaskan Salmon - Natural / 24x70g  variant.price(shop cur)=42.00
+   contextualPricing(FR) = 40.0 EUR
+   contextualPricing(DE) = 40.0 EUR
+   contextualPricing(IT) = 40.0 EUR
+   contextualPricing(BE) = 40.0 EUR
+   contextualPricing(CH) = 42.0 CHF
+   contextualPricing(ES) = 40.0 EUR
+   contextualPricing(NL) = 40.0 EUR
+   priceList[Switzerland] RELATIVE = 42.0 CHF
+   priceList[Europe] FIXED = 40.0 EUR
+   priceList[France] FIXED = 40.0 EUR
+
+57407416893821 Free Run Chicken & Duck - Natural / 70g  variant.price(shop cur)=1.80
+   contextualPricing(FR) = 1.95 EUR
+   contextualPricing(DE) = 1.95 EUR
+   contextualPricing(IT) = 1.95 EUR
+   contextualPricing(BE) = 1.95 EUR
+   contextualPricing(CH) = 1.8 CHF
+   contextualPricing(ES) = 1.95 EUR
+   contextualPricing(NL) = 1.95 EUR
+   priceList[Switzerland] RELATIVE = 1.8 CHF
+   priceList[Europe] FIXED = 1.7 EUR
+   priceList[France] FIXED = 1.7 EUR
+
+43340379422928 Kookut wet food discovery set / Default Title  variant.price(shop cur)=18.00
+   contextualPricing(FR) = 17.0 EUR
+   contextualPricing(DE) = 17.0 EUR
+   contextualPricing(IT) = 17.0 EUR
+   contextualPricing(BE) = 17.0 EUR
+   contextualPricing(CH) = 18.0 CHF
+   contextualPricing(ES) = 17.0 EUR
+   contextualPricing(NL) = 17.0 EUR
+   priceList[Switzerland] RELATIVE = 18.0 CHF
+   priceList[Europe] FIXED = 17.0 EUR
+   priceList[France] FIXED = 17.0 EUR
+
+39404501663952 Chicken & Turkey Dry Food for Kitten / 1.5kg  variant.price(shop cur)=11.90
+   contextualPricing(FR) = 23.0 EUR
+   contextualPricing(DE) = 23.0 EUR
+   contextualPricing(IT) = 23.0 EUR
+   contextualPricing(BE) = 23.0 EUR
+   contextualPricing(CH) = 23.8 CHF
+   contextualPricing(ES) = 23.0 EUR
+   contextualPricing(NL) = 23.0 EUR
+   priceList[Switzerland] FIXED = 23.8 CHF
+   priceList[Europe] FIXED = 23.0 EUR
+   priceList[France] FIXED = 23.0 EUR
+
+39404501696720 Chicken & Turkey Dry Food for Kitten / 5kg  variant.price(shop cur)=31.00
+   contextualPricing(FR) = 58.0 EUR
+   contextualPricing(DE) = 58.0 EUR
+   contextualPricing(IT) = 58.0 EUR
+   contextualPricing(BE) = 58.0 EUR
+   contextualPricing(CH) = 62.0 CHF
+   contextualPricing(ES) = 58.0 EUR
+   contextualPricing(NL) = 58.0 EUR
+   priceList[Switzerland] FIXED = 62.0 CHF
+   priceList[Europe] FIXED = 58.0 EUR
+   priceList[France] FIXED = 58.0 EUR
+
+39404525027536 Chicken & Turkey Dry Food for Puppy / 6kg  variant.price(shop cur)=52.00
+   contextualPricing(FR) = 48.0 EUR
+   contextualPricing(DE) = 48.0 EUR
+   contextualPricing(IT) = 48.0 EUR
+   contextualPricing(BE) = 48.0 EUR
+   contextualPricing(CH) = 52.0 CHF
+   contextualPricing(ES) = 48.0 EUR
+   contextualPricing(NL) = 48.0 EUR
+   priceList[Switzerland] RELATIVE = 52.0 CHF
+   priceList[Europe] FIXED = 92.0 EUR
+   priceList[France] FIXED = 48.0 EUR
+
+42888438022352 Chicken & Turkey Dry Food for Puppy / 2*6kg  variant.price(shop cur)=95.00
+   contextualPricing(FR) = 93.0 EUR
+   contextualPricing(DE) = 48.0 EUR
+   contextualPricing(IT) = 48.0 EUR
+   contextualPricing(BE) = 48.0 EUR
+   contextualPricing(CH) = 95.0 CHF
+   contextualPricing(ES) = 48.0 EUR
+   contextualPricing(NL) = 48.0 EUR
+   priceList[Switzerland] RELATIVE = 95.0 CHF
+   priceList[Europe] FIXED = 48.0 EUR
+   priceList[France] FIXED = 93.0 EUR
