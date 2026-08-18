@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-17 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 item ngày 08-17: 4 digest + 1 resource + 1 feedback + 1 decision)_
+_Cập nhật: 2026-08-18 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-18: 4 digest + 2 shipped + 1 resource + 1 feedback + 1 decision)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -62,6 +62,7 @@ _Cập nhật: 2026-08-17 · Trạng thái: đã seed 12 project + notes học t
 - [[brief-state-agent-loop]] — `BRIEF.md` là shared state duy nhất sống ngoài mọi context window, nên nó là thứ session sau tin tuyệt đối — và nó thối theo bốn kiểu (checkbox nói dối, lock treo, con số cũ bị đọc như phép đo, doc lạc hậu ở đầu file); dọn nó là một bước của loop chứ không phải việc phụ.
 - [[gate-quet-ma-nguon-bang-ast]] — một gate kiểu "không được log thứ này" viết bằng regex sẽ luôn còn khe (comment, xuống dòng, alias, camelCase) và dễ bị tự-allowlist; dựng trên AST thì cú pháp hết là biến số.
 - [[khong-cache-response-co-auth]] — một API trả dữ liệu riêng theo người gọi mà đi qua CDN/hosting mặc định sẽ phát lại response của lượt gọi trước cho lượt sau; triệu chứng kinh điển là mọi request đều trả cùng một mã lỗi, kể cả request đáng lẽ phải 401.
+- [[api-key-cong-khai-khong-phai-secret]] — với secret thật thì rotate = xong, vì toàn bộ vấn đề là vô hiệu hoá giá trị cũ; nhưng với một key vốn được in ra browser (Firebase/Google API key, publishable key), giá trị mới cũng lộ ngay lượt tải trang đầu tiên, nên biện pháp thật là restrict theo referrer/API + thứ tự "đổi mọi consumer → redeploy → verify → mới xoá key cũ".
 
 **Học tập:**
 - `learns/rust/`
@@ -192,6 +193,12 @@ _Cập nhật: 2026-08-17 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-volume-bundle-2026-08-17]] — Volume Bundle suy tier từ quantity của line nên hai option cùng quantity khác discount thì option thứ hai không bao giờ ăn giảm giá; fix là storefront gửi kèm tier đã chọn và Shopify Function ưu tiên tier đó.
 - [[digest-aws-2026-08-17]] — parser bóc đề từ PDF hỏng theo cách im lặng (nuốt option vào stem, option đứt qua trang); tín hiệu đáng tin là thụt lề của bản `-layout`, và mọi kết luận của agent phải đối chiếu bản gốc chứ không tin report.
 - [[digest-ticket-mcrsv-2026-08-17]] — vá cơ học từng call site chỗ rò seat sẽ đổi lỗ rò lấy oversell vì script Lua release trả toàn bộ seat rồi DEL hold; lời giải là một chokepoint duy nhất kèm test guard chặn call site mới.
+- [[shipped-subscriptions-2026-08-18]] — commit landed 08-17 — master nhận 8 MR (2 tag `v2.34.72` API read-only cho Chatty Helpdesk, `v2.34.73` volume bundle per-unit pricing; 4 MR sau tag chưa được tag: overselling recurring charge SB-15699, guard orphan order, command khôi phục 16 đơn bị bulk-delete, key devzone); trên nhánh: trọn cụm portal preview, middleware `no-store` cho `/integrate/**`, và volume bundle đọc tier client-set; không revert, không migration. ⚠️ có 3 mục "cần xác nhận".
+- [[digest-subscriptions-2026-08-18]] — CHỈ phần mới: `navigation.currentEntry.url` của customer-account extension là route nội bộ chứ không phải URL thanh địa chỉ nên cờ `?joy_preview=1` không tới được extension; `shopify app deploy` giờ bắt buộc `extensions_summary` trong `[sidekick]`; worktree đang khoá của session khác làm `shopify app build` exit 1; và "9 suite fail có sẵn" hoá ra do `node_modules` cũ so với `yarn.lock` merge về.
+- [[digest-pdf-2026-08-18]] — scanner báo 3 secret nhưng có nhiều hơn thế (client_secret, SendGrid key, cả một khoá mã hoá scanner bỏ sót ở `config/crypto.js`); probe read-only cho thấy KHÔNG cái nào bị revoke; và cái key `AIza…` trong RELEASE_NOTE hoá ra là Firebase/Picker API key in thẳng ra browser nên rotate gần như vô nghĩa — thứ phải làm là restrict key.
+- [[shipped-aws-2026-08-18]] — commit landed 08-17 trên `main` — một commit duy nhất nhập 12 đề mock SAA-C03 (780 câu, Tutorials Dojo + Neal Davis), thêm cờ `fixedOrder` giữ nguyên thứ tự đề gốc và cho gate `check.mjs` bỏ qua multi-ratio/domain-mix với đề import; 2 câu cố ý đi ngược đáp án đề gốc vì đề gốc tự mâu thuẫn; không revert, không tín hiệu deploy.
+- [[digest-aws-2026-08-18]] — khi cần bỏ dấu vết nguồn (Dojo/Neal) khỏi repo, chỗ khó không nằm ở commit message mà nằm trong chính nội dung câu hỏi (domain, tên bucket, tên directory), nhãn hiển thị trong app và comment của gate — phải quét theo chuỗi thương hiệu rồi force-push, không phải sửa message rồi coi là xong.
+- [[digest-ticket-mcrsv-2026-08-18]] — sau 11 lần Colima chết, thủ phạm không phải VM cũng không phải service của project mà là tổng RAM (VM 8GiB + 3 JVM + Eclipse JDT LS 2.19GB của Zed trên máy 16GB); trên macOS chỉ số đúng là `vm.swapusage`/`memory_pressure` chứ không phải `Pages free`. Phiên này cũng là lần đầu booking chạy thông end-to-end, và lộ ra ghế đã đặt trả 500 thay vì 409.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -227,6 +234,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-14-staging-4-cho-nhanh-sidekick]] — PDF Invoice gỡ master khỏi `deploy_staging_4` để nhánh `feature/sidekick-agent-extensions` sở hữu trọn slot đó; master chỉ còn `deploy_staging_3` — đổi lại mất một môi trường có sẵn của master và nhánh sidekick vừa mất slot staging 2 trong một merge (review 2026-11-14).
 - [[2026-08-14-verifier-va-agent-mutation-tach-doi]] — giữ nguyên verifier context sạch không sửa file, nhưng chuyển phần "phá code để đo test có bắt lỗi không" sang một agent riêng có Edit + kỷ luật `cp`/`md5` khôi phục, thay vì nới quyền cho verifier (review 2026-11-14).
 - [[2026-08-12-va-triet-de-saga-ticket]] — `ticket-mcrsv` cho phép sửa business logic trong vùng Spec #1 tuyên bố off-limits — vá `LazyStringArrayList`→Hibernate và hoàn thiện reservation ở ticket-service theo hướng đúng nghiệp vụ (partial unique index thay unique toàn cục), thay vì vá tối thiểu để đo hay đẩy G0 xuống sau F1 (review 2026-11-12).
+- [[2026-08-18-volume-tier-line-attribute]] — Joy Subscription cho Shopify Function đọc lại một cart line attribute do client set (`__volume_tier`) để biết tier khách chọn, sau ba lần chốt ngược lại với `_joy_installment_discount`; rào chắn là pin chỉ được tin khi line còn giữ đúng quantity của tier đó. ⚠️ CHƯA MERGE — mới ở nhánh `fix/volume-bundle-discount` (review 2026-11-18).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
@@ -245,6 +253,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-git-guard-chi-chan-master]] — hook chặn `git push` của repo được nới lại: chỉ chặn khi đích là `master`/`main`, còn push nhánh feature thì agent làm thẳng, không phải nhờ người dán lệnh.
 - [[feedback-debug-phai-query-data-that]] — khi truy root cause một ca production, không được dừng ở "đọc code rồi kết luận" — phải query dữ liệu prod để chứng minh, vì code chỉ dựng được giả thuyết.
 - [[feedback-khong-khep-viec-khi-con-khe-ho]] — khi còn một lỗ đã biết, không được đề xuất đóng task bằng lý lẽ "đủ tốt rồi" — làm chuẩn để dự án là một standard, không làm ít cho xong.
+- [[feedback-xoa-secret-khoi-code-chua-phai-vo-hieu-hoa]] — xoá secret khỏi code + tạo MR chưa phải là fix — giá trị cũ còn trong git history và còn hiệu lực; phải rà lại danh sách, probe xem cái nào còn sống, xếp thứ tự rotate và báo team.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable

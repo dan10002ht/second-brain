@@ -1,0 +1,42 @@
+--- DRY RUN ---
+  156384657789  ACTIVE    app=10.0   -> shopify=5.9 EUR
+
+getSubscriptionContractById error AggregateError
+  142490108285  PAUSED    app=none   -> shopify=10.0 CHF
+
+getSubscriptionContractById error AggregateError
+
+
+
+  133730107773  PAUSED    app=none   -> shopify=5.9 EUR
+  118311879037  PAUSED    app=none   -> shopify=10.0 EUR
+  120547639677  PAUSED    app=none   -> shopify=5.9 EUR
+  129162609021  PAUSED    app=none   -> shopify=5.9 EUR
+  127423086973  ACTIVE    app=none   -> shopify=10.0 CHF
+  154109116797  ACTIVE    app=0.0    -> shopify=10.0 CHF
+  138065936765  PAUSED    app=none   -> shopify=10.0 CHF
+  144211050877  ACTIVE    app=0.0    -> shopify=9.83 EUR
+  141028327805  PAUSED    app=none   -> shopify=10.0 CHF
+  118553739645  PAUSED    app=none   -> shopify=10.0 CHF
+  153490162045  ACTIVE    app=5.42   -> shopify=4.7 EUR
+  127795102077  PAUSED    app=none   -> shopify=10.0 CHF
+  119399776637  PAUSED    app=none   -> shopify=10.0 CHF
+  128167674237  ACTIVE    app=none   -> shopify=5.9 EUR
+  142398423421  ACTIVE    app=none   -> shopify=10.0 CHF
+  119850303869  PAUSED    app=none   -> shopify=5.9 EUR
+  118510846333  ACTIVE    app=none   -> shopify=6.69 EUR
+timeout of 20000ms exceeded
+getSubscriptionContractById error AxiosError: timeout of 20000ms exceeded
+  132447240573  PAUSED    app=none   -> shopify=5.9 EUR
+  123423588733  PAUSED    app=none   -> shopify=10.0 CHF
+  150579708285  ACTIVE    app=0.0    -> shopify=10.0 CHF
+  140389712253  ACTIVE    app=none   -> shopify=10.0 CHF
+  128382566781  PAUSED    app=none   -> shopify=10.0 CHF
+  134381273469  PAUSED    app=none   -> shopify=10.0 CHF
+timeout of 20000ms exceeded
+getSubscriptionContractById error AxiosError: timeout of 20000ms exceeded
+  135604175229  ACTIVE    app=none   -> shopify=10.0 CHF
+  141318652285  PAUSED    app=none   -> shopify=10.0 CHF
+
+Đã kiểm 159 contract (bỏ CANCELLED) · lệch 27
+DRY-RUN: chưa ghi gì. Thêm --apply để ghi.

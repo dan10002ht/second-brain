@@ -44,6 +44,10 @@ updated: 2026-08-17
 - [[du-lieu-hong-song-sot-vi-ba-lop-nhin-cho-khac]] — mở khi một dữ liệu sai nằm im hàng tháng mà
   job đồng bộ và detector đều báo sạch: hỏi lớp đồng bộ đang so *trường nào*, detector lấy chuẩn
   từ đâu, và ngưỡng dung sai đang che mất dải hỏng nào.
+- [[feedback-xoa-secret-khoi-code-chua-phai-vo-hieu-hoa]] — mở khi định báo xong một việc dọn
+  secret ở bước "đã tạo MR": xoá dòng code chỉ đóng *nguồn rò rỉ*, còn *giá trị đang sống* thì
+  vẫn dùng được và git history vẫn phát lại nó. Deliverable là MR **+** danh sách rotate có thứ
+  tự. Phân loại secret thật vs định danh công khai: [[api-key-cong-khai-khong-phai-secret]].
 
 ## Rust
 

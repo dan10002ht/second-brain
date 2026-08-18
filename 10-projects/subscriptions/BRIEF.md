@@ -137,3 +137,5 @@ _(trống — mọi task kookut nằm ở `BRIEF-kookut.md`, task đã xong ở 
  - Gate ở nhánh này KHÁC master: `feat/portal-preview` cũ hơn master 73 commit nên **không có**
    `yarn check` / `.claude/scripts/` lẫn script `test` cho assets. Gate thật: vite build (assets),
    webpack build (scripttag), jest của functions với baseline **9 failed / 192 passed / 201 total**.
+
+ 4. [] Check CLS giúp tôi gần đây đang bị cao hơn mức shopify accept là good rồi nhé!!
