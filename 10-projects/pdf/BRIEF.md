@@ -143,3 +143,13 @@ không có validate min/numeric. Chi tiết ở task 14.
 > 6 nhánh cũ (`-api`/`-fe`/`-cron`/`-tests`/`-sendtest`/`docs/…`) giữ tạm làm backup, xoá được.
 
 _(trống — thêm task ở đây)_
+1. [✅ 2026-08-19] https://avadaio.slack.com/archives/C0B8X1S8AFL/p1787124073284679 chỉ hiển thị card payment reminders cho store có plan plus nhé
+   → "plan plus" = **Shopify Plus** (`shop.shopifyPlan === 'shopify_plus'`), không phải app plan —
+   app không có gói nào tên "plus", và gói Wholesale chỉ bán cho store Plus (`PricingTable.js:96`),
+   nên store non-Plus đang bị mời mua thứ họ không mua được.
+   Sửa: `Emails.js` (ẩn card + tắt query `/payment-reminders`) và `routes.js` (chặn route
+   `/automation_email/payment-reminders/:type`, không thì gõ URL tay vẫn vào được).
+   Giữ nguyên gate `isShopWholesale` trong card + gate 403 BE.
+   Gate: eslint 2 file sửa 0 lỗi · `@avada/assets run production` exit 0 (2 vite build).
+   ⚠️ Chưa chạy app thật để nhìn bằng mắt — mới verify tĩnh + build.
+   Nhánh `feature/payment-reminder-plus` · MR !523
