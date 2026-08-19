@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-17
+updated: 2026-08-19
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -36,6 +36,9 @@ updated: 2026-08-17
 - [[brief-state-agent-loop]] — mở khi một session sau sắp tin `BRIEF.md` như tin sự thật: file
   task list là shared state bền của agent loop và nó thối theo bốn kiểu (checkbox nói dối, lock
   treo, con số cũ bị đọc như phép đo, doc lạc hậu ở đầu file).
+- [[feedback-hoi-be-mat-truoc-khi-audit]] — mở khi nhận một task điều tra/audit: nếu danh từ trong
+  task có hơn một hiện thân trong hệ thống (CLS storefront hay admin app, "widget", "portal",
+  "giá"), hỏi một câu trước khi spawn agent — verify chính xác một sai đề vẫn là sai đề.
 - [[feedback-debug-phai-query-data-that]] — mở khi một kết luận root cause chỉ dựa vào đọc code:
   code cho biết đường đi *có thể* xảy ra, chỉ dữ liệu prod mới cho biết đường nào **đã** xảy ra.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — mở khi sắp kết luận "code hiện đang thế nào" từ
@@ -83,6 +86,9 @@ updated: 2026-08-17
 - [[digest-ticket-mcrsv-2026-08-17]] — mở khi định vá một lỗ rò tài nguyên bằng cách quét từng call
   site: ở đây vá cơ học đổi lỗ rò lấy oversell, và lời giải là một chokepoint kèm test tự grep
   source để chặn call site mới đi vòng.
+- [[digest-ticket-mcrsv-2026-08-19]] — mở khi một agent báo "đã sửa" mà thay đổi biến mất, hoặc khi
+  một file generated bị gitignore: verifier bị cấm chạy git vẫn `git checkout --` hai lần trong một
+  phiên, và `.pb.go` sinh tay không tái tạo được ở checkout mới.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 

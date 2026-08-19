@@ -1,18 +1,20 @@
 ---
 type: decision
 title: Volume bundle đọc tier khách chọn từ line attribute `__volume_tier` — đảo hướng "không tin attribute client-set"
-summary: Joy Subscription cho Shopify Function đọc lại một cart line attribute do client set (`__volume_tier`) để biết tier khách chọn, sau ba lần chốt ngược lại với `_joy_installment_discount`; rào chắn là pin chỉ được tin khi line còn giữ đúng quantity của tier đó. ⚠️ CHƯA MERGE — mới ở nhánh `fix/volume-bundle-discount`.
+summary: Joy Subscription cho Shopify Function đọc lại một cart line attribute do client set (`__volume_tier`) để biết tier khách chọn, sau ba lần chốt ngược lại với `_joy_installment_discount`; rào chắn là pin chỉ được tin khi line còn giữ đúng quantity của tier đó. ĐÃ MERGE 2026-08-18 (`v2.34.76`, `[deploy-extensions]`) — câu hỏi treo về rào chắn quantity ra prod trước khi được trả lời.
 tags: [avada, subscription, shopify, extensions, billing]
 created: 2026-08-18
-updated: 2026-08-18
+updated: 2026-08-19
 review: 2026-11-18
 source: repo "subscriptions" — git log 2026-08-17 (`a22ad41ba`, `07d54b0f1`); hash đã verify
 ---
 
 # Volume bundle đọc tier từ line attribute client-set
 
-**Trạng thái: ⚠️ CHƯA MERGE** — `a22ad41ba` nằm trên nhánh `fix/volume-bundle-discount`,
-chưa vào master tại thời điểm cắt log 2026-08-17.
+**Trạng thái: ĐÃ MERGE** (cập nhật 2026-08-19) — nhánh `fix/volume-bundle-discount` vào master
+qua `8023d8aaa` (!2481), tag `v2.34.76` kèm `[deploy-extensions]`; xem
+[[shipped-subscriptions-2026-08-19]]. ⚠️ Câu hỏi treo "rào chắn quantity đủ hay không" ra prod
+**trước khi** được trả lời — vẫn cần chốt tới ngày review.
 
 ## Quyết định
 
