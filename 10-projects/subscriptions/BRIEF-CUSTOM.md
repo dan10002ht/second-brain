@@ -36,39 +36,23 @@
     Mockup: docs/mockups/joyxjoy-wholefoods-landing/landing-src.html      ← mọi số dòng trỏ vào đây
 -->
 
-## ✅ Worktree — ĐÃ TẠO SẴN, không phải làm lại
+## ✅ Vị trí làm việc — ĐÃ ĐỔI 2026-08-20
 
-**Làm việc tại `~/projects/subscriptions-joyxjoy`, nhánh `feat/joyxjoy-landing`.**
-KHÔNG đụng `~/projects/subscriptions` (đang ở nhánh khác) và `~/projects/subscriptions-kookut`.
+**Làm việc tại `~/projects/subscriptions` (REPO CHÍNH), nhánh `feat/joyxjoy-landing`.**
+KHÔNG đụng `~/projects/subscriptions-kookut`.
 
-Đã xong hết: worktree tạo từ master `68704dd`, 4 file env đã copy, `yarn install` xong,
-spec + mockup đã commit (`214340718`), ảnh mockup 13MB để local qua `.git/info/exclude`,
-gates đã chạy xanh. **Bỏ qua phần dựng lại bên dưới**, nó chỉ để tham chiếu nếu cần dựng lại
-từ đầu.
+⚠️ **Worktree `~/projects/subscriptions-joyxjoy` ĐÃ BỊ XOÁ** (2026-08-20, dantt yêu cầu gộp về
+repo chính vì repo chính không dùng vào việc gì). Mọi đường dẫn cũ trỏ vào đó đều chết.
+Đã bê theo: `docs/joyxjoy-theme/` (task 13, chưa commit) + 165 file ảnh mockup 14MB
+(nằm trong `.git/info/exclude` nên `git status` KHÔNG hiện — đừng tưởng là sạch rồi xoá).
+Gate đo lại tại vị trí mới: check 0 · jest:fn 214/214 · jest:as 24/24.
 
-```bash
-# tạo 1 lần, từ master (đã xác nhận master == origin/master @ 68704dd)
-cd ~/projects/subscriptions
-git worktree add ~/projects/subscriptions-joyxjoy -b feat/joyxjoy-landing master
-```
+Nhánh `feat/joyxjoy-landing` giờ nằm thẳng ở repo chính. **Không còn worktree nào để dựng.**
+4 file bị gitignore (`.env`, `packages/functions/.env.local`, `.runtimeconfig.json`,
+`serviceAccount.development.json`) vốn đã có sẵn ở repo chính — không phải copy gì nữa.
+Spec + mockup đã commit (`2143407`); riêng 165 file ảnh mockup vẫn là file local, đã bê theo
+khi gộp, nằm ở `docs/mockups/joyxjoy-wholefoods-landing/{boxes,staples,oneoff,cat}/` + `farmbox.jpg`.
 
-**4 file bị gitignore → worktree mới THIẾU. Không copy là jest chết và script seed không chạy được:**
-
-```bash
-S=~/projects/subscriptions; D=~/projects/subscriptions-joyxjoy
-cp $S/.env                                       $D/.env
-cp $S/packages/functions/.env.local              $D/packages/functions/.env.local
-cp $S/packages/functions/.runtimeconfig.json     $D/packages/functions/.runtimeconfig.json
-cp $S/packages/functions/serviceAccount.development.json    $D/packages/functions/serviceAccount.development.json
-
-# spec + mockup hiện là file UNTRACKED ở repo chính → worktree từ master KHÔNG có.
-# Task 6-12 trỏ số dòng vào landing-src.html nên bắt buộc phải copy sang.
-mkdir -p $D/docs
-cp -r $S/docs/mockups     $D/docs/
-cp -r $S/docs/superpowers $D/docs/
-
-cd $D && yarn install
-```
 
 Đã cắn 2 lần rồi, đừng lặp lại:
 
@@ -78,7 +62,7 @@ cd $D && yarn install
 - **Gate hook chạy `yarn check` ở REPO CHÍNH**, không phải worktree → repo chính cũ thì worktree
   sạch vẫn bị chặn. Nếu gặp, ff repo chính về master trước.
 
-Subagent: chỉ được đọc/ghi trong `~/projects/subscriptions-joyxjoy`. **BỊ CẤM chạy git**
+Subagent: chỉ được đọc/ghi trong `~/projects/subscriptions`. **BỊ CẤM chạy git**
 (repo có ~233 stash của user) — worktree do người tạo sẵn theo lệnh trên.
 
 ## Bối cảnh 30 giây
@@ -187,7 +171,7 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
    ```bash
    # 1. PHẢI build trước — script import qua alias @functions/*, chạy thẳng src/ sẽ lỗi
    #    "Cannot find module '@functions/repositories/productBundleRepository'" (verifier đã thử)
-   cd ~/projects/subscriptions-joyxjoy
+   cd ~/projects/subscriptions
    yarn workspace @avada/functions run production
 
    # 2. Xem trước rồi mới ghi
@@ -462,7 +446,7 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
       `no selling plan matched 1 week(s)` — gián tiếp chứng minh kênh báo lỗi task 15 chạy thật).
       Dựa vào `jest:fn` 214/214 xanh + diff `LandingApp.js` thuần cộng thêm.
 
-13. [⏸️] **Section Liquid + template page** — `sections/joy-subscription-landing.liquid` +
+13. [✅ 2026-08-20] **Section Liquid + template page** — `sections/joy-subscription-landing.liquid` +
     `templates/page.build-your-subscription.json` trong theme khách. Section inject
     `window.AVADA_JW` (bundles từ `shop.metafields.avada_custom_landing.data` nhưng giá/ảnh/
     `selling_plan_groups` lấy từ `all_products[handle]` — xem spec mục 4), render `.jw-landing-root`,
@@ -486,8 +470,19 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
       ⇒ item 51+ vĩnh viễn không tới được.
     - Kéo theo: comment Liquid (`:112-127,142-148`), schema `info` (`:261`), README (`:67-82,186-190`)
       **khớp nhau nhưng cùng SAI** — cả ba khẳng định "never a partial/truncated list".
-    **Cách sửa đã rõ và nhỏ**: `max: 50` (hoặc bọc `{% paginate %}` xử lý phần dư) + sửa lại 3 chỗ
-    tài liệu. Nhưng luật là 2 vòng FAIL = blocker, **chờ dantt cho phép vòng 3**.
+    **VÒNG 3 (dantt cho phép) — PASS, đã commit.**
+    - nhánh `feat/joyxjoy-landing` · commit `80bb5d6`
+    - Chặn hai lớp độc lập: schema `min:0, max:50, step:5, default:25` (đổi `step` 4→5 vì với
+      `step:4` giá trị lớn nhất chọn được chỉ là 48, không bao giờ chạm 50) **VÀ** gate Liquid
+      hardcode `c.products_count <= 50` — để người sau nới `max` cũng không thủng.
+    - Verifier **mô phỏng vét cạn** thay vì đọc code: `eager_limit ∈ {0,5..50}` ×
+      `products_count ∈ [0..200]` ⇒ **0 trường hợp** mảng không rỗng mà bị cắt; giả lập `max=200`
+      ⇒ vẫn 0, chứng minh chốt thứ hai thật sự độc lập.
+    - `shopify theme check` exit 0 trên scaffold verifier tự dựng · template + schema JSON parse
+      exit 0 · `name` 24 ký tự · `compare_at_price` còn nguyên.
+    - **Chưa xác minh được** (verifier tự nêu): bản thân hành vi "Liquid `collection.products`
+      không `{% paginate %}` cắt ở 50" dựa trên tài liệu Shopify, chưa chạy trên store thật.
+      Sẽ tự lộ ở task 14.
     Đã xác nhận TỐT ở vòng 2, không cần đụng lại: `compare_at_price` thêm đúng (`:166`) và
     `summaryLogic.js:26-31,49-62` đã có guard `compareAt > price` sẵn ở cả 2 tầng + `savings > 0`
     ở `SummaryPanel.js:72` ⇒ không có savings âm · `products_count` là field Liquid có thật ·
@@ -619,7 +614,7 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
     - Script `packages/functions/src/commands/misc/cleanJunkFixedBundles.js` — **dantt tự chạy
       `--apply`**, agent chỉ được dry-run.
       ```bash
-      cd ~/projects/subscriptions-joyxjoy
+      cd ~/projects/subscriptions
       yarn workspace @avada/functions run production
       set -a; source packages/functions/.env.local; set +a
       export GOOGLE_APPLICATION_CREDENTIALS="$PWD/packages/functions/serviceAccount.development.json"
@@ -657,4 +652,115 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
     **Chưa chốt là bug cần sửa hay chấp nhận được** — `packages/assets/**` nằm trong danh sách
     KHÔNG ĐỤNG của project landing này, nên nếu sửa thì phải là task riêng ngoài scope landing,
     và cần dantt quyết vì nó ảnh hưởng mọi merchant chứ không riêng shop này.
+
+20. [⏸️] **Seed store dev bằng dữ liệu THẬT của khách — dantt chạy `--apply`**
+    Thay cho seed dựng tay. Ba script, chạy theo thứ tự. **Cần `sdd` + `emudev` đang chạy**
+    cho script thứ 3.
+    ```bash
+    cd ~/projects/subscriptions
+    yarn workspace @avada/functions run production
+    set -a; source packages/functions/.env.local; set +a
+    export GOOGLE_APPLICATION_CREDENTIALS="$PWD/packages/functions/serviceAccount.development.json"
+    L=packages/functions/lib/commands/misc
+
+    node $L/cleanJunkFixedBundles.js dantt-subscription-box.myshopify.com \
+      --keep=gcLPB5jNtJZ2JyRSbPMS,2Oal5MZXq3P7kgdzledG      # xem trước, thêm --apply để dọn
+    node $L/cloneCatalogFromSprayfree.js                     # 113 sp catalog; thêm --apply
+    node $L/cloneFixedBundlesFromSprayfree.js                # 15 Fixed Bundle; thêm --apply
+    ```
+    - **Store khách là `sprayfreefarmacy.myshopify.com`** ("Spray-Free Farmacy"), shopId prod
+      `FbvC6UZKBpw9TaXRTMLk`. `joywholefoods.com.au` chỉ là domain storefront, KHÔNG phải
+      `shopifyDomain` — tìm bằng domain đó sẽ không ra gì.
+    - **Mockup dựng từ bộ box CŨ.** 15 Fixed Bundle thật của khách có handle khác hẳn
+      (`ultimate-organic-farm-box-1`, `budget-box`, …, tên có tiền tố `"JOY "`), không cái nào
+      nằm trong mockup. Mockup chỉ dùng đối chiếu **UI + logic**; seed phải theo sản phẩm thật.
+    - Cả 15 box đều có đúng **`WEEK×1, WEEK×2, WEEK×4`** — xác nhận ràng buộc "mọi box cùng
+      chu kỳ" của landing đúng với thực tế khách.
+    - `cloneFixedBundlesFromSprayfree.js` đi **qua route HTTP thật** nên `avada_custom_landing`
+      **tự sinh** ⇒ **bỏ được bước 3 của task 2** (vào admin save lại từng bundle).
+    - Kỳ vọng sau khi apply: **12 box** (không phải 15 — 3 box có ruột trỏ vào sản phẩm
+      `8974713880791` đã bị xoá trên store khách), 16 sản phẩm ruột, 113 sp catalog, 7 collection.
+    - nhánh `feat/joyxjoy-landing` · commit `962cda1` (catalog) · `b9e8df1` (fixed bundle)
+      · `2976cea` (dọn rác)
+
+21. [ ] **`BoxCard` lệch mockup — thiếu dòng vendor + badge save/was**
+    Audit UI vòng 2 (2026-08-20) tìm ra, **chưa sửa** vì nằm ngoài phạm vi task filterbar:
+    - Mockup `renderBoxes` (`landing-src.html:638-654`): `card.box-card` > `thumb` (+ badge
+      save/was price) + `body` ( `.desc` = dòng vendor, `h4`, `priceline`, `box-select` )
+    - `packages/scripttag/src/subscriptionBoxJoyxjoy/components/BoxSection/BoxCard.js`:
+      **thiếu hẳn `div.jw-desc`** (dòng vendor) và **thiếu markup badge save/was**
+    - Không nhất quán ngay trong chính codebase: `ProductCard.js` **có** `.jw-desc`, `BoxCard` thì không.
+    Lưu ý khi sửa: 10 suite test landing ở `packages/assets/src/scripttagTests/subscriptionBoxJoyxjoy/`
+    phải giữ 24/24 xanh; đổi markup dễ làm đỏ — sửa cho khớp lại, đừng sửa test để né.
+
+## Responsive — plan đã chốt 2026-08-20
+
+Mockup CÓ responsive nhưng dừng ở mức desktop thu nhỏ: breakpoint 1180 (card 4→3),
+960 (grid 2 cột→1, summary hết sticky), 860 (card 3→2), 680 (steps/info-box 1 cột),
+560 (swap modal). **Từ 560px xuống — tức toàn bộ điện thoại — mockup không vẽ.**
+
+Quyết định của dantt: **thanh CTA dính đáy màn hình** trên mobile; **lưới card dùng
+`auto-fill minmax`** thay vì breakpoint theo màn hình.
+
+22. [✅ 2026-08-20] **Lưới card → `repeat(auto-fill, minmax(240px, 1fr))`, bỏ breakpoint 1180/860**
+    Lý do (không phải sở thích): breakpoint hiện tính theo **bề rộng màn hình**, trong khi
+    lưới sống trong **cột trái** hẹp hơn màn hình 380px (340 sidebar + 40 gap). Nên ở màn
+    1180px rule bảo "3 cột" mà cột trái chỉ ~800px ⇒ card chật hơn ý đồ mockup một nhịp.
+    `auto-fill minmax` đếm theo chỗ trống thật của chính lưới nên đúng trong cả layout 2 cột
+    lẫn 1 cột, không cần `@container`.
+    Đã tính với `gap:16px`: cột 1176px → 4 card 282px · 800px → 3 card 256px · 644px → 2 card
+    314px · 335px → 1 card 335px. **Tái tạo đúng 4/3/2 của mockup** và tự xuống 1 cột trên mobile.
+    ⚠️ Dùng **`auto-fill` KHÔNG phải `auto-fit`**: category `home` chỉ có 5 sản phẩm, `auto-fit`
+    sẽ kéo giãn hết chiều ngang trông rất kỳ.
+
+23. [✅ 2026-08-20] **Thanh CTA dính đáy màn hình cho mobile (≤960px)**
+    Ở ≤960px summary chuyển `position:static` nên rơi xuống dưới cùng ⇒ khách phải cuộn qua
+    ~97 sản phẩm mới thấy tổng tiền và nút "Start my subscription". Mockup không giải quyết
+    vì chỉ vẽ desktop.
+    **Hai tầng, dantt chốt 2026-08-20:**
+    1. **Bar dính đáy** — luôn thấy: tổng tiền + nút CTA + một chỗ bấm mở chi tiết (vd `Chi tiết ⌃`)
+    2. **Bottom sheet trượt lên** khi bấm vào chỗ đó — chứa đầy đủ nội dung summary hiện tại
+       (freq chip, seasonal boxes, staples, one-off, savings, total, CTA), có grabber + nút đóng,
+       đóng được bằng bấm nền mờ / vuốt xuống / Esc
+    Chỉ bật ở ≤960px (nơi summary hết sticky). Ở >960px giữ nguyên summary sticky cột phải.
+    Không che mất nội dung cuối trang → thêm `padding-bottom` cho `.jw-landing` bằng chiều cao bar.
+    **Tái dùng `summaryLogic.js` — KHÔNG viết lại phép tính tiền** (nếu không sẽ có 2 nguồn sự thật
+    và chúng sẽ lệch nhau lúc nào không biết).
+    Tái dùng luôn component summary hiện có cho phần thân sheet, đừng dựng bản sao markup thứ hai.
+    - nhánh `feat/joyxjoy-landing` · commit `e4c7cca` (gồm cả task 22)
+    - `MobileSummarySheet` chỉ là **vỏ**, nhận `SummaryPanel` qua `children` — cùng component với
+      bản desktop, không có bản sao markup. `MobileSummaryBar` gọi thẳng `computeSummary`.
+    - **Bug bắt được khi đo trên Chrome thật**: sheet mở ra chỉ cao 44px. Vì
+      `@media(max-width:960px)` có `.jw-summary-aside{display:none}` ẩn **mọi** summary-aside kể cả
+      bản trong sheet; override `.jw-sheet-body .jw-summary-aside{width…}` thắng specificity nhưng
+      **không khôi phục `display`**. Thêm `display:block`.
+    - Verify: bar ẩn ở 1100px · `fixed` h=68 ở ≤960px · `.jw-landing` padding-bottom 76px ·
+      sheet 375px = 375×588 tại y=212, thân cao 544, tổng tiền render · tràn ngang 0/4 bề rộng.
+
+24. [ ] **Rà vùng chạm + mật độ ở 375px**
+    - Nút `+`/`−` của stepper, chip, nút phân trang: tối thiểu **44×44px** vùng chạm
+    - `.jw-summary{top:178px}` là số đo theo header desktop — tính lại theo header thật, hoặc
+      dùng biến để chỉnh được
+    - Ô search trong filterbar ở 375px: hiện nằm cùng hàng với chip, cần kiểm có bị bóp không
+    - `.jw-swap-modal` đã có breakpoint 560px, kiểm lại ở 375px
+
+25. [⏸️] **Tab "All" nên là 7 category hay TOÀN BỘ catalog? — dantt hỏi BA (2026-08-20)**
+    **Hiện trạng đo được**: `filterProducts` (`pickerLogic.js:44-52`) gộp sản phẩm của các
+    category block rồi `ALL_CATEGORY` trả toàn bộ mảng đó ⇒ "All" = **97 sản phẩm** từ 7 collection
+    merchant chọn trong theme editor. Store dev có ~1.210 sản phẩm, **store khách có 1.416**.
+    **Search cũng chỉ lọc trong 97 cái đã nạp** — gõ tên một sản phẩm có thật ngoài 7 collection
+    sẽ ra "không tìm thấy" dù sản phẩm tồn tại. Đây là phần chắc chắn sai dù chọn hướng nào.
+
+    | Hướng | "All" nghĩa là | Đánh đổi |
+    |---|---|---|
+    | Giữ nguyên | 7 collection curated | Merchant kiểm soát thứ khách thấy — có thể là **cố ý** |
+    | `/collections/all/products.js` phân trang | toàn bộ catalog | Lẫn cả thẻ quà tặng, hàng đông lạnh, hàng ẩn… |
+    | Tab curated + search `/search/suggest.json` | tab = curated, **search = toàn store** | Giữ kiểm soát phần duyệt, khách vẫn tìm được mọi thứ |
+
+    **Lập luận để hỏi BA**: trên store khách có 1.416 sản phẩm gồm hàng đông lạnh, hàng theo mùa,
+    thẻ quà tặng — "tất cả" gần như chắc chắn KHÔNG phải thứ nên hiện trong trang đăng ký
+    subscription. Việc merchant chọn 7 danh mục nhiều khả năng là có chủ đích. Nhưng khách gõ
+    "salmon" mà không ra gì thì là lỗi thật, không cãi được.
+    ⇒ Câu hỏi cho BA: **khách được chọn staples/one-off từ toàn bộ catalog, hay chỉ từ danh mục
+    merchant duyệt?** Nếu "chỉ danh mục duyệt" thì search vẫn nên bắn toàn store hay giới hạn theo?
 

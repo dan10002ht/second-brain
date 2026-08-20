@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-19 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-19: 2 digest + 2 shipped + 3 decision + 1 feedback + 1 resource)_
+_Cập nhật: 2026-08-20 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 8 item ngày 08-20: 3 digest + 2 shipped + 2 decision + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -204,6 +204,11 @@ _Cập nhật: 2026-08-19 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-19]] — `SET_SHOP` ghi đè nguyên object nên field chỉ có ở `/shops/integrations` bị xoá giữa boot ở MỌI lần load (kể cả cache hit), cache localStorage khoá theo `?shop=` nên rơi về `default` sau nav SPA, `drop_console: true` xoá luôn `console.warn` làm bản vá observability vô hiệu ở production, và trần bundle 30KB tôi tự áp không hề tồn tại (bundle cùng loại đang 198KB).
 - [[shipped-pdf-2026-08-19]] — commit landed 08-18 — master KHÔNG nhận MR/tag/version bump nào; toàn bộ nằm trên 4 nhánh — `feat/early-payment-benefit` là một commit khổng lồ 205 file thay hẳn cơ chế discount thủ công cũ bằng company payment rule (kèm 2 script audit + bộ e2e Playwright), `feat/templates-redesign` đóng 5 issue SB-14670 rồi thay hẳn react-color bằng Polaris ColorPicker vì cross-origin, `feat/pdf-fonts-56` thêm 54 font (18 → 72), và `chore/remove-hardcoded-secrets` thay secret bằng placeholder; không revert, không cờ deploy, không tag. ⚠️ có 3 mục "cần xác nhận".
 - [[digest-ticket-mcrsv-2026-08-19]] — verifier bị cấm chạy git vẫn `git checkout --` xoá mất thay đổi chưa commit của agent hai lần trong một phiên; `.pb.go` bị gitignore + sinh tay khiến checkout mới build gãy; và một task P0 đóng lại mà không sửa một dòng code sản xuất nào vì điều tra chứng minh backend vốn đã chặn đúng.
+- [[shipped-subscriptions-2026-08-20]] — Master nhận 2 tag (`v2.34.78` SET_SHOP merge thay vì ghi đè, `v2.34.79` loyalty sync bỏ qua shop free-forever sau ca thu tiền thật); trên nhánh là trọn trang landing joyxjoy (~14 commit), 2 lát CLS admin và import mang theo discount code của Appstle. ⚠️ có 1 mục "cần xác nhận".
+- [[digest-subscriptions-2026-08-20]] — Phí ship 0 của kookut là rate trùng trong shipping profile cộng `getLowestShippingRate` đọc option Shopify đang chọn chứ không phải rate thấp nhất; cap retry đếm theo order-doc nên 13 lần/kỳ; helper GraphQL nuốt `errors` rồi vẫn commit draft; và `resourcePublicationsV2` là kênh bán hàng chứ không phải catalog — đọc nhầm nó làm đảo kết luận hai lần.
+- [[digest-subscriptions-joyxjoy-2026-08-20]] — Trang trống dù dữ liệu đủ vì ba tầng im lặng — `shop.metafields.ns.key.data` là Metafield drop phải qua `.value`, metafield không có definition `PUBLIC_READ` thì storefront không đọc được, và sản phẩm tạo qua API chưa publish thì Liquid không thấy; cộng `div:empty{display:none}` của theme khách ẩn sạch ô ảnh của mình.
+- [[shipped-pdf-2026-08-20]] — Master chỉ nhận 2 MR tài liệu của BA (không code, không tag); khối lượng thật trên 3 nhánh — template sync đẩy design mới xuống shop cũ theo vân tay SHA-1, chuỗi SB-15764 tự đảo kết luận về nguyên nhân nháy trắng, và gate B2B đổi từ allowlist env sang plan Wholesale. ⚠️ có 2 mục "cần xác nhận".
+- [[digest-ticket-mcrsv-2026-08-20]] — Lane codex chỉ chạy được với bản npm `@openai/codex` chứ không phải bản trong ChatGPT.app, sidebar cmux liệt kê workspace chứ không phải pane, watcher nền bị kill nên chính nhịp cron 5 phút mới là đồng hồ đáng tin; và bẫy suy luận đắt nhất của repo lặp lại lần thứ ba — "trạng thái X nghĩa là Y chưa xảy ra".
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -243,6 +248,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-19-b2b-rule-thay-discount-thu-cong]] — Gỡ hẳn đường discount thủ công theo từng order (modal chọn discount, `discount.controller/service`, email `templateDiscount.html`) và thay bằng rule cấu hình theo company location + engine `b2bDiscount.service` chạy qua Pub/Sub và cron hết hạn; có test khoá việc gỡ để không ai vô tình dựng lại. ⚠️ CHƯA MERGE (review 2026-11-19).
 - [[2026-08-19-bo-react-color-dung-polaris-colorpicker]] — Sau một vòng vá inline không đủ, `react-color` bị thay hẳn bằng Polaris `<ColorPicker>` + hex TextField + preset swatches, vì react-color walk lên `window.parent` (frame Shopify admin khác origin) trong web-component `ui-modal` và ném SecurityError. ⚠️ CHƯA MERGE (review 2026-11-19).
 - [[2026-08-19-page-custom-o-theme-khach]] — Landing "Build Your Subscription" cho joywholefoods đi bằng Liquid section trong theme khách + một scripttag bundle riêng, thay vì app block trong theme-app-extension hay tái dùng feature Subscription Box (review 2026-11-19).
+- [[2026-08-20-b2b-gate-plan-thay-allowlist]] — Bỏ hẳn `B2B_DISCOUNT_SHOP_ALLOWLIST` (env `B2B_DISCOUNT_SHOPS`) làm điều kiện chạy auto-apply discount, thay bằng `isShopWholesale(shop)` — cùng entitlement mà phần còn lại của app đã gate B2B. ⚠️ CHƯA MERGE (review 2026-11-20).
+- [[2026-08-20-seed-dev-qua-luong-http-that]] — Script seed Fixed Bundle gọi `POST /apiSa/apiSa/fixed-bundle` với Firebase ID token thay vì ghi thẳng Firestore + Shopify, để mọi hook phụ (metafield, selling plan, rebuild `avada_custom_landing`) tự chạy đúng như lúc merchant bấm Save (review 2026-11-20).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
@@ -263,6 +270,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-khong-khep-viec-khi-con-khe-ho]] — khi còn một lỗ đã biết, không được đề xuất đóng task bằng lý lẽ "đủ tốt rồi" — làm chuẩn để dự án là một standard, không làm ít cho xong.
 - [[feedback-xoa-secret-khoi-code-chua-phai-vo-hieu-hoa]] — xoá secret khỏi code + tạo MR chưa phải là fix — giá trị cũ còn trong git history và còn hiệu lực; phải rà lại danh sách, probe xem cái nào còn sống, xếp thứ tự rotate và báo team.
 - [[feedback-hoi-be-mat-truoc-khi-audit]] — "Check CLS" có hai bề mặt hoàn toàn khác nhau (storefront của merchant vs embedded admin app cho Built for Shopify) — tôi tự chọn storefront và đốt trọn một vòng audit + verify vào sai đề.
+- [[feedback-khong-in-secret-ra-chat]] — khi user đưa token hoặc chỉ chỗ lấy key, chỉ tham chiếu tên biến và truyền qua env của lệnh; không echo giá trị, không liệt kê danh sách biến khi đang dò tìm, và thiếu token thì tìm đường không cần token chứ không đi moi.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable

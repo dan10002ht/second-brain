@@ -476,3 +476,29 @@ hay do mình bật cái toggle trả phí trong dev _zone lên nhỉ
      Phần chẩn đoán đã xong và dùng được; phần còn treo (ai bật cờ) **không giải được bằng đọc code**.
      Muốn biết chắc thì hỏi team support xem có ai dùng TS Tool trên shop này không.
 
+
+   11. [✅ 2026-08-20] check nhánh feat/portal-preview giúp tôi ở trường hợp khách đã login và chưa có contract nào thì vẫn đang chưa hiển thị preview khi click preview từ admin app?
+      - nhánh `feat/portal-preview` (MR 2429) · commit `2b2a47bd5` (fix) + `0661e12f3` (copy)
+      - **Root cause**: `isSubscriptionsListPath()` ở `packages/functions/src/helpers/preview/subscriptionsPreviewDecision.js:17`
+        so exact-match `path.split('?')[0] === '/subscriptions'`, nhưng classic portal gọi
+        `${REQUEST_URL}/subscriptions/` **có trailing slash**
+        (`packages/scripttag/src/subscription/components/organisms/MySubscriptionTab/MySubscriptionTab.js:41`),
+        và `buildPreviewRequest.js:19` không normalize. ⇒ `observeClassicSubscriptionsResponse`
+        (`previewMode.js:124-138`) không bao giờ resolve tri-state `decision` khỏi `null` →
+        `isClassicPreviewOn()` luôn `false` → khách **đã login + 0 contract** thấy trang thật rỗng
+        thay vì sample data.
+      - **Chỉ classic portal dính.** New Customer Account gọi `path: '/subscriptions'` không trailing
+        slash (`extensions/customer-account-ui/src/components/MySubscription/MySubscription.js:96`) → không bị.
+      - Fix ở helper dùng chung (1 điểm, không đụng URL request thật) + 2 regression test
+        (`/subscriptions/` và `/subscriptions/?direction=desc`).
+      - Nhân tiện đổi copy banner + modal preview theo bản chốt của user (cả 2 block
+        `classicCustomerPortal` + `newCustomerAccount` trong `defaultTranslations.js`, dùng chung key
+        `previewModal`): title `You are viewing a preview`, body `This portal shows sample data that
+        only you can see. It switches to live data as soon as your first real subscription is created.`,
+        `confirm: 'Got it'` giữ nguyên.
+      - **Verifier PASS** (tự đo baseline + tự dựng thí nghiệm đỏ-trước):
+        baseline `git archive HEAD` = 233 suite / 2320 test; sau fix = 233 suite / **2322** test (đúng +2).
+        assets 13 suite / 147 test exit 0. `yarn check` exit 0 (7 rule groups clean).
+        Gỡ fix ra → đúng 2 test mới đỏ ⇒ test guard thật. Exact-match nên `/subscriptions/123` và
+        `/subscriptions-foo` vẫn không match nhầm.
+      - **Còn treo**: chưa verify trên staging/browser thật (chỉ unit + đọc code chuỗi gọi).

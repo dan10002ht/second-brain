@@ -1,17 +1,12 @@
 ---
 name: looptasksv2
-description: Như looptasks nhưng executor là LANE CODEX trong workspace cmux thay vì subagent Sonnet — nhặt tối đa 4 task từ BRIEF.md, mỗi task một worktree + một workspace riêng trên sidebar, lane báo xong bằng file report, verifier Claude chấm (cross-family), main agent commit. Tự fallback về subagent Sonnet khi lane không dựng được. Dùng khi user gọi /looptasksv2, hoặc muốn chạy task bằng codex để tiết kiệm quota Claude và nhìn được tiến trình.
+description: Như looptasks nhưng executor là LANE CODEX trong pane cmux thay vì subagent Sonnet — nhặt tối đa 4 task từ BRIEF.md, mỗi task một worktree + một pane, watcher báo khi xong, verifier Claude chấm (cross-family), main agent commit. Tự fallback về subagent Sonnet khi lane không dựng được. Dùng khi user gọi /looptasksv2, hoặc muốn chạy task bằng codex để tiết kiệm quota Claude và nhìn được tiến trình.
 ---
 
 # looptasksv2 — nhặt task từ file, giao LANE CODEX làm, mark done
 
 Bản kế thừa `looptasks`. Mọi thứ về **state machine, lock, verifier, git, bookkeeping giữ
-nguyên** — chỉ đổi **ai viết code** và thêm phần **dọn workspace**.
-
-> 📌 **Sửa 2026-08-20 sau một phiên đo thật.** Hook store của cmux đã chết nên `lane-status.sh`
-> / `lane-watch.sh` không dùng được (Bước 0.0); lane giờ là **workspace** chứ không phải split
-> (4.2); báo xong bằng **file report** chứ không phải watcher (5.1). Đừng khôi phục cách cũ vì
-> nó "đúng theo tài liệu plugin" — nó đã được thử và đo là sai.
+nguyên** — chỉ đổi **ai viết code** và thêm phần **dọn pane**.
 
 Đọc `looptasks` trước nếu chưa quen: v2 không lặp lại phần giải thích, chỉ ghi phần KHÁC.
 
@@ -21,7 +16,7 @@ nguyên** — chỉ đổi **ai viết code** và thêm phần **dọn workspace
 |---|---|---|
 | Executor | subagent Sonnet (`Agent` tool) | **lane codex** trong pane cmux (fallback Sonnet) |
 | Worktree | `isolation: "worktree"` — harness tự tạo | **tự `git worktree add`** |
-| Biết khi nào xong | `Agent` return | **`Monitor` canh file `.lanes/report-<ID>.md`** (xem 5.1 — hook store của cmux HỎNG) |
+| Biết khi nào xong | `Agent` return | **`lane-watch.sh` chạy background** → được gọi lại |
 | Đường về của report | text trả thẳng về main | **file `.lanes/report-<ID>.md`** — xem Bước 5 |
 | Verify | verifier Claude chấm Sonnet (cùng họ) | verifier Claude chấm codex — **khác họ, mạnh hơn** |
 | Cấm chạy git | câu trong brief | **sandbox chặn thật** — `.git` ngoài writable root |
@@ -37,46 +32,22 @@ sau vài iteration màn hình đầy pane chết; fallback mơ hồ thì không 
 
 ## Bước 0 — Tiền kiểm (MỚI, bắt buộc, trước khi đọc task)
 
-Hai thứ phải đúng, nếu không thì **không có lane** và cả skill này chỉ là `looptasks` chậm hơn.
+Ba thứ phải đúng, nếu không thì **không có lane** và cả skill này chỉ là `looptasks` chậm hơn.
 
 ```bash
 command -v cmux                                   # cmux CLI
-command -v codex                                  # codex CLI — phải là bản THẬT, không phải shim
+ls ~/.cmuxterm/*-hook-sessions.json               # store — thứ ghi agentLifecycle
+command -v codex                                  # codex CLI
 ```
 
 | Thiếu cái gì | Làm gì |
 |---|---|
 | `cmux` không có | **fallback toàn bộ iteration** sang subagent Sonnet, log một dòng nói rõ |
+| **store không tồn tại** | fallback. 🔴 Không có store thì `lane-status.sh` báo **EMPTY cho lane đang chạy ngon** — sai mà trông như đúng. Bảo user chạy `cmux hooks setup --yes` rồi mở lại pane |
 | `codex` không có | fallback |
 
-🔴 **`command -v codex` trả về path KHÔNG chứng minh codex chạy được.** cmux chèn một thư mục shim
-(`$TMPDIR/cmux-cli-shims/<uuid>`) lên đầu `PATH`; shim đó tự đi tìm codex thật và báo
-`Error: codex not found in PATH` nếu không có. Đã mất một phiên vì tin `command -v`. Kiểm bằng
-`codex --version` — phải in `codex-cli <version>`, exit 0.
-
-Bản đúng là npm standalone (`npm i -g @openai/codex`). Binary nằm trong app bundle của ChatGPT
-**không** dùng được từ shell.
-
-### 0.0 · 🔴 Hook store của cmux ĐÃ CHẾT — đừng dựa vào nó
-
-Đo 2026-08-20, cmux `0.64.22`. **cmux không export `CMUX_SURFACE_ID`** vào bất kỳ shell nào (kể cả
-surface gốc của user); nó export `CMUX_TAB_ID`, `CMUX_TERMINAL_LIFECYCLE_ID`, `CMUX_WORKSPACE_ID`.
-Mà **mọi** hook script codex ở `~/.cmux/hooks/*.sh` mở đầu bằng `[ -n "$CMUX_SURFACE_ID" ]`.
-
-Ba hệ quả, đều đã đo:
-
-- `~/.cmuxterm/codex-hook-sessions.json` không sinh ra → `lane-status.sh` báo *"no store found"*.
-- `cmux codex-teams` báo `must be started from a cmux terminal surface` **ngay trong pane cmux thật**.
-- Tự set `CMUX_SURFACE_ID=<uuid>` thì store **có** sinh ra nhưng **ghi sai**: `surfaceId`/`workspaceId`
-  trỏ về surface của session Claude đang gọi lệnh, chỉ `cwd` đúng — vì pane tạo bằng `cmux` CLI
-  **thừa kế env của shell gọi lệnh**. Dùng `env -u ... cmux workspace create --command ...` để cmux
-  tự spawn thì **không sinh entry nào**.
-
-→ **`lane-status.sh` và `lane-watch.sh` không dùng được.** Đường thay thế đã kiểm chứng chạy: lane
-ghi `.lanes/report-<ID>.md` làm hành động cuối, main agent canh chính file đó (Bước 5.1).
-
-⚠️ Đây **không** phải lý do fallback sang Sonnet — lane codex vẫn chạy tốt, chỉ là cách biết nó xong
-thì khác. Hôm nào cmux sửa (`CMUX_SURFACE_ID` xuất hiện trở lại trong `env`), quay lại dùng plugin.
+Store chỉ sinh ra sau khi **một agent chạy hết một turn trong pane cmux**. Cài hook xong mà chưa
+chạy turn nào thì file chưa có — đó là bình thường, không phải hỏng.
 
 ### 0.1 · Khi nào được fallback về Sonnet — danh sách ĐÓNG
 
@@ -84,17 +55,13 @@ Fallback chỉ cho **lỗi hạ tầng**, không bao giờ cho **lỗi nội dun
 
 | Tình huống | Fallback? |
 |---|---|
-| Tiền kiểm Bước 0 fail (`cmux` hoặc `codex --version` fail) | ✅ cả iteration |
-| Probe (Bước 4.3) fail **2 lần liên tiếp** trên cùng task | ✅ riêng task đó |
+| Tiền kiểm Bước 0 fail | ✅ cả iteration |
+| Probe (Bước 4 mục 3) fail **2 lần liên tiếp** trên cùng task | ✅ riêng task đó |
+| Dispatch xong `pgrep -x codex` **không tăng** so với baseline | ✅ riêng task đó |
 | `read-screen` cho thấy codex kẹt ở prompt hỏi mà `send-key Enter` không gỡ được | ✅ riêng task đó |
-| Store/`lane-status.sh` không hoạt động | ❌ **không fallback** — đã biết trước, xem 0.0 |
-| Đã có ≥4 workspace lane đang sống | ❌ **không fallback** — hoãn task sang iteration sau, trả `[⏳]` về `[ ]` |
+| Đã có ≥4 pane lane đang sống | ❌ **không fallback** — hoãn task sang iteration sau, trả `[⏳]` về `[ ]` |
 | Verifier trả `FAIL` | ❌ **không fallback.** Lỗi nội dung — giao lại đúng một vòng cho **chính lane đó** như `looptasks` |
-| Lane chạy chậm | ❌ không fallback. Chờ, hoặc để timeout xử |
-
-🔴 **`pgrep -x codex` KHÔNG dùng để xác nhận lane sống.** Máy có sẵn process tên đúng `codex` không
-thuộc lane nào (đo được 3 process lúc không có lane nào chạy), và với 4 lane song song thì +1 không
-nói được cái nào là của bạn. Bằng chứng lane sống là **probe file** (4.3) + `read-screen` (4.4).
+| Lane chạy chậm | ❌ không fallback. Chờ, hoặc để timeout của watcher xử |
 
 🔴 **Fallback phải LOG.** Ghi vào tóm tắt dưới task: `executor: sonnet (fallback — <lý do>)` hoặc
 `executor: codex lane <ID>`. Không ghi thì hai tuần sau không ai biết task đó ai làm, và không đo
@@ -102,34 +69,32 @@ nói được cái nào là của bạn. Bằng chứng lane sống là **probe 
 
 ### 0.2 · Đường dẫn script của plugin
 
-Plugin `cmux-workflow` hiện **không dùng được cho lane codex** (xem 0.0). Nếu cần nó cho việc khác,
-version nằm trong path nên đừng hardcode — và nó có thể nằm ở `marketplaces/` chứ không phải `cache/`:
+Version nằm trong path nên **đừng hardcode**:
 
 ```bash
-CW=$(find ~/.claude/plugins -maxdepth 6 -name lane-status.sh 2>/dev/null | head -1)
+CW="${CMUX_WORKFLOW_ROOT:-$(find ~/.claude/plugins/cache -maxdepth 5 \
+     -path '*cmux-workflow*/skills/cmux-orchestration/lane-status.sh' 2>/dev/null | head -1)}"
 CW="${CW%/skills/cmux-orchestration/lane-status.sh}"
 ```
+
+Không tìm thấy → plugin chưa cài → fallback (Bước 0).
 
 ### 0.3 · Nhặt lane mồ côi TRƯỚC khi nhận task mới
 
 Chạy nền nghĩa là iteration trước có thể đã chết giữa chừng. **Lệnh đầu tiên của mọi iteration:**
 
 ```bash
-cmux tree --all                     # workspace lane nào còn sống?
-git worktree list                   # worktree nào còn?
-ls ~/cmux/worktrees/*/*/.lanes/report-*.md 2>/dev/null    # lane nào đã ghi report?
+"$CW"/skills/cmux-orchestration/lane-status.sh --all
 ```
 
-Đối chiếu với `[⏳]` trong file task:
-
-| Tình trạng | Làm gì |
+| Lane ở trạng thái | Làm gì |
 |---|---|
-| có `report-<ID>.md` mà task vẫn `[⏳]` | iteration trước chết trước khi verify → **vào thẳng Bước 6**, đừng dispatch lại |
-| workspace còn, chưa có report, lock **chưa** quá 90 phút | đang chạy thật → **bỏ qua task đó**, đừng cướp |
-| workspace mất / lock quá 90 phút mà không có report | lane chết → trả `[⏳]` về `[ ]`, đóng workspace, gỡ worktree, ghi lý do dưới task |
-| workspace còn mà không ứng với `[⏳]` nào | rác → đóng |
+| `DONE` mà task vẫn `[⏳]` | iteration trước chết trước khi verify → **vào thẳng Bước 6** cho task đó, đừng dispatch lại |
+| `DEAD` (`running` + pid chết) | lane crash → trả `[⏳]` về `[ ]`, đóng pane, gỡ worktree, ghi lý do dưới task |
+| `RUNNING` | đang chạy thật → **bỏ qua task đó**, đừng cướp |
+| `EMPTY` | pane rác → đóng |
 
-Bỏ bước này thì lane xong nằm im vô thời hạn.
+Đây là lý do plugin tồn tại. Bỏ bước này thì lane xong nằm im vô thời hạn.
 
 ---
 
@@ -137,7 +102,7 @@ Bỏ bước này thì lane xong nằm im vô thời hạn.
 
 **Giống `looptasks` hoàn toàn.** Tối đa 4 task/lượt · ưu tiên `[P0]` → `[P1]` → không nhãn ·
 `[⏸️]` bỏ qua · lock `[⏳ HH:MM]` 90 phút · quá 90 phút là mồ côi **nhưng phải kiểm agent còn sống
-trước** (v2: kiểm bằng Bước 0.3 — `cmux tree` + file report, không phải `ListAgents`).
+trước** (v2: kiểm bằng `lane-status.sh`, không phải `ListAgents`).
 
 Trần 4 giữ nguyên, lý do đổi: không phải trần agent nữa mà là **4 pane còn đọc được**. Nhiều hơn
 thì mỗi pane hẹp tới mức không ai đọc nổi, và lợi ích "nhìn thấy" biến mất.
@@ -192,23 +157,22 @@ git status --ignored --porcelain | grep '^!!' | head -40
 
 Ghi vào brief lane những gì **chưa** dựng được, để nó biết cái gì đỏ không phải lỗi nó.
 
-### 4.2 · Workspace (KHÔNG phải split)
+### 4.2 · Pane
 
 ```bash
-cmux workspace create --name "<lane-ID> <slug>" --cwd "$WT_ROOT/<slug>"
-# → OK workspace:M      rồi lấy surface: cmux tree --all
+BASELINE=$(pgrep -x codex | wc -l)                 # TRƯỚC khi dispatch, nếu không mục 4 vô nghĩa
+
+cmux new-split right                                # → OK surface:N workspace:M
+cmux rename-tab --surface surface:N "<lane-ID> <slug>"
 ```
 
-🔴 **Mỗi lane là một WORKSPACE riêng, không phải `cmux new-split`.** Sidebar của cmux chỉ liệt kê
-**workspace**; lane dựng bằng `new-split` nằm chìm trong workspace "Terminal" nên **user không có
-mục nào để bấm vào** — mất đúng thứ khiến ta chọn lane thay vì subagent: nhìn thấy được.
+🔴 **Đặt tên NGAY.** `new-split` không có `--name`, pane mới là vô danh, và surface bị **đánh số
+lại** mỗi lần create/close — bản đồ trong đầu bạn hỏng đúng lúc đang bận nhất. Tên đặt bằng
+**lane ID** (`T7 cache-key`), không phải mô tả: ID là thứ `BRIEF.md`, commit message và tóm tắt
+đều dùng.
 
-Tên đặt bằng **lane ID** (`T7 cache-key`), không phải mô tả: ID là thứ `BRIEF.md`, commit message và
-tóm tắt đều dùng.
-
-🔴 **Ref bị đánh số lại mỗi lần create/close.** Đừng nhớ `surface:N` qua nhiều bước — lấy lại bằng
-`cmux tree --all --id-format both` và **giữ UUID**, ref chỉ dùng ngay tại chỗ. Lane ở workspace khác
-thì mọi lệnh sau đó phải mang `--workspace`, nếu không fail `not_found`.
+Pane ở workspace khác thì **mọi lệnh sau đó phải mang `--workspace`** (`rename-tab`, `send`,
+`send-key`, `read-screen`), nếu không fail `not_found: Tab not found`.
 
 ### 4.3 · Probe — bắt shell chứng minh nó đang đọc
 
@@ -230,27 +194,14 @@ cmux send --surface surface:N 'cd <WT> && codex -s workspace-write -a never --st
   "Lane <ID>. Read .lanes/brief-<ID>.md and follow it."'
 cmux send-key --surface surface:N Enter
 
-cmux read-screen --surface surface:N --lines 20   # PHẢI thấy hoạt động, KHÔNG phải câu hỏi
+pgrep -x codex | wc -l        # PHẢI = BASELINE+1. Bằng baseline ⇒ nó chưa từng chạy ⇒ fallback
+cmux read-screen --surface surface:N --lines 15   # PHẢI thấy hoạt động, KHÔNG phải câu hỏi
 ```
 
-🔴 **Worktree mới làm codex hỏi trust và `-a never` KHÔNG chặn prompt đó**:
-
-```
-Do you trust the contents of this directory? › 1. Yes, continue   2. No, quit
-```
-
-Probe vẫn pass, process vẫn tồn tại — lane trông y hệt lane đang làm việc trong khi nó **ngồi im vô
-hạn**. Gỡ bằng `cmux send-key --surface surface:N Enter` (option 1 đã chọn sẵn). Vì vậy `read-screen`
-sau dispatch là **bắt buộc**, không phải tuỳ chọn.
-
-🔴 **Xong một turn, TUI codex VẪN MỞ.** Mọi `cmux send` sau đó sẽ bị codex **nuốt làm prompt** thay vì
-chạy trong shell — bạn tưởng mình chạy lệnh, thực ra vừa giao cho nó một task mới. Muốn quay lại shell:
-
-```bash
-cmux send-key --surface surface:N ctrl+c      # gửi 2 lần, cách nhau ~1s
-```
-
-Đây là lý do report phải qua **file** (5.2): file không phụ thuộc trạng thái TUI.
+🔴 **Process sống ≠ lane đang chạy.** Worktree mới làm codex hỏi *"Do you trust the contents of
+this directory?"* và `-a never` **không** chặn prompt đó. Probe vẫn pass, `pgrep` vẫn đếm được —
+lane trông y hệt lane đang làm việc trong khi nó ngồi im vô hạn. Kẹt thì `send-key Enter`
+(option 1 đã chọn sẵn).
 
 **Model + effort pin explicit, đừng thừa kế config default.** `--strict-config` bắt **sai tên key**,
 **không** bắt sai giá trị: `model_reasoning_effort=bogus` chạy bình thường rồi im lặng rơi về default
@@ -355,26 +306,21 @@ phải mỗi lane một watcher rồi chờ lần lượt.
 
 ### 5.1 · Arm watcher NGAY sau khi dispatch
 
-`lane-watch.sh` **không dùng được** (Bước 0.0 — nó đọc hook store đã chết). Thay bằng `Monitor` canh
-đúng file report của từng lane:
-
-```
-Monitor: file .lanes/report-<ID>.md xuất hiện trong <WT>, persistent: true
+```bash
+"$CW"/skills/cmux-orchestration/lane-watch.sh <surface1> <surface2> --timeout-min 90
 ```
 
-Một `Monitor` cho cả nhóm lane nếu canh được nhiều path; không thì mỗi lane một cái, arm **một lần**
-ngay sau khi dispatch cả nhóm. Event về dưới dạng `<task-notification>` và đánh thức bạn.
-
-Không có `Monitor` thì dùng `Bash` với `run_in_background: true` chạy vòng lặp chờ file xuất hiện —
-background exit sẽ gọi lại bạn. Kèm mốc hết hạn 90 phút khớp ngưỡng lock ở Bước 1; **timeout là một
-kết quả phải report**, không phải lỗi im lặng.
+**Chạy background** (`Bash` với `run_in_background: true`). Background exit → bạn được gọi lại.
+Đó là **cơ chế duy nhất** báo lane xong.
 
 | ❌ Không hoạt động | Vì sao |
 |---|---|
 | `sleep 60 && check` foreground | harness chặn, kể cả nối nhiều sleep ngắn |
 | "lát nữa tôi check lại" | không có "lát nữa" — turn kết thúc, lane chạy tiếp, không gì gọi bạn dậy |
 | đọc lại màn hình mỗi tool call | đốt cả turn để poll, vẫn miss cái xong sau khi bạn ngừng |
-| `lane-status.sh` / `lane-watch.sh` | đọc hook store — **store không bao giờ sinh ra**, xem 0.0 |
+
+`--timeout-min 90` khớp ngưỡng lock ở Bước 1. Timeout **là một kết quả**, phải report, không phải
+lỗi im lặng.
 
 ### 5.2 · 🔴 Report phải qua FILE, không qua màn hình
 
@@ -416,57 +362,14 @@ Bước 0.3.
 **Giao agent `verifier`** (`~/.claude/agents/verifier.md`), y như `looptasks`: context sạch, không
 Edit/Write, chạy done-criteria thật, trả verdict kèm bằng chứng.
 
-### 6.0 · Chuẩn bị TRƯỚC khi spawn — hai thứ bắt buộc
-
-Đo trên 242 lần verify thật (bóc tách được 76, 18–20/08/2026): median **6,6 phút · 74 lượt model ·
-37 Bash call**,
-**68% thời gian là round-trip model** chứ không phải lệnh chạy, và **74% số call là đi đọc lại
-code** (`cat`/`sed -n`/`grep`/`git diff`). Verifier chậm vì phải **tự khám phá lại thứ bạn đã
-biết**. Hai thứ dưới đây cắt phần đó; chúng **không** làm verifier bớt độc lập.
-
-**a) Dán sẵn diff đầy đủ vào brief** — output máy, không phải lời lane:
-
-```bash
-cd "$WT_ROOT/<slug>" && git status --porcelain && echo '--- DIFF ---' && git diff
-```
-
-Diff dài quá thì ghi ra `.lanes/diff-<ID>.patch` và đưa **đường dẫn tuyệt đối** (một `cat` là xong),
-đừng để verifier tự dựng lại từng file.
-
-**b) Viết `gate-<ID>.sh` trong worktree** — gộp cả khối gate của repo vào MỘT lệnh:
-
-```bash
-cat > "$WT_ROOT/<slug>/.lanes/gate-<ID>.sh" <<'EOF'
-#!/usr/bin/env bash
-# thứ tự cố định: typecheck → build → test → lint. Không dừng ở lỗi đầu — chấm hết rồi báo.
-set -u; cd "$(dirname "$0")/../.."; rc=0
-run(){ echo "=== $* ==="; "$@"; c=$?; echo "--- exit $c"; [ $c -ne 0 ] && rc=1; }
-run <lệnh typecheck của repo>
-run <lệnh build>
-run <lệnh test>
-run <lệnh lint>
-echo "=== GATE EXIT $rc ==="; exit $rc
-EOF
-chmod +x "$WT_ROOT/<slug>/.lanes/gate-<ID>.sh"
-```
-
-Lệnh lấy **nguyên văn từ khối gate đầu `BRIEF.md`**, đừng tự chế. Repo không có gate rõ ràng thì
-**đừng bịa script** — ghi thẳng vào brief là chưa có, để verifier tự suy ra và tự khai trong báo cáo.
-
 Brief cho verifier:
 
 - Mô tả task **nguyên văn** + done-criteria
 - **Đường dẫn tuyệt đối của worktree** + câu: *"`cd` không persist giữa các Bash call, mọi lệnh
   phải viết `cd <path> && <lệnh>` trong cùng một call"*
-- **Đường dẫn `gate-<ID>.sh`** + câu: *"chạy nó một call, đừng chạy tay lại từng lệnh"*
-- **Diff** (hoặc đường dẫn `.patch`) + câu: *"đây là output của git, dùng thẳng — đừng `cat` lại
-  từng file để xem đã sửa gì"*
 - Danh sách file lấy từ `## Files touched` — **gắn nhãn "tuyên bố của lane, cần kiểm chứng"**
 - **Kịch bản đáng nghi nhất**: "kiểm giúp X có làm hỏng Y không", "tự tay gỡ fix ra rồi chạy lại xem
   test có đỏ không". Bảo verifier **tự làm lại thí nghiệm**, đừng tin số lane báo
-
-🔴 **Đừng cắt nhầm chỗ.** Cấp sẵn diff + gate là cắt phần *đi tìm lại*. Phần *tự nghĩ ra thí nghiệm*
-là lý do verifier tồn tại — brief phải đòi nó nhiều hơn, không phải ít hơn.
 
 Nhiều task cùng xong → spawn các verifier trong **một message**. Verify **task nào xong task đó**,
 đừng chờ cả lô.
@@ -549,15 +452,11 @@ Với **mọi** task vừa đóng (`PASS` hay blocker đều dọn):
 
 ```bash
 git -C "$WT_ROOT/<slug>" status --porcelain      # PHẢI rỗng trước khi gỡ
-cmux workspace close workspace:M                 # KHÔNG phải close-surface
+cmux close-surface --surface surface:N
 git worktree remove "$WT_ROOT/<slug>"
 ```
 
-Thứ tự: **kiểm sạch → đóng workspace → gỡ worktree**. Đảo thứ tự là có ngày gỡ mất việc chưa commit.
-
-⚠️ `cmux close-surface` trên surface cuối cùng của một workspace fail với
-`invalid_state: Cannot close the last surface` — lane là workspace riêng nên **luôn dùng
-`cmux workspace close`**.
+Thứ tự: **kiểm sạch → đóng pane → gỡ worktree**. Đảo thứ tự là có ngày gỡ mất việc chưa commit.
 
 `git status` **không** rỗng ⇒ còn việc chưa commit ⇒ **đừng gỡ**. Ghi vào `BRIEF.md`, giữ worktree,
 report user. Nhánh vẫn sống sau khi gỡ worktree — gỡ worktree không xoá nhánh.
@@ -565,8 +464,8 @@ report user. Nhánh vẫn sống sau khi gỡ worktree — gỡ worktree không 
 Cuối iteration, chốt lại một lần:
 
 ```bash
-cmux tree --all          # còn workspace lane nào không nên còn?
-git worktree list        # còn worktree nào mồ côi?
+"$CW"/skills/cmux-orchestration/lane-status.sh --all      # còn pane nào không nên còn?
+git worktree list                                          # còn worktree nào mồ côi?
 ```
 
 ## Bước 9 — Housekeeping BRIEF
@@ -610,8 +509,7 @@ Giống `looptasks`: `/loop 5m /looptasksv2 <file>`, hoặc `CronCreate` `*/5 * 
 
 ⚠️ **Chạy nền có cái giá riêng.** Lane sinh ra để bạn **nhìn và chặn được**; `/loop` nền thì không
 ai nhìn. dantt đã chốt cho phép (19/08), nên cái còn lại là **Bước 8 phải chạy đủ mọi iteration**.
-Thấy workspace tồn đọng trên sidebar hoặc `git worktree list` dài ra ⇒ Bước 8 đang bị bỏ, sửa ngay
-chứ đừng dọn tay.
+Thấy pane tồn đọng hoặc `git worktree list` dài ra ⇒ Bước 8 đang bị bỏ, sửa ngay chứ đừng dọn tay.
 
 Nhịp mặc định **5 phút** — muốn đổi thì hỏi user. Iteration rỗng nhiều thì nới ngưỡng lock, đừng
 giãn nhịp.

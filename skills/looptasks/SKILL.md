@@ -213,9 +213,29 @@ không còn là gate.
 
 Chạy nhiều task song song thì **verify task nào xong task đó** — đừng chờ cả lô xong rồi mới verify.
 Nhiều task cùng xong một lúc → spawn các `verifier` trong **một message**. Verifier là chặng tốn
-thời gian nhất của gần như mọi task (có lần **7,7 phút** cho delta một file), nên xếp chúng
-nối đuôi nhau là trả lại đúng phần wall-clock vừa tiết kiệm được ở Bước 4. Giao cho subagent `verifier` (`~/.claude/agents/verifier.md`): context sạch,
+thời gian nhất của gần như mọi task — đo trên 242 lần chạy thật: median **6,6 phút**, p90 **12,2p**,
+gần **1/5 số lần vượt 10 phút** — nên xếp chúng nối đuôi nhau là trả lại đúng phần wall-clock vừa
+tiết kiệm được ở Bước 4. Giao cho subagent `verifier` (`~/.claude/agents/verifier.md`): context sạch,
 không có Edit/Write, chạy done-criteria thật và trả verdict kèm bằng chứng.
+
+### Chuẩn bị trước khi spawn — cắt lượt, không cắt độ độc lập
+
+Bóc 73 lần verify còn transcript: **68% thời gian là round-trip model**, không phải lệnh chạy;
+**74% số Bash call là `cat`/`sed -n`/`grep`/`git diff` đi đọc lại code** (chỉ 26% thời gian lệnh).
+Verifier chậm vì median **74 lượt model / 37 call**, không vì mỗi lượt chậm (3,2s/lượt) — nên đổi
+model hay đổi executor không cứu được, chỉ giảm số lượt mới cứu.
+
+Đo lại bất cứ lúc nào: `python3 skills/looptasks/measure-verify.py` (đọc transcript Claude Code).
+Ngưỡng đọc kết quả: **giây/lượt > 6s** mới là bị bóp; dưới ngưỡng đó mà vẫn chậm thì lỗi ở số lượt.
+
+Hai thứ chuẩn bị sẵn, mỗi thứ cắt một nhóm call:
+
+- **Diff đầy đủ** (`git status --porcelain` + `git diff`, dài quá thì ghi ra `.patch` rồi đưa
+  đường dẫn tuyệt đối). Đây là output của git, không phải lời của agent — verifier được phép
+  dùng thẳng.
+- **`gate.sh` gộp cả khối gate của repo** (typecheck → build → test → lint, in exit code từng
+  cái, không dừng ở lỗi đầu), lệnh lấy **nguyên văn từ khối gate đầu `BRIEF.md`**. Verifier chạy
+  một call thay vì bốn. Repo không có gate rõ ràng → **đừng bịa script**, ghi vào brief là chưa có.
 
 Brief cho `verifier` gồm:
 
@@ -223,6 +243,8 @@ Brief cho `verifier` gồm:
 - **Đường dẫn tuyệt đối** nơi phải chạy (worktree của task, hoặc repo root nếu tuần tự) —
   kèm câu: *"`cd` không persist giữa các Bash call, mọi lệnh phải viết `cd <path> && <lệnh>`
   trong cùng một call"*
+- **Đường dẫn `gate.sh`** + *"chạy một call, đừng chạy tay lại từng lệnh"*
+- **Diff** + *"dùng thẳng, đừng `cat` lại từng file để xem đã sửa gì"*
 - Danh sách file agent nói đã sửa
 
 **Không dán report giải thích của agent viết code vào brief.** Cần đưa thì gắn nhãn rõ

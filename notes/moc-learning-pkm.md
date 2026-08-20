@@ -51,6 +51,9 @@ updated: 2026-08-19
   secret ở bước "đã tạo MR": xoá dòng code chỉ đóng *nguồn rò rỉ*, còn *giá trị đang sống* thì
   vẫn dùng được và git history vẫn phát lại nó. Deliverable là MR **+** danh sách rotate có thứ
   tự. Phân loại secret thật vs định danh công khai: [[api-key-cong-khai-khong-phai-secret]].
+- [[feedback-khong-in-secret-ra-chat]] — mở khi một token đang đi qua tay mình trong lúc làm việc:
+  chỉ nhắc **tên biến** và truyền qua env của đúng lệnh đó; transcript được lưu ra đĩa và
+  `brain-digest` đọc lại mỗi tối nên một lần in ra chat là không rút lại được.
 
 ## Rust
 
@@ -89,6 +92,9 @@ updated: 2026-08-19
 - [[digest-ticket-mcrsv-2026-08-19]] — mở khi một agent báo "đã sửa" mà thay đổi biến mất, hoặc khi
   một file generated bị gitignore: verifier bị cấm chạy git vẫn `git checkout --` hai lần trong một
   phiên, và `.pb.go` sinh tay không tái tạo được ở checkout mới.
+- [[digest-ticket-mcrsv-2026-08-20]] — mở khi định dựng lane agent ngoài Claude để chạy song song:
+  bản `codex` nào dùng được, vì sao `cmux new-split` không thành lane riêng, và vì sao file marker
+  thắng hook store; kèm bẫy suy luận "trạng thái X nghĩa là Y chưa xảy ra" lặp lần thứ ba.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 

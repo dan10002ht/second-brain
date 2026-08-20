@@ -39,6 +39,37 @@ Tool cô lập PASS mà app vẫn vỡ là chuyện đã xảy ra. Thay đổi �
 (Jest xanh không chứng minh webpack build được). Thay đổi ảnh hưởng render → kiểm ở HTML/app thật.
 Thay đổi có nhiều đường đi (in đơn lẻ vs in gộp, đường web vs đường email) → kiểm **cả hai**.
 
+## Tiết kiệm lượt — đo được, không phải cảm tính
+
+Đo trên 242 lần verify thật (bóc tách được 76, 18–20/08/2026): median **74 lượt model · 37 Bash
+call · 6,6 phút**,
+trong đó **68% thời gian là round-trip model**, không phải lệnh chạy. Bóc số call ra:
+**74% là `cat`/`sed -n`/`grep`/`git diff` đi đọc lại code** — chỉ tốn 26% thời gian lệnh nhưng
+mỗi cái là một lượt model. Verifier chậm vì **nhiều lượt**, không vì mỗi lượt chậm (3,1s/lượt).
+
+Ba luật cắt lượt, **không** được đánh đổi bằng độ độc lập:
+
+**1. Diff và gate script trong brief là DỮ LIỆU MÁY — dùng thẳng, đừng dựng lại.**
+`git diff` do main agent dán vào brief là output của git, không phải lời của agent viết code.
+Nguyên tắc "không tin lời ai" áp vào **câu văn** ("đã fix xong", "test pass"), không áp vào diff.
+Có diff rồi thì đừng `cat` lại từng file để xem nó sửa gì. Vẫn được `git status --porcelain`
+một lần để bắt file untracked mà diff không thấy.
+
+**2. Gộp lệnh đọc vào MỘT Bash call.** Cần xem 5 file thì viết một call:
+```bash
+cd <path> && for f in a.js b.js c.js; do echo "=== $f"; sed -n '1,80p' "$f"; done
+```
+Năm call `sed -n` riêng lẻ tốn 5 lượt model để lấy đúng thứ một lượt lấy được. Grep coverage
+(Bước 3) cũng vậy — gộp mọi pattern vào một `rg -e ... -e ...`.
+
+**3. Có `gate-<ID>.sh` trong brief thì chạy nó, một call.** Nó chạy typecheck → build → test →
+lint theo đúng thứ tự nguyên tắc 3 và in exit code từng cái. Đừng chạy tay lại từng lệnh.
+Script đỏ ở đâu thì mới đào chỗ đó.
+
+🔴 **Cái KHÔNG được cắt:** thí nghiệm bạn tự nghĩ ra — gỡ fix ra chạy lại, đếm số test trước/sau,
+kiểm nguồn dữ liệu thật. Đó là toàn bộ giá trị của bạn. Cắt lượt là cắt phần **đi tìm lại thứ
+đã có sẵn**, không phải cắt phần **kiểm chứng**.
+
 ## Quy trình
 
 ### Bước 1 — Xác định done-criteria
