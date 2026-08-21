@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-20 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 8 item ngày 08-20: 3 digest + 2 shipped + 2 decision + 1 feedback)_
+_Cập nhật: 2026-08-21 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-21: 3 digest + 1 shipped + 2 decision + 2 resource + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -63,6 +63,8 @@ _Cập nhật: 2026-08-20 · Trạng thái: đã seed 12 project + notes học t
 - [[brief-state-agent-loop]] — `BRIEF.md` là shared state duy nhất sống ngoài mọi context window, nên nó là thứ session sau tin tuyệt đối — và nó thối theo bốn kiểu (checkbox nói dối, lock treo, con số cũ bị đọc như phép đo, doc lạc hậu ở đầu file); dọn nó là một bước của loop chứ không phải việc phụ.
 - [[gate-quet-ma-nguon-bang-ast]] — một gate kiểu "không được log thứ này" viết bằng regex sẽ luôn còn khe (comment, xuống dòng, alias, camelCase) và dễ bị tự-allowlist; dựng trên AST thì cú pháp hết là biến số.
 - [[khong-cache-response-co-auth]] — một API trả dữ liệu riêng theo người gọi mà đi qua CDN/hosting mặc định sẽ phát lại response của lượt gọi trước cho lượt sau; triệu chứng kinh điển là mọi request đều trả cùng một mã lỗi, kể cả request đáng lẽ phải 401.
+- [[do-be-ngang-headless-chrome]] — Chrome headless có sàn viewport 500px nên `--window-size=375` vẫn cho `innerWidth=500`; `scrollWidth` trong iframe bị kẹp về bề ngang iframe nên không bao giờ báo tràn; và `documentElement.scrollWidth` đo cửa sổ chứ không đo nội dung — nên trước khi kết luận code tràn hay không, phải assert chính cái thước.
+- [[truong-last-verified]] — thêm `last-verified`/`verified-by` vào doc tạo ra một lời hứa mà CI chỉ kiểm được *có trường hay không*, chứ không kiểm được nó *đúng hay không* — nên điền hàng loạt biến một file chưa ai đọc thành một file "đã được xác minh", và người sau sẽ tin nó thay vì kiểm lại.
 - [[api-key-cong-khai-khong-phai-secret]] — với secret thật thì rotate = xong, vì toàn bộ vấn đề là vô hiệu hoá giá trị cũ; nhưng với một key vốn được in ra browser (Firebase/Google API key, publishable key), giá trị mới cũng lộ ngay lượt tải trang đầu tiên, nên biện pháp thật là restrict theo referrer/API + thứ tự "đổi mọi consumer → redeploy → verify → mới xoá key cũ".
 
 **Học tập:**
@@ -209,6 +211,10 @@ _Cập nhật: 2026-08-20 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-joyxjoy-2026-08-20]] — Trang trống dù dữ liệu đủ vì ba tầng im lặng — `shop.metafields.ns.key.data` là Metafield drop phải qua `.value`, metafield không có definition `PUBLIC_READ` thì storefront không đọc được, và sản phẩm tạo qua API chưa publish thì Liquid không thấy; cộng `div:empty{display:none}` của theme khách ẩn sạch ô ảnh của mình.
 - [[shipped-pdf-2026-08-20]] — Master chỉ nhận 2 MR tài liệu của BA (không code, không tag); khối lượng thật trên 3 nhánh — template sync đẩy design mới xuống shop cũ theo vân tay SHA-1, chuỗi SB-15764 tự đảo kết luận về nguyên nhân nháy trắng, và gate B2B đổi từ allowlist env sang plan Wholesale. ⚠️ có 2 mục "cần xác nhận".
 - [[digest-ticket-mcrsv-2026-08-20]] — Lane codex chỉ chạy được với bản npm `@openai/codex` chứ không phải bản trong ChatGPT.app, sidebar cmux liệt kê workspace chứ không phải pane, watcher nền bị kill nên chính nhịp cron 5 phút mới là đồng hồ đáng tin; và bẫy suy luận đắt nhất của repo lặp lại lần thứ ba — "trạng thái X nghĩa là Y chưa xảy ra".
+- [[shipped-subscriptions-2026-08-21]] — Master nhận 4 MR (3 code: discount name field volume bundle, mang discount code + manual discount cấp order qua đường import Appstle; 1 mockup/PRD) mà KHÔNG có tag/version bump nào; khối lượng thật trên nhánh — landing joyxjoy chạy được thật trên store dev, 2 lát CLS Home đảo hướng so với audit 08-19, banner validate theme cho portal, và bộ e2e/QA recon.
+- [[digest-subscriptions-2026-08-21]] — CHỈ phần mới của việc đưa landing joyxjoy chạy thật trên store dev: `ETIMEDOUT` của Shopify Admin API là chập chờn theo từng call chứ không theo store; `sellingPlanGroupCreate` báo thành công mà 9/14 group không tồn tại; token app không ghi được theme (Shopify CLI thì được); Shopify cache trang theo theme nên phải `?preview_theme_id=`; và gỡ worktree xoá luôn 13MB ảnh mockup mà `git status` không hề nhắc.
+- [[digest-pdf-2026-08-21]] — số tiền bị ngắt giữa chữ số vì `overflow-wrap:anywhere` trên ô amount; email fixed ~600px giấu sạch số tiền trên điện thoại; sàn 373px không đến từ `min-width` như tôi chẩn đoán mà từ line item + `white-space:nowrap`; và merge nhẹ theo từng sub-object của `getForShop` khiến shop đã lưu theme cũ không bao giờ ăn default mới.
+- [[digest-ticket-mcrsv-2026-08-21]] — chạy thật end-to-end (đặt → capture → huỷ/hoàn tiền) lòi ra 3 lỗ nặng hơn mọi thứ đã đóng, gồm bán trùng ghế đã có người trả tiền; `env.example` của ticket-service ghi cổng gRPC trùng event-service nên checkout mới là hỏng; email-worker có HAI hệ config song song cho cùng một cổng; và README/doc vừa nói quá vừa nói thiếu so với code đang chạy.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -250,6 +256,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-19-page-custom-o-theme-khach]] — Landing "Build Your Subscription" cho joywholefoods đi bằng Liquid section trong theme khách + một scripttag bundle riêng, thay vì app block trong theme-app-extension hay tái dùng feature Subscription Box (review 2026-11-19).
 - [[2026-08-20-b2b-gate-plan-thay-allowlist]] — Bỏ hẳn `B2B_DISCOUNT_SHOP_ALLOWLIST` (env `B2B_DISCOUNT_SHOPS`) làm điều kiện chạy auto-apply discount, thay bằng `isShopWholesale(shop)` — cùng entitlement mà phần còn lại của app đã gate B2B. ⚠️ CHƯA MERGE (review 2026-11-20).
 - [[2026-08-20-seed-dev-qua-luong-http-that]] — Script seed Fixed Bundle gọi `POST /apiSa/apiSa/fixed-bundle` với Firebase ID token thay vì ghi thẳng Firestore + Shopify, để mọi hook phụ (metafield, selling plan, rebuild `avada_custom_landing`) tự chạy đúng như lúc merchant bấm Save (review 2026-11-20).
+- [[2026-08-21-cls-home-freeze-variant]] — Joy Subscription bỏ hai hướng trước đó cho CLS Home (gate cả hai variant sau `isWidgetStatusKnown`, và skeleton placeholder mà audit 08-19 khuyến nghị), thay bằng đóng băng lựa chọn variant từ localStorage trước frame đầu — đổi lại chấp nhận dữ liệu cũ tới 48h TTL. ⚠️ CHƯA MERGE (review 2026-11-21).
+- [[2026-08-21-line-item-email-kieu-joy]] — PDF Invoice bỏ hướng "line item tự stack khi hẹp hơn ~340px" (đã implement, đã có test khoá ngưỡng) và bỏ luôn `inline-block` + `min-width`, chuyển sang đúng cách Joy dựng — hai `<td>` thật trong một `<tr>`, ảnh `width:60px` nhưng `img{width:100%}` nên co được, giá không `white-space:nowrap`. ⚠️ CHƯA MERGE (review 2026-11-21).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
@@ -271,6 +279,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-xoa-secret-khoi-code-chua-phai-vo-hieu-hoa]] — xoá secret khỏi code + tạo MR chưa phải là fix — giá trị cũ còn trong git history và còn hiệu lực; phải rà lại danh sách, probe xem cái nào còn sống, xếp thứ tự rotate và báo team.
 - [[feedback-hoi-be-mat-truoc-khi-audit]] — "Check CLS" có hai bề mặt hoàn toàn khác nhau (storefront của merchant vs embedded admin app cho Built for Shopify) — tôi tự chọn storefront và đốt trọn một vòng audit + verify vào sai đề.
 - [[feedback-khong-in-secret-ra-chat]] — khi user đưa token hoặc chỉ chỗ lấy key, chỉ tham chiếu tên biến và truyền qua env của lệnh; không echo giá trị, không liệt kê danh sách biến khi đang dò tìm, và thiếu token thì tìm đường không cần token chứ không đi moi.
+- [[feedback-khong-dung-vs-chua-lam-toi]] — trước khi gắn nhãn một service/module là thừa và đề xuất cleanup, phải đọc plan/roadmap xem nó là đường cụt hay chỉ là phần chưa tới lượt build — dữ kiện đo được (không có reference nào) không phân biệt được hai thứ đó.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable

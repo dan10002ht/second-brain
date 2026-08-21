@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-19
+updated: 2026-08-21
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -51,6 +51,15 @@ updated: 2026-08-19
   secret ở bước "đã tạo MR": xoá dòng code chỉ đóng *nguồn rò rỉ*, còn *giá trị đang sống* thì
   vẫn dùng được và git history vẫn phát lại nó. Deliverable là MR **+** danh sách rotate có thứ
   tự. Phân loại secret thật vs định danh công khai: [[api-key-cong-khai-khong-phai-secret]].
+- [[truong-last-verified]] — mở khi định thêm một trường "đã kiểm" (`last-verified`, `status: done`,
+  checkbox BRIEF) hoặc điền nó hàng loạt: gate chỉ kiểm được *có trường hay không*, nên một trường
+  sai làm người sau **ngừng** kiểm — để trống là câu trả lời hợp lệ.
+- [[do-be-ngang-headless-chrome]] — mở khi sắp kết luận "tràn / không tràn" từ một phép đo trong
+  headless Chrome: sàn viewport 500px, `scrollWidth` trong iframe và `documentElement.scrollWidth`
+  đều nói dối; assert chính cái thước trước, và một con số giả đưa vào brief sẽ ship ra code sai.
+- [[feedback-khong-dung-vs-chua-lam-toi]] — mở khi định gắn nhãn một service/module là thừa và đề
+  xuất xoá: zero-reference khớp với cả "không ai cần" lẫn "chưa ai viết" — phải đọc plan/roadmap
+  mới phân biệt được.
 - [[feedback-khong-in-secret-ra-chat]] — mở khi một token đang đi qua tay mình trong lúc làm việc:
   chỉ nhắc **tên biến** và truyền qua env của đúng lệnh đó; transcript được lưu ra đĩa và
   `brain-digest` đọc lại mỗi tối nên một lần in ra chat là không rút lại được.
@@ -95,6 +104,9 @@ updated: 2026-08-19
 - [[digest-ticket-mcrsv-2026-08-20]] — mở khi định dựng lane agent ngoài Claude để chạy song song:
   bản `codex` nào dùng được, vì sao `cmux new-split` không thành lane riêng, và vì sao file marker
   thắng hook store; kèm bẫy suy luận "trạng thái X nghĩa là Y chưa xảy ra" lặp lần thứ ba.
+- [[digest-ticket-mcrsv-2026-08-21]] — mở khi BRIEF đã hết task và mọi gate xanh: bắn thật một
+  chuỗi end-to-end vẫn lòi ra 3 lỗ P0 (nặng nhất là bán trùng ghế đã trả tiền); kèm `env.example`
+  sai cổng là bug thật chứ không phải chuyện tài liệu, và doc nói dối theo cả hai chiều.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 
