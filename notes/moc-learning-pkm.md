@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-21
+updated: 2026-08-22
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -60,6 +60,15 @@ updated: 2026-08-21
 - [[feedback-khong-dung-vs-chua-lam-toi]] — mở khi định gắn nhãn một service/module là thừa và đề
   xuất xoá: zero-reference khớp với cả "không ai cần" lẫn "chưa ai viết" — phải đọc plan/roadmap
   mới phân biệt được.
+- [[gate-tu-viet-la-nguon-xanh-gia]] — mở khi sắp tin verdict PASS của một gate script mình tự viết:
+  `$?` bị nuốt bởi lệnh cuối trong subshell và test thiếu hạ tầng thì SKIP im lặng mà vẫn in `ok` —
+  tiêm một lỗi thật vào và xem gate có đỏ không, trước khi dùng nó chấm ai.
+- [[feedback-dung-xin-chot-khi-chi-thi-da-co]] — mở khi đang soạn một câu "anh chốt giúp em cái nào":
+  nếu chỉ thị đứng sẵn đã trả lời và hai nhánh không đánh đổi nhau thì hỏi chốt là xin thu hẹp phạm
+  vi, không phải cẩn thận — tự quyết, làm, rồi báo kết quả.
+- [[2026-08-22-cau-truc-doc-theo-vong-doi]] — mở khi một cây doc trôi thành sai mà không ai chịu trách
+  nhiệm: xếp theo *hợp đồng với sự thật* (living / plans / archive) chứ không theo chủ đề, vì chỉ khi
+  có ranh giới đó thì CI mới gate được mà không đỏ vĩnh viễn.
 - [[feedback-khong-in-secret-ra-chat]] — mở khi một token đang đi qua tay mình trong lúc làm việc:
   chỉ nhắc **tên biến** và truyền qua env của đúng lệnh đó; transcript được lưu ra đĩa và
   `brain-digest` đọc lại mỗi tối nên một lần in ra chat là không rút lại được.
@@ -107,6 +116,9 @@ updated: 2026-08-21
 - [[digest-ticket-mcrsv-2026-08-21]] — mở khi BRIEF đã hết task và mọi gate xanh: bắn thật một
   chuỗi end-to-end vẫn lòi ra 3 lỗ P0 (nặng nhất là bán trùng ghế đã trả tiền); kèm `env.example`
   sai cổng là bug thật chứ không phải chuyện tài liệu, và doc nói dối theo cả hai chiều.
+- [[digest-ticket-mcrsv-2026-08-22]] — mở khi một gate/CI của chính mình đang là thứ quyết định
+  PASS/FAIL: hai kiểu xanh giả trong một phiên, migration đã merge chưa bao giờ được áp lên DB dev,
+  và `env.example` khai biến mà code không đọc.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 

@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-21 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 9 item ngày 08-21: 3 digest + 1 shipped + 2 decision + 2 resource + 1 feedback)_
+_Cập nhật: 2026-08-22 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 8 item ngày 08-22: 3 digest + 2 shipped + 1 decision + 1 resource + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -65,6 +65,7 @@ _Cập nhật: 2026-08-21 · Trạng thái: đã seed 12 project + notes học t
 - [[khong-cache-response-co-auth]] — một API trả dữ liệu riêng theo người gọi mà đi qua CDN/hosting mặc định sẽ phát lại response của lượt gọi trước cho lượt sau; triệu chứng kinh điển là mọi request đều trả cùng một mã lỗi, kể cả request đáng lẽ phải 401.
 - [[do-be-ngang-headless-chrome]] — Chrome headless có sàn viewport 500px nên `--window-size=375` vẫn cho `innerWidth=500`; `scrollWidth` trong iframe bị kẹp về bề ngang iframe nên không bao giờ báo tràn; và `documentElement.scrollWidth` đo cửa sổ chứ không đo nội dung — nên trước khi kết luận code tràn hay không, phải assert chính cái thước.
 - [[truong-last-verified]] — thêm `last-verified`/`verified-by` vào doc tạo ra một lời hứa mà CI chỉ kiểm được *có trường hay không*, chứ không kiểm được nó *đúng hay không* — nên điền hàng loạt biến một file chưa ai đọc thành một file "đã được xác minh", và người sau sẽ tin nó thay vì kiểm lại.
+- [[gate-tu-viet-la-nguon-xanh-gia]] — một gate script mình tự viết cho agent thường không thể đỏ được — vì `$?` bị nuốt bởi lệnh cuối trong subshell, và vì test thiếu hạ tầng thì SKIP im lặng mà vẫn in `ok`; nên trước khi tin verdict PASS phải chứng minh gate đỏ được.
 - [[api-key-cong-khai-khong-phai-secret]] — với secret thật thì rotate = xong, vì toàn bộ vấn đề là vô hiệu hoá giá trị cũ; nhưng với một key vốn được in ra browser (Firebase/Google API key, publishable key), giá trị mới cũng lộ ngay lượt tải trang đầu tiên, nên biện pháp thật là restrict theo referrer/API + thứ tự "đổi mọi consumer → redeploy → verify → mới xoá key cũ".
 
 **Học tập:**
@@ -215,6 +216,11 @@ _Cập nhật: 2026-08-21 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-21]] — CHỈ phần mới của việc đưa landing joyxjoy chạy thật trên store dev: `ETIMEDOUT` của Shopify Admin API là chập chờn theo từng call chứ không theo store; `sellingPlanGroupCreate` báo thành công mà 9/14 group không tồn tại; token app không ghi được theme (Shopify CLI thì được); Shopify cache trang theo theme nên phải `?preview_theme_id=`; và gỡ worktree xoá luôn 13MB ảnh mockup mà `git status` không hề nhắc.
 - [[digest-pdf-2026-08-21]] — số tiền bị ngắt giữa chữ số vì `overflow-wrap:anywhere` trên ô amount; email fixed ~600px giấu sạch số tiền trên điện thoại; sàn 373px không đến từ `min-width` như tôi chẩn đoán mà từ line item + `white-space:nowrap`; và merge nhẹ theo từng sub-object của `getForShop` khiến shop đã lưu theme cũ không bao giờ ăn default mới.
 - [[digest-ticket-mcrsv-2026-08-21]] — chạy thật end-to-end (đặt → capture → huỷ/hoàn tiền) lòi ra 3 lỗ nặng hơn mọi thứ đã đóng, gồm bán trùng ghế đã có người trả tiền; `env.example` của ticket-service ghi cổng gRPC trùng event-service nên checkout mới là hỏng; email-worker có HAI hệ config song song cho cùng một cổng; và README/doc vừa nói quá vừa nói thiếu so với code đang chạy.
+- [[shipped-pdf-2026-08-22]] — Master chỉ nhận 1 MR mockup/PRD (!527, không tag, không version bump); toàn bộ khối lượng là 14 commit SB-15857 dựng lại email payment reminder theo layout mới trên chùm nhánh `feature/reminder-*` (kèm nút DevZone reset template), cộng một job CI mới đòi `deploy_staging_4` cho `fix/print-invoice-discount`. ⚠️ có 2 mục "cần xác nhận".
+- [[digest-pdf-2026-08-22]] — Email co được xuống 277px nhờ bỏ nowrap + cột ảnh co được (không phải min-width như đã chẩn đoán); "Send test" dùng sample order chứ không phải data thật; 422 chỉ là vỏ của lỗi SMTP 502; và đơn B2B không có địa chỉ trên order mà ở company location.
+- [[shipped-subscriptions-2026-08-22]] — Master nhận đúng 1 MR dưới tag `v2.34.84` — legacy change-discount plan bị tính giá kỳ đầu cho mọi kỳ nên đơn 2+ thu 30% thay vì 17.36% (JSUB-260820); khối lượng thật là 5 commit landing joyxjoy, trong đó lazy-fetch chưa từng chạy vì gọi `/products.js` (404) thay vì `.json`. ⚠️ có 2 mục "cần xác nhận".
+- [[digest-subscriptions-2026-08-22]] — Lazy-fetch chưa từng chạy vì gọi `/collections/{h}/products.js` thay vì `.json`; `1fr` trong grid là `minmax(auto,1fr)` nên tràn; push section và template cùng lệnh làm Shopify âm thầm vứt setting mới; và seed qua route HTTP thật kéo theo publish + rebuild metafield mà ghi thẳng Firestore không có.
+- [[digest-ticket-mcrsv-2026-08-22]] — Gate script tự viết của tôi là nguồn xanh giả hai lần trong một phiên; `env.example` khai biến mà code không đọc nên cấu hình "đã set" vẫn vô hiệu; và `last-verified` tôi điền hàng loạt biến doc chưa ai kiểm thành doc "đã xác minh".
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -258,6 +264,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-20-seed-dev-qua-luong-http-that]] — Script seed Fixed Bundle gọi `POST /apiSa/apiSa/fixed-bundle` với Firebase ID token thay vì ghi thẳng Firestore + Shopify, để mọi hook phụ (metafield, selling plan, rebuild `avada_custom_landing`) tự chạy đúng như lúc merchant bấm Save (review 2026-11-20).
 - [[2026-08-21-cls-home-freeze-variant]] — Joy Subscription bỏ hai hướng trước đó cho CLS Home (gate cả hai variant sau `isWidgetStatusKnown`, và skeleton placeholder mà audit 08-19 khuyến nghị), thay bằng đóng băng lựa chọn variant từ localStorage trước frame đầu — đổi lại chấp nhận dữ liệu cũ tới 48h TTL. ⚠️ CHƯA MERGE (review 2026-11-21).
 - [[2026-08-21-line-item-email-kieu-joy]] — PDF Invoice bỏ hướng "line item tự stack khi hẹp hơn ~340px" (đã implement, đã có test khoá ngưỡng) và bỏ luôn `inline-block` + `min-width`, chuyển sang đúng cách Joy dựng — hai `<td>` thật trong một `<tr>`, ảnh `width:60px` nhưng `img{width:100%}` nên co được, giá không `white-space:nowrap`. ⚠️ CHƯA MERGE (review 2026-11-21).
+- [[2026-08-22-cau-truc-doc-theo-vong-doi]] — 61 file doc của `ticket-mcrsv` được xếp lại theo *hợp đồng với sự thật* chứ không theo chủ đề — living phải đúng hôm nay, archive bất biến và link chết trong đó không được sửa — kèm ADR, front-matter và CI check (review 2026-11-22).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
@@ -280,6 +287,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-hoi-be-mat-truoc-khi-audit]] — "Check CLS" có hai bề mặt hoàn toàn khác nhau (storefront của merchant vs embedded admin app cho Built for Shopify) — tôi tự chọn storefront và đốt trọn một vòng audit + verify vào sai đề.
 - [[feedback-khong-in-secret-ra-chat]] — khi user đưa token hoặc chỉ chỗ lấy key, chỉ tham chiếu tên biến và truyền qua env của lệnh; không echo giá trị, không liệt kê danh sách biến khi đang dò tìm, và thiếu token thì tìm đường không cần token chứ không đi moi.
 - [[feedback-khong-dung-vs-chua-lam-toi]] — trước khi gắn nhãn một service/module là thừa và đề xuất cleanup, phải đọc plan/roadmap xem nó là đường cụt hay chỉ là phần chưa tới lượt build — dữ kiện đo được (không có reference nào) không phân biệt được hai thứ đó.
+- [[feedback-dung-xin-chot-khi-chi-thi-da-co]] — khi user đã ra một chỉ thị bao trùm ("hoàn thiện nhất có thể, không làm qua loa"), việc dừng lại hỏi "anh chốt cái nào" cho hai việc rõ ràng nằm trong đó là đẩy quyết định ngược về phía user, không phải cẩn thận.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable
