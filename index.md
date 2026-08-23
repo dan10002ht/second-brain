@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-22 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 8 item ngày 08-22: 3 digest + 2 shipped + 1 decision + 1 resource + 1 feedback)_
+_Cập nhật: 2026-08-23 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 5 item ngày 08-23: 2 resource + 2 decision archive-proposal + 1 bản sửa area `dev-skills`)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -38,7 +38,7 @@ _Cập nhật: 2026-08-22 · Trạng thái: đã seed 12 project + notes học t
 ## 🔁 Areas (20-areas/) — trách nhiệm duy trì lâu dài
 
 - [[shopify-app-dev]] — phát triển & bảo trì app Shopify tại AVADA (mảng chính).
-- [[dev-skills]] — kỹ năng lập trình (JS/TS/Node chính; Rust/Python học thêm).
+- [[dev-skills]] — kỹ năng lập trình: JS/TS/Node là trụ cột số một, Java (Spring Boot) + Go và hạ tầng dịch vụ phân tán là trụ cột thứ hai (backend ngoài Avada), Rust vẫn là hướng học thêm.
 - [[aws-certification]] — học AWS & lấy chứng chỉ.
 
 ## 📚 Resources (30-resources/) — chủ đề & học tập
@@ -66,6 +66,8 @@ _Cập nhật: 2026-08-22 · Trạng thái: đã seed 12 project + notes học t
 - [[do-be-ngang-headless-chrome]] — Chrome headless có sàn viewport 500px nên `--window-size=375` vẫn cho `innerWidth=500`; `scrollWidth` trong iframe bị kẹp về bề ngang iframe nên không bao giờ báo tràn; và `documentElement.scrollWidth` đo cửa sổ chứ không đo nội dung — nên trước khi kết luận code tràn hay không, phải assert chính cái thước.
 - [[truong-last-verified]] — thêm `last-verified`/`verified-by` vào doc tạo ra một lời hứa mà CI chỉ kiểm được *có trường hay không*, chứ không kiểm được nó *đúng hay không* — nên điền hàng loạt biến một file chưa ai đọc thành một file "đã được xác minh", và người sau sẽ tin nó thay vì kiểm lại.
 - [[gate-tu-viet-la-nguon-xanh-gia]] — một gate script mình tự viết cho agent thường không thể đỏ được — vì `$?` bị nuốt bởi lệnh cuối trong subshell, và vì test thiếu hạ tầng thì SKIP im lặng mà vẫn in `ok`; nên trước khi tin verdict PASS phải chứng minh gate đỏ được.
+- [[ack-khong-phai-hieu-ung]] — một mutation/job/deploy trả thành công chỉ chứng minh lời gọi được nhận, không chứng minh trạng thái đã đổi — kiểm `userErrors` + `exit 0` vẫn để lọt "9/14 group không tồn tại", nên bước đóng việc phải là đọc lại từ nguồn chuẩn bằng một đường khác với đường vừa ghi.
+- [[cham-viec-agent-nen]] — khi việc chạy ở agent/lane nền, mọi tín hiệu tiện tay (report, mtime, CPU, tên pane, verdict) đều trả lời một câu hỏi KHÁC với câu đang hỏi — và một FAIL phải được phân loại (defect / artefact môi trường / bất đồng thiết kế) trước khi giao lại.
 - [[api-key-cong-khai-khong-phai-secret]] — với secret thật thì rotate = xong, vì toàn bộ vấn đề là vô hiệu hoá giá trị cũ; nhưng với một key vốn được in ra browser (Firebase/Google API key, publishable key), giá trị mới cũng lộ ngay lượt tải trang đầu tiên, nên biện pháp thật là restrict theo referrer/API + thứ tự "đổi mọi consumer → redeploy → verify → mới xoá key cũ".
 
 **Học tập:**
@@ -265,6 +267,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-21-cls-home-freeze-variant]] — Joy Subscription bỏ hai hướng trước đó cho CLS Home (gate cả hai variant sau `isWidgetStatusKnown`, và skeleton placeholder mà audit 08-19 khuyến nghị), thay bằng đóng băng lựa chọn variant từ localStorage trước frame đầu — đổi lại chấp nhận dữ liệu cũ tới 48h TTL. ⚠️ CHƯA MERGE (review 2026-11-21).
 - [[2026-08-21-line-item-email-kieu-joy]] — PDF Invoice bỏ hướng "line item tự stack khi hẹp hơn ~340px" (đã implement, đã có test khoá ngưỡng) và bỏ luôn `inline-block` + `min-width`, chuyển sang đúng cách Joy dựng — hai `<td>` thật trong một `<tr>`, ảnh `width:60px` nhưng `img{width:100%}` nên co được, giá không `white-space:nowrap`. ⚠️ CHƯA MERGE (review 2026-11-21).
 - [[2026-08-22-cau-truc-doc-theo-vong-doi]] — 61 file doc của `ticket-mcrsv` được xếp lại theo *hợp đồng với sự thật* chứ không theo chủ đề — living phải đúng hôm nay, archive bất biến và link chết trong đó không được sửa — kèm ADR, front-matter và CI check (review 2026-11-22).
+- [[2026-08-23-archive-crm]] — repo `~/projects/crm` không có commit từ 2026-03-23 (153 ngày) và không xuất hiện trong bất kỳ digest/shipped nào suốt tháng 7–8 — đề xuất chuyển khỏi `10-projects/` theo nghĩa PARA "không active", app vẫn được liệt kê ở area [[shopify-app-dev]] (review 2026-11-23).
+- [[2026-08-23-archive-joy]] — repo `~/projects/joy` không có commit từ 2026-01-08 (227 ngày) và chưa từng có digest riêng, dù Joy Loyalty vẫn được chạm gián tiếp từ phía subscriptions — đề xuất chuyển khỏi `10-projects/` và để trách nhiệm bảo trì sống ở area [[shopify-app-dev]] (review 2026-11-23).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)

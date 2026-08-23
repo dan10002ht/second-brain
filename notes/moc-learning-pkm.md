@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-22
+updated: 2026-08-23
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -69,6 +69,14 @@ updated: 2026-08-22
 - [[2026-08-22-cau-truc-doc-theo-vong-doi]] — mở khi một cây doc trôi thành sai mà không ai chịu trách
   nhiệm: xếp theo *hợp đồng với sự thật* (living / plans / archive) chứ không theo chủ đề, vì chỉ khi
   có ranh giới đó thì CI mới gate được mà không đỏ vĩnh viễn.
+- [[ack-khong-phai-hieu-ung]] — mở khi sắp gọi một việc là xong vì lệnh ghi không báo lỗi
+  (`userErrors` rỗng, `exit 0`, HTTP 200, job `DONE`, "deploy succeeded"): ack chỉ nói lời gọi
+  được nhận trên đúng đường mình đang nhìn — đọc lại từ nguồn chuẩn bằng một đường KHÁC rồi
+  mới đóng, và đếm ra số thay vì đọc log.
+- [[cham-viec-agent-nen]] — mở khi đang chấm việc của một agent/lane chạy nền: report xuất hiện,
+  mtime, CPU, tên pane và cả verdict của verifier đều trả lời câu hỏi khác với câu đang hỏi;
+  kèm cách phân loại một FAIL (defect thật / artefact môi trường / bất đồng thiết kế) trước khi
+  giao lại — giao lại nhầm loại là đốt trọn một vòng.
 - [[feedback-khong-in-secret-ra-chat]] — mở khi một token đang đi qua tay mình trong lúc làm việc:
   chỉ nhắc **tên biến** và truyền qua env của đúng lệnh đó; transcript được lưu ra đĩa và
   `brain-digest` đọc lại mỗi tối nên một lần in ra chat là không rút lại được.
