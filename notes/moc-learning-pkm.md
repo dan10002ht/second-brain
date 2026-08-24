@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-23
+updated: 2026-08-24
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -80,6 +80,9 @@ updated: 2026-08-23
 - [[feedback-khong-in-secret-ra-chat]] — mở khi một token đang đi qua tay mình trong lúc làm việc:
   chỉ nhắc **tên biến** và truyền qua env của đúng lệnh đó; transcript được lưu ra đĩa và
   `brain-digest` đọc lại mỗi tối nên một lần in ra chat là không rút lại được.
+- [[tien-khong-duoc-lay-float-lam-chuan]] — mở khi đang viết hoặc đang *kiểm* một phép tính tiền: giá
+  trị trung gian đúng vẫn hỏng ở bước nhân ngược về cents, và nếu chuẩn đối chiếu của phép kiểm cũng là
+  float thì hai bên sai giống nhau nên brute-force báo 0 lệch ở đúng những case nó sai.
 
 ## Rust
 
@@ -127,6 +130,12 @@ updated: 2026-08-23
 - [[digest-ticket-mcrsv-2026-08-22]] — mở khi một gate/CI của chính mình đang là thứ quyết định
   PASS/FAIL: hai kiểu xanh giả trong một phiên, migration đã merge chưa bao giờ được áp lên DB dev,
   và `env.example` khai biến mà code không đọc.
+- [[digest-ticket-mcrsv-2026-08-24]] — mở khi một endpoint 500 hàng loạt mà code trông đúng, hoặc khi
+  một tiến trình "còn nghe cổng" được coi là còn sống: migration đã merge có thể chưa bao giờ được áp
+  lên stack đang chạy, và log ngừng ghi 45 giờ là tín hiệu thật còn cổng mở thì không.
+- [[2026-08-24-cleanup-service-chua-dung-ticket-mcrsv]] — mở khi định xoá code "không ai gọi": chia ba
+  nhóm (đã nối dây / trong plan chưa tới lượt / vỏ rỗng chỉ có README) thay vì hai, vì zero-reference
+  không phân biệt được đường cụt với chưa-tới-lượt.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 

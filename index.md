@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-23 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 5 item ngày 08-23: 2 resource + 2 decision archive-proposal + 1 bản sửa area `dev-skills`)_
+_Cập nhật: 2026-08-24 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 6 item ngày 08-24: 3 digest + 2 decision + 1 resource)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -68,6 +68,7 @@ _Cập nhật: 2026-08-23 · Trạng thái: đã seed 12 project + notes học t
 - [[gate-tu-viet-la-nguon-xanh-gia]] — một gate script mình tự viết cho agent thường không thể đỏ được — vì `$?` bị nuốt bởi lệnh cuối trong subshell, và vì test thiếu hạ tầng thì SKIP im lặng mà vẫn in `ok`; nên trước khi tin verdict PASS phải chứng minh gate đỏ được.
 - [[ack-khong-phai-hieu-ung]] — một mutation/job/deploy trả thành công chỉ chứng minh lời gọi được nhận, không chứng minh trạng thái đã đổi — kiểm `userErrors` + `exit 0` vẫn để lọt "9/14 group không tồn tại", nên bước đóng việc phải là đọc lại từ nguồn chuẩn bằng một đường khác với đường vừa ghi.
 - [[cham-viec-agent-nen]] — khi việc chạy ở agent/lane nền, mọi tín hiệu tiện tay (report, mtime, CPU, tên pane, verdict) đều trả lời một câu hỏi KHÁC với câu đang hỏi — và một FAIL phải được phân loại (defect / artefact môi trường / bất đồng thiết kế) trước khi giao lại.
+- [[tien-khong-duoc-lay-float-lam-chuan]] — `17.935 * 100 === 1793.4999…` nên `Math.round` trên float lệch 1 cent; và khi brute-force đi tìm chỗ lệch, nếu chuẩn đối chiếu cũng là float thì phép kiểm sẽ báo sạch đúng ở những case nó sai.
 - [[api-key-cong-khai-khong-phai-secret]] — với secret thật thì rotate = xong, vì toàn bộ vấn đề là vô hiệu hoá giá trị cũ; nhưng với một key vốn được in ra browser (Firebase/Google API key, publishable key), giá trị mới cũng lộ ngay lượt tải trang đầu tiên, nên biện pháp thật là restrict theo referrer/API + thứ tự "đổi mọi consumer → redeploy → verify → mới xoá key cũ".
 
 **Học tập:**
@@ -223,6 +224,9 @@ _Cập nhật: 2026-08-23 · Trạng thái: đã seed 12 project + notes học t
 - [[shipped-subscriptions-2026-08-22]] — Master nhận đúng 1 MR dưới tag `v2.34.84` — legacy change-discount plan bị tính giá kỳ đầu cho mọi kỳ nên đơn 2+ thu 30% thay vì 17.36% (JSUB-260820); khối lượng thật là 5 commit landing joyxjoy, trong đó lazy-fetch chưa từng chạy vì gọi `/products.js` (404) thay vì `.json`. ⚠️ có 2 mục "cần xác nhận".
 - [[digest-subscriptions-2026-08-22]] — Lazy-fetch chưa từng chạy vì gọi `/collections/{h}/products.js` thay vì `.json`; `1fr` trong grid là `minmax(auto,1fr)` nên tràn; push section và template cùng lệnh làm Shopify âm thầm vứt setting mới; và seed qua route HTTP thật kéo theo publish + rebuild metafield mà ghi thẳng Firestore không có.
 - [[digest-ticket-mcrsv-2026-08-22]] — Gate script tự viết của tôi là nguồn xanh giả hai lần trong một phiên; `env.example` khai biến mà code không đọc nên cấu hình "đã set" vẫn vô hiệu; và `last-verified` tôi điền hàng loạt biến doc chưa ai kiểm thành doc "đã xác minh".
+- [[digest-subscriptions-2026-08-24]] — Shift của boot screen đến từ `2rem` neo vào html font-size mà Polaris hạ 16→13px (3 template phải sửa cả ba); landing joyxjoy chết ở add-to-cart vì Liquid không emit `variantId`; `theme push` in "pushed successfully" khi Shopify đã từ chối file; và `discountConfig.tiers` mới là nguồn discount thật chứ không phải `discountValue`.
+- [[digest-pdf-2026-08-24]] — 150 dòng comment trong file production là comment của file mockup bị port nguyên; sàn bề ngang email đến từ padding chồng ba tầng (56px/bên so với 44px của Joy); và giả định "feature này chưa ai dùng" sai với production — đếm sai hai lần vì chính phép đo của tôi.
+- [[digest-ticket-mcrsv-2026-08-24]] — Mọi POST /bookings 500 suốt một ngày vì migration của task trước chỉ chạy trong init container lúc `docker compose up`; ticket-service "còn sống" nhưng log ngừng ghi 45 giờ; và checker doc báo sạch vì glob của nó không chạm 17 README cấp service.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -269,6 +273,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-22-cau-truc-doc-theo-vong-doi]] — 61 file doc của `ticket-mcrsv` được xếp lại theo *hợp đồng với sự thật* chứ không theo chủ đề — living phải đúng hôm nay, archive bất biến và link chết trong đó không được sửa — kèm ADR, front-matter và CI check (review 2026-11-22).
 - [[2026-08-23-archive-crm]] — repo `~/projects/crm` không có commit từ 2026-03-23 (153 ngày) và không xuất hiện trong bất kỳ digest/shipped nào suốt tháng 7–8 — đề xuất chuyển khỏi `10-projects/` theo nghĩa PARA "không active", app vẫn được liệt kê ở area [[shopify-app-dev]] (review 2026-11-23).
 - [[2026-08-23-archive-joy]] — repo `~/projects/joy` không có commit từ 2026-01-08 (227 ngày) và chưa từng có digest riêng, dù Joy Loyalty vẫn được chạm gián tiếp từ phía subscriptions — đề xuất chuyển khỏi `10-projects/` và để trách nhiệm bảo trì sống ở area [[shopify-app-dev]] (review 2026-11-23).
+- [[2026-08-24-cleanup-service-chua-dung-ticket-mcrsv]] — Xoá `analytics-service`, `support-service`, `rate-limiter` và `boilerplate-service` (mỗi cái chỉ có README, không có code), giữ nguyên thứ đã nối đủ dây mà chưa ai bấm nút, và đặt hạn chót trong ROADMAP cho thứ nằm trong plan nhưng chưa tới lượt (review 2026-11-24).
+- [[2026-08-24-landing-joyxjoy-dung-plan-cua-app]] — Widget đọc plan group của app qua metafield `plan_v2` (mang sẵn `sellingPlanId` Shopify + `discountConfig.tiers`) và merchant nhập plan group id trong theme editor; bỏ hẳn cách suy tần suất từ `delivery_policy`/tên plan và tự tính savings theo `compare_at_price` (review 2026-11-24).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)

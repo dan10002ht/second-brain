@@ -252,6 +252,36 @@ cmux send-key --surface surface:N ctrl+c      # gửi 2 lần, cách nhau ~1s
 
 Đây là lý do report phải qua **file** (5.2): file không phụ thuộc trạng thái TUI.
 
+🔴 **Message NHIỀU DÒNG gửi vào lane bị nuốt IM LẶNG.** `cmux send --surface surface:N "<nhiều
+dòng>"` rồi `send-key Enter` → newline bị TUI hiểu là **xuống dòng trong ô prompt**, không phải
+submit. Message nằm im, lane không bao giờ đọc, và màn hình vẫn hiện tóm tắt `• Hoàn tất ...` +
+`Worked for Xm` của **turn trước** — nhìn y hệt lane vừa làm xong việc mới.
+
+Đã xảy ra thật (24/08, repo subscriptions, lane T31): verifier trả FAIL, gửi ~20 dòng hướng dẫn
+sửa, lane không nhận. Suýt commit một bug **tính sai chu kỳ giao hàng** vì tin dòng "18/18 suite,
+gates xanh" trên màn hình.
+
+Cách đúng:
+
+```bash
+# 1 dòng duy nhất — cần ngắt ý thì dùng ". " hoặc ";", KHÔNG dùng newline thật
+cmux send --surface surface:N 'FAIL tu verifier. Loi: <...>. Sua: <...>. Chay lai gate.'
+cmux send-key --surface surface:N Enter
+
+# hướng dẫn dài ⇒ ghi file trong worktree rồi trỏ vào, vừa tránh newline vừa không giới hạn độ dài
+cmux send --surface surface:N 'Doc .lanes/fix-<ID>.md va lam theo.'
+```
+
+**Gửi xong PHẢI verify lane thật sự nhận** — đừng đọc dòng tóm tắt:
+
+```bash
+stat -f %m <file lane phải sửa>     # mtime có mới hơn thời điểm gửi không?
+cmux read-screen --surface surface:N --lines 20   # có thấy NỘI DUNG message mình vừa gửi không?
+```
+
+Không thấy message của mình trên màn hình ⇒ **chưa nhận**, gửi lại. Dấu hiệu bị nuốt: prompt
+trống + `Worked for Xm` + tóm tắt khớp turn cũ + file không đổi.
+
 **Model + effort pin explicit, đừng thừa kế config default.** `--strict-config` bắt **sai tên key**,
 **không** bắt sai giá trị: `model_reasoning_effort=bogus` chạy bình thường rồi im lặng rơi về default
 provider. Đọc lại dòng `reasoning effort: <value>` codex tự in ra.

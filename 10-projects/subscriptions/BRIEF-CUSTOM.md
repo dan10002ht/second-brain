@@ -89,9 +89,20 @@ Mockup đã bảo tồn trong repo: `docs/mockups/joyxjoy-wholefoods-landing/lan
 
 | Loại | `selling_plan` | Properties |
 |---|---|---|
-| Bundle (sect.1) | `sellingPlanId` của tần suất đang chọn | — |
+| Bundle (sect.1) | `sellingPlanId` của tần suất đang chọn | `Swap Item: <text>` (xem dưới) |
 | Staple (sect.2) | `null` | `__staple: <sellingPlanId>` |
 | One-off (sect.3) | `null` | `__purchase_type: 'one-time'` |
+
+🔴 **`Swap Item` — spec cũ SAI, sửa 2026-08-24 sau khi xem cart thật của khách.**
+Bản cũ ghi swap đi vào **order note** (`POST /cart/update.js {note}`). Sai. Store khách
+(joywholefoods.com.au) gắn swap thành **line item property tên `Swap Item` trên TỪNG box** —
+ảnh cart của khách cho thấy 2 box có 2 giá trị khác nhau, nên đây là per-line chứ không phải
+một ghi chú chung cho cả đơn.
+
+- Tên property **KHÔNG có tiền tố `_`** ⇒ Shopify **hiển thị công khai** ở cart page lẫn checkout.
+  Đây chính là lý do khách nhìn thấy nó. Ai "dọn dẹp" đổi thành `__swap_item` là làm nó biến mất.
+- dantt chốt (2026-08-24): **mỗi box một ô nhập riêng** trong swap modal, không phải một ô chung.
+- Order note vẫn giữ được nếu muốn, nhưng KHÔNG thay thế được property này.
 
 **TUYỆT ĐỐI KHÔNG dùng `__box_id`** — nó thuộc namespace Subscription Box. Set bậy sẽ phá
 `resolveSwapLineKey.js:33` (mất per-line selling-plan key khi swap), làm line hiển thị sai ở
@@ -136,6 +147,64 @@ và tự viết cơ chế inject CSS bằng string để ép từ ~39KB xuống 
 bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong feature.
 
 ---
+
+## Gộp nhánh 2026-08-24
+
+T17 + T21 cherry-pick về thẳng `feat/joyxjoy-landing` (một feature ⇒ một MR). Cả hai lane base
+cùng `645f9fb7` nên pick sạch; `joyxjoyLandingCss.js` auto-merge được vì hai lane sửa hai vùng
+dòng rời nhau (T17 ~213 `.jw-box-stack`, T21 ~74–83 `.jw-save`/`.jw-was`).
+**Gate chạy LẠI trên nhánh gộp** (pass riêng từng nhánh không chứng minh gộp vẫn pass):
+`check` 0 · `jest:fn` 214/214 · `jest:as` **30/30** (28 + 1 + 1, đúng số học) · build webpack exit 0.
+
+## Landing dùng plan của APP — xong 2026-08-24 (commit `03b141c7`)
+
+Trước: landing **đoán** selling plan theo số tuần (`getSellingPlanForWeeks`, regex trên tên plan).
+Sau: đọc plan thật của app từ metafield, `plan.sellingPlanId` chính là id Shopify gửi `/cart/add.js`.
+
+**Theme editor** giờ có field `Subscription plan group ID` (để trống = mọi group đang bật;
+nhập id = ghim đúng group đó). Store đang set `TcK4u92j1Oe8okOKiSl7`.
+
+Liquid emit thêm: `planGroupId`, `planStatuses`, `bundles[].plan_v2`, `bundles[].variantId`.
+
+🔴 **Hai bẫy Liquid metafield — đã vấp cả hai:**
+- `| json` trên Metafield object ⇒ `{"error":"json not allowed for this object"}`. In thẳng `{{ ... }}`.
+- **Index** vào metafield PHẢI qua `.value`: `data[id]` trả nil im lặng, `data.value[id]` mới đúng.
+  In thẳng thì không cần `.value` — hai việc khác nhau, dễ tưởng nhầm là metafield rỗng.
+
+🔴 **`shopify theme push` báo `pushed successfully` khi Shopify TỪ CHỐI file.** Lỗi thật nằm ở khối
+`error` in TRƯỚC khối `success` — grep `pushed successfully` sẽ nuốt mất. Lần đó là
+`Invalid schema: setting with id="bundle_script_url" 'info' is not a valid attribute` (chèn setting mới
+cướp mất `"type"` của setting kế bên; JSON vẫn parse được nên self-check báo xanh).
+**Push xong phải `theme pull` về thư mục tạm rồi `diff` mới tính là lên.**
+
+**Lỗi suýt ship (verifier bắt, vòng 1 FAIL):** `frequencyValue` của plan app (đơn vị **month**) bị ném
+vào `getSellingPlanForWeeks` (hiểu là **tuần**) ⇒ chọn "Every 2 months" khớp nhầm "Every 2 weeks".
+Cart add THÀNH CÔNG, không lỗi nào hiện, khách bị tính tiền sai nhịp. Tệ hơn: test của lane khi đó
+**assert chính hành vi sai** nên suite xanh vẫn không thấy gì.
+Fix: chỉ dùng đường tuần khi `plan.frequency === 'week'`; month/year ⇒ `null` ⇒ ẩn box.
+**Không quy đổi 1 month = 4 weeks** — Shopify month không bằng 4 tuần, quy đổi là tự bịa chu kỳ.
+
+Gate nhánh gộp: `check` 0 · `jest:fn` 214/214 · `jest:as` 32/32 · build webpack exit 0.
+
+## Discount + Swap Item — xong 2026-08-24
+
+`04c60717` summary hiện discount theo plan app · `dbff23a1` swap item thành line item property từng box
+
+**Discount**: tái dùng `getDiscountConfig` + `getPrice` (`@functions/helpers/...`), KHÔNG tự viết công thức.
+Đã đối chiếu cart THẬT: plan `Every 2 months` (5%) → Shopify tính **8455**, summary cũng **8455**. Khớp.
+Bundle 87KB → 128KB (kéo `big.js`), dưới trần ~200KB.
+
+🔴 **Lệch 1 cent do float — verifier bắt, vòng 1 FAIL.** `Math.round(price * 100)` trên phép nhân float:
+`17.935 * 100 === 1793.4999999999998` ⇒ ra 1793 thay vì 1794. Brute-force 8110 tổ hợp thấy 27 case lệch,
+luôn `delta -1`. Test cũ không thấy vì chỉ dùng số tròn (8900 @ 5% = 8455, chia hết).
+Fix: dùng `Big()` cho cả phép nhân về cents. Repo đã có `roundToNSafe` trong `getPrice.js` đúng cho việc này.
+**Bài học: test số tròn không phát hiện được lỗi làm tròn — phải quét giá lẻ.**
+
+**Swap Item**: property tên đúng `Swap Item` (có dấu cách, KHÔNG `_`), gắn per box, blank thì KHÔNG sinh key.
+`SwapModal` giờ mỗi box một ô, state keyed theo `productId`, reset toàn bộ bằng
+`useEffect(() => { if (open) setSwapItems({}); }, [open])` — nên đổi box đang chọn cũng không rớt text cũ.
+
+Gate nhánh gộp: `check` 0 · `jest:fn` 214/214 · scripttag 18 suite/123 test · build exit 0.
 
 ## Tasks
 
@@ -193,7 +262,7 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
     (f) `?bundle=` pre-select đúng.
 
 17. [✅ 2026-08-21] **Thay 3 emoji ở "Three simple steps" bằng ảnh SẢN PHẨM THẬT** — hết chờ ảnh (dantt 2026-08-21)
-    - nhánh `feat/jw-steps-images` · commit `0c9ef59` · executor: codex lane T17 (gpt-5.6-sol high)
+    - nhánh `feat/joyxjoy-landing` · commit `0389847` (gộp 2026-08-24 từ lane `feat/jw-steps-images`, nhánh lane đã xoá) · executor: codex lane T17 (gpt-5.6-sol high)
     - Sửa `HowItWorksSection.js`, `LandingApp.js`, `joyxjoyLandingCss.js` + test mới `howItWorksImages.test.js`
     - Ảnh lấy từ `bundles[].image` / `products[].featured_image` qua `filterCategoriesByStep`, lọc URL rỗng, cap 4 ảnh/step.
       **Không render wrapper `.jw-box-stack` khi mảng rỗng** — tránh `div:empty{display:none}` của theme khách.
@@ -248,6 +317,13 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
     Không crash, không vỡ layout (degrade êm) nên không chặn task 17.
     **Việc cần làm**: đếm `products_count` thật của 7 collection trên store dev. Nếu có cái nào >50 ⇒
     phải đẩy data lên `LandingApp` (hoặc sửa docblock cho đúng nếu tất cả đều <50).
+
+31. [ ] **`submitOrder.js` còn code chết + docblock sai sau khi đổi sang `Swap Item`**
+    `LandingApp.js:267` giờ gọi `submitOrder({items})` không truyền `note`, nên nhánh
+    `POST /cart/update.js {note}` thành đường chết. Docblock vẫn ghi *"note is the swap request text…
+    becomes the cart/order note"* — mô tả thiết kế CŨ, đọc vào sẽ hiểu sai.
+    Verifier T33 tìm ra, cố ý KHÔNG sửa để giữ diff surgical.
+    Quyết định cần có: bỏ hẳn `note`, hay giữ lại cho mục đích khác (vd ghi chú chung cho đơn)?
 
 ## Ngoài scope, ghi lại để không quên
 
@@ -325,7 +401,7 @@ bám theo cây `subscriptionBoxJoyxjoy/` hiện có cho nhất quán trong featu
       · `2976cea` (dọn rác)
 
 21. [✅ 2026-08-21] **`BoxCard` lệch mockup — thiếu dòng vendor + badge save/was**
-    - nhánh `feat/jw-boxcard` · commit `92d3ba6` · executor: codex lane T21 (gpt-5.6-sol high)
+    - nhánh `feat/joyxjoy-landing` · commit `77fa233` (gộp 2026-08-24 từ lane `feat/jw-boxcard`, nhánh lane đã xoá) · executor: codex lane T21 (gpt-5.6-sol high)
     - Sửa `BoxCard.js`, `joyxjoyLandingCss.js`, `joy-subscription-landing.liquid` + test mới `boxCard.test.js`
     - 🔴 **Scope phải mở rộng giữa chừng**: BoxCard render đúng nhưng vòng `for b in cfg.bundles`
       trong Liquid KHÔNG emit `vendor`/`compare_at_price` ⇒ badge là code chết trên trang thật.
