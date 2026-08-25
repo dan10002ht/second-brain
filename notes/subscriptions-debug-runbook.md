@@ -4,7 +4,7 @@ title: Subscriptions — Debug & Ops Runbook
 summary: Cách điều tra bug Joy Subscription bằng data thật (BigQuery/Firestore/Redis).
 tags: [shopify, subscription, debug, bigquery, firestore, redis, runbook]
 created: 2026-07-07
-updated: 2026-07-07
+updated: 2026-08-25
 source: [[subscriptions]]
 ---
 
@@ -57,7 +57,11 @@ source: [[subscriptions]]
 
 - **Cơ chế chốt hiện tại**: dedup atomic bằng `doc(id).create()` (throw nếu đã tồn tại) thay vì read-then-write. Áp ở `verifyHook.js` (HMAC verify TRƯỚC I/O rồi dedup) và `webhookLogsRepository.js`.
 - **Bug kinh điển**: race `subscriptionContractCreate` ↔ `subscriptionContractUpdate` khi **swap variant** — update bắn thêm & sync trước, create sync sau nhưng mang **data trước khi swap** → hiển thị/charge sai sp. Biểu hiện: sp chỉ swap đúng khi **billing attempt / charge**. (Vụ đang debug — xem [[2026-07-07]].)
-- ⚠️ Redis lock (SETNX/lease) **được bàn nhưng chưa chốt chi tiết** trong session — mới dừng ở atomic `create()` cấp Firestore + giữ `randomId`.
+- ~~⚠️ Redis lock (SETNX/lease) **được bàn nhưng chưa chốt chi tiết**~~ — **đã lỗi thời.**
+  Kiểm lại repo 2026-08-25: lock đã tồn tại thật ở `packages/functions/src/helpers/cache/`:
+  `billingAttemptLock.js`, `contractSyncLock.js`, `orderCreationLock.js`, cộng
+  `webhookDedupCache.js` + `customerWebhookDedupCache.js` chống webhook trùng.
+  **Gặp bug race thì dùng cái có sẵn, đừng tự chế.**
 
 ## Liên quan
 - [[subscriptions]] · [[joy-subscription-artifacts]] · [[firestore-multitenant]]

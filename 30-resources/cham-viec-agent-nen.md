@@ -101,6 +101,7 @@ Những thứ này không liên quan gì đến chất lượng code nhưng làm
 
 ## Liên quan
 
+[[gui-viec-cho-lane-khong-co-ack]] (bước trước: việc có **được giao** hay không) ·
 [[ack-khong-phai-hieu-ung]] · [[brief-state-agent-loop]] · [[gate-tu-viet-la-nguon-xanh-gia]] · [[chan-agent-bang-cau-hinh]] ·
 [[bang-chung-phan-biet-duoc]] · [[truong-last-verified]] ·
 [[2026-08-04-looptasks-verifier-doc-lap]] · [[2026-08-07-phan-tang-verifier]] ·

@@ -73,6 +73,10 @@ updated: 2026-08-24
   (`userErrors` rỗng, `exit 0`, HTTP 200, job `DONE`, "deploy succeeded"): ack chỉ nói lời gọi
   được nhận trên đúng đường mình đang nhìn — đọc lại từ nguồn chuẩn bằng một đường KHÁC rồi
   mới đóng, và đếm ra số thay vì đọc log.
+- [[gui-viec-cho-lane-khong-co-ack]] — mở ở bước TRƯỚC [[cham-viec-agent-nen]], lúc vừa gửi một
+  message vào TUI của lane: không có ack nào cả, và việc có ba cách chết im lặng (newline hiểu
+  thành Enter, paste dài kẹt trong ô nhập, lane treo 0% CPU) — gửi một dòng trỏ vào file, rồi xác
+  nhận bằng ít nhất hai tín hiệu độc lập.
 - [[cham-viec-agent-nen]] — mở khi đang chấm việc của một agent/lane chạy nền: report xuất hiện,
   mtime, CPU, tên pane và cả verdict của verifier đều trả lời câu hỏi khác với câu đang hỏi;
   kèm cách phân loại một FAIL (defect thật / artefact môi trường / bất đồng thiết kế) trước khi
@@ -136,6 +140,12 @@ updated: 2026-08-24
 - [[2026-08-24-cleanup-service-chua-dung-ticket-mcrsv]] — mở khi định xoá code "không ai gọi": chia ba
   nhóm (đã nối dây / trong plan chưa tới lượt / vỏ rỗng chỉ có README) thay vì hai, vì zero-reference
   không phân biệt được đường cụt với chưa-tới-lượt.
+- [[digest-ticket-mcrsv-2026-08-25]] — mở khi một `SELECT` trả rỗng ở một DB mình tin là có dữ liệu,
+  hoặc khi định tin một job CI chưa từng xanh: hai schema có bảng trùng tên nên `search_path` quyết
+  định mình đọc bảng nào, và job `test-go` đỏ mọi lần chạy vì không có bước sinh proto.
+- [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]] — mở khi một bản ghi "đáng lẽ phải có" mà
+  bảng rỗng: API tạo nó tồn tại trên gateway nhưng không luồng nào gọi — hợp đồng trên giấy không ai
+  thực thi; lời giải là phát hành ngay trong transaction đã biết chắc kết quả.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 

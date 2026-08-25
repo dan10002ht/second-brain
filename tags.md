@@ -22,6 +22,7 @@
 
 ## Cấu trúc / hoạt động
 - `area` · `project` · `debug` · `dsa` · `algorithms` · `interview` · `practice` · `memory` · `avada` · `skills`
+- `agent` · `support` · `automation`
 
 ## Ghi chú
 - Tiếng Việt: `quan-ly-khach-hang` (dùng cho note domain đặc thù VN).

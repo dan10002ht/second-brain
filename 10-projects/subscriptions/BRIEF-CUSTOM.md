@@ -206,6 +206,68 @@ Fix: dùng `Big()` cho cả phép nhân về cents. Repo đã có `roundToNSafe`
 
 Gate nhánh gộp: `check` 0 · `jest:fn` 214/214 · scripttag 18 suite/123 test · build exit 0.
 
+## Ẩn box hết hàng + trần tồn kho — xong 2026-08-25 (commit `20cd428f`)
+
+Nguyên nhân cart "không ăn": box `available: false` vẫn hiển thị, chọn phải ⇒ `/cart/add.js` trả **422**
+`"... is already sold out."`. `/cart/add.js` **atomic** ⇒ hỏng CẢ lô, staple + one-off cũng không vào.
+Đo thật: 3/5 box đang hết hàng.
+
+⚠️ **`selling_plan: null` KHÔNG phải nguyên nhân** — đã đo cả 3 biến thể trên cart thật:
+`null`, `""`, và bỏ hẳn field ⇒ **cả ba đều http=200**. Đừng đi lại hướng này.
+
+Đã làm: ẩn box `available === false` (box KHÔNG có field `available` vẫn hiện — box cũ), purge khỏi
+selection cũ; Liquid emit thêm `available`, `inventory_quantity`, `inventory_policy`, `inventory_management`;
+helper `variantStock.js` chặn nút `+` theo **TỔNG cùng variantId qua CẢ staple LẪN one-off**
+(cả 7 category đều `in_staples` + `in_oneoff` nên đây là mặc định, không phải ngoại lệ).
+
+🔴 **Bài học đắt nhất phiên này — verifier bắt, vòng 1 FAIL:** `getVariantMaxQty` gate trên
+`variant.inventory_management`, nhưng Liquid **không emit** field đó ⇒ luôn trả `Infinity` ⇒ nút `+`
+KHÔNG BAO GIỜ disable trên production. **22/22 suite vẫn xanh** vì fixture test hard-code
+`inventory_management: 'shopify'` — shape mà nguồn dữ liệu thật không bao giờ tạo ra.
+*Test tự dựng thế giới của nó rồi tự pass trong đó, tính năng chết ngoài đời.*
+Fix: emit field + sửa fixture khớp **đúng 8 key** Liquid emit + thêm test ràng buộc Liquid↔JS
+(`joySubscriptionLandingLiquid.test.js` — `JSON.parse` thật, không regex hời hợt).
+Verifier mutation 3 kiểu (đổi tên property, bỏ `| json`, đổi key camelCase) — cả 3 đều bị bắt.
+
+**Trạng thái store dev (đo 2026-08-25):** 97/97 variant có `inventory_management: null` ⇒ Shopify coi là
+không theo dõi tồn ⇒ **không chặn** (đúng ngữ nghĩa Shopify, không phải bug). Muốn thấy trần hoạt động
+phải bật *Track quantity* trong admin. `policy: continue` ⇒ cố ý KHÔNG chặn (Shopify cho oversell).
+
+**dantt chốt 2026-08-25:** tồn kho là ảnh chụp lúc tải trang là đủ — **không cần xử lý race condition**
+(không re-fetch/đối chiếu lại lúc submit).
+
+Gate nhánh gộp: `check` 0 · `jest:fn` 214/214 · scripttag **22 suite / 140 test** · build exit 0.
+Theme đã push + verify bằng pull-diff.
+
+## PDP box → trang builder — xong 2026-08-25 (commit `022a54d5`)
+
+dantt chốt **phương án A**: bấm "Add to cart" trên PDP của Fixed Bundle ⇒ chuyển thẳng sang
+`/pages/build-your-subscription?bundle=<handle>`, KHÔNG add line nào vào cart.
+Landing đã có sẵn logic nhận deep-link (`LandingApp.js` "Deep-link pre-select") ⇒ box được chọn sẵn.
+Đo thật bằng Chrome: redirect đúng, `POST /cart/add` = KHÔNG, box chọn sẵn = 1.
+
+File: `docs/joyxjoy-theme/snippets/joy-bundle-redirect.liquid` + 1 dòng `{% render %}` trong
+`layout/theme.liquid` (JSON template KHÔNG render snippet trực tiếp được).
+Guard bằng SHOP metafield `avada_custom_landing` ⇒ chỉ kích hoạt cho box thuộc landing; sản phẩm
+khác không render dòng JS nào.
+
+🔴 **Ba bẫy đã vấp, đều chỉ lộ ra khi chạy browser thật:**
+1. Nút add-to-cart của theme **KHÔNG phải submit button** — là `<button class="product-form__submit">`,
+   theme add bằng JS. Listener `submit` trên form không bao giờ chạy ⇒ phải bắt `click` ở
+   **capture phase**, nếu không theme đã kịp AJAX-add box thành line thường.
+2. **Loại trừ quá tay:** thấy `.upcoming-order-schedule-date-btn-os` (nút chọn ngày giao) cũng mang
+   class `product-form__submit`, tôi bỏ hẳn class đó ⇒ selector khớp **0 phần tử**, tính năng chết im.
+   Đúng cách: `.product-form__submit:not(.upcoming-order-schedule-date-btn-os)` — loại đúng cái cần loại.
+3. **Đọc HTML tĩnh không đủ:** `curl` thấy form `installment` và `.custom-add-to-cart-btn-os`, nhưng nút
+   thực sự HIỂN THỊ lại khác hẳn. Chỉ browser thật mới lộ.
+
+**Thứ tự push bắt buộc:** snippet TRƯỚC, `theme.liquid` SAU — ngược lại thì layout render một snippet
+chưa tồn tại và cả theme lỗi.
+
+**dantt chốt: KHÔNG cover "Buy it now"** — shop không bật (đo 2026-08-25, node không tồn tại trên PDP).
+Nếu sau này bật lại trong Theme settings thì nó bỏ qua cart + builder hoàn toàn; comment trong snippet
+đã ghi sẵn chỗ cần thêm.
+
 ## Tasks
 
 ### Chuẩn bị — seed store dev
@@ -318,12 +380,42 @@ Gate nhánh gộp: `check` 0 · `jest:fn` 214/214 · scripttag 18 suite/123 test
     **Việc cần làm**: đếm `products_count` thật của 7 collection trên store dev. Nếu có cái nào >50 ⇒
     phải đẩy data lên `LandingApp` (hoặc sửa docblock cho đúng nếu tất cả đều <50).
 
-31. [ ] **`submitOrder.js` còn code chết + docblock sai sau khi đổi sang `Swap Item`**
+31. [✅ 2026-08-25] **`submitOrder.js` còn code chết + docblock sai sau khi đổi sang `Swap Item`**
+    - Docblock cũ mô tả `note` là swap request → order note. Sai từ khi swap thành line item
+      property `Swap Item` per box. Đã viết lại: nêu rõ `note` OPTIONAL và production không dùng,
+      và ghi luôn lý do giữ tham số (cart note vẫn là khái niệm Shopify hợp lệ) + dặn nếu không
+      dùng tới thì xoá hẳn thay vì để comment trôi tiếp.
     `LandingApp.js:267` giờ gọi `submitOrder({items})` không truyền `note`, nên nhánh
     `POST /cart/update.js {note}` thành đường chết. Docblock vẫn ghi *"note is the swap request text…
     becomes the cart/order note"* — mô tả thiết kế CŨ, đọc vào sẽ hiểu sai.
     Verifier T33 tìm ra, cố ý KHÔNG sửa để giữ diff surgical.
     Quyết định cần có: bỏ hẳn `note`, hay giữ lại cho mục đích khác (vd ghi chú chung cho đơn)?
+
+32. [✅ 2026-08-25] **`submitOrder` nuốt lỗi `/cart/add.js` — mọi lỗi cart đều im lặng**
+    - commit `9e95e525` · nhánh `feat/joyxjoy-landing`
+    - Kiểm `response.ok` cho CẢ `/cart/update.js` lẫn `/cart/add.js`; fail ⇒ KHÔNG redirect, hiện
+      `description` Shopify trả về (fallback `message`, fallback câu chung), modal GIỮ MỞ để khách
+      không mất context. Body HTML không parse được ⇒ vẫn báo lỗi chung, không để exception lọt.
+    - Ô lỗi KHÔNG render khi chưa có lỗi (theme khách có `div:empty{display:none}`).
+    - verifier mutation 3 kiểu riêng (đảo ưu tiên `message`/`description`; nuốt lỗi riêng nhánh
+      update; đóng modal khi fail) — cả 3 đều bị test bắt.
+    `helpers/submitOrder.js` gọi `await fetch('/cart/add.js')` rồi redirect thẳng sang `/cart`
+    mà KHÔNG kiểm `response.ok`. `fetch` chỉ reject khi lỗi mạng — **HTTP 422 vẫn resolve bình thường**.
+    Đây là lý do lỗi sold-out tồn tại lâu mà không ai thấy dấu vết nào.
+    ⚠️ KHÔNG phải xử lý race condition (dantt đã chốt không cần) — mục đích là **hiện lỗi cho khách**
+    thay vì đẩy họ sang trang cart trống không hiểu chuyện gì.
+    Việc: kiểm `response.ok`, đọc `message`/`description` Shopify trả về, hiện lên UI, KHÔNG redirect khi fail.
+
+33. [✅ 2026-08-25] **`StapleSection` / `OneOffSection` thành code chết sau task 34**
+    - commit `9e95e525` (cùng commit với task 32)
+    - Xoá 2 component + chuyển 2 test cũ sang render `ProductPickerSection` trực tiếp.
+      **Giữ nguyên độ phủ**: verifier so `git show HEAD:<path>` — cùng số `it()` và số assertion,
+      chỉ đổi cây component. `grep -rn 'StapleSection|OneOffSection' packages/*/src` ⇒ 0.
+    `LandingApp.js` giờ gọi thẳng `ProductPickerSection` (cần thiết để chia sẻ state
+    `staplePicks`/`oneOffPicks` cho trần dùng chung). Hai wrapper cũ không còn ai dùng, nhưng vẫn
+    được tham chiếu bởi `index.js` của chính chúng và 2 test cũ
+    (`productPickerBackgroundLoad.test.js`, `productPickerStateSeparation.test.js`) — nghĩa là 2 test
+    đó đang kiểm thứ production KHÔNG còn render. Verifier T34 tìm ra, cố ý không sửa để giữ diff surgical.
 
 ## Ngoài scope, ghi lại để không quên
 

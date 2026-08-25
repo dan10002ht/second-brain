@@ -10,3 +10,5 @@ __pycache__/
 
 # self-learning watermark/state
 .state/
+.private/
+.env*
