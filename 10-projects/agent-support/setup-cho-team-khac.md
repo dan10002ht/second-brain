@@ -112,9 +112,11 @@ Sửa đúng 4 chỗ:
 |---|---|---|
 | `AGENT_APPS` | `~/.config/avada/agent.env` | `appName` trong payload ticket |
 | `REPO_OF` | `triage.js`, `implement.js`, `verify.js` | `appName` → tên thư mục repo |
-| `BASE_OF` / `BASE_BRANCH` | `implement.js`, `verify.js` | nhánh gốc của repo (`master`? `develop`?) |
 | `PROJECT_PATH` | `verify.js` | đường dẫn project trên GitLab |
 | `GATE_SLACK_CHANNEL` | `~/.config/avada/agent.env` | ID kênh support của team |
+
+Nhánh gốc **không cần khai** — code đọc thẳng từ `origin/HEAD`. Đừng hardcode:
+xem cái bẫy "nhánh chết" ở mục 5.
 
 Rồi **viết runbook cho app của bạn** — `knowledge/apps/<appName>.md`.
 
@@ -140,6 +142,12 @@ hơn không có runbook — agent sẽ tin và đi sai hướng. Ghi "chưa xác
 | symlink `node_modules` hiện `??` trong `git status` | `.gitignore` ghi `node_modules/` chỉ khớp **thư mục**, symlink bị coi là file | ghi vào `$GIT_COMMON_DIR/info/exclude` — git **không** đọc `info/exclude` riêng của worktree |
 | Worker không thấy case nào dù hàng đợi có file | file mode `600`, hoặc tiến trình **thiếu nhóm** vì `systemd --user` khởi động trước `usermod -aG` | mode `660` + `UMask=0002` trong unit; và `systemctl restart user@<uid>.service` |
 | Claude Code báo `EACCES ~/.claude/settings.json` của user khác | cwd rơi vào home của user kia → nó tưởng đó là thư mục dự án | `WorkingDirectory=%h` trong unit |
+| **Triage và implement cãi nhau: "file này không tồn tại"** | worktree tạo từ **nhánh sai**. Repo `pdf-invoice` có nhánh `develop` nhưng đó là **nhánh chết từ 2022** — master đi trước **3.764 commit** và có cả thư mục theme mà develop không có | đọc nhánh gốc từ `git symbolic-ref refs/remotes/origin/HEAD`, **đừng suy từ việc repo "có" nhánh đó** |
+| **Codex đọc được secret rồi chép vào workspace → lọt vào MR** | `workspace-write` chỉ giới hạn **GHI**, còn **ĐỌC thì gần như toàn máy**. Kiểm thật: Codex đọc được `git.env` (token GitLab) và `sa-*.json`, và **chép được** vào worktree | quét diff tìm secret **trước khi commit và trước khi push** — cả theo mẫu (`glpat-`, `sk-ant-`, private key…) lẫn theo **giá trị thật** của secret đang có trên máy |
+| **Codex cài git hook → thoát sandbox** | Codex ghi được vào `.git/hooks/`. Hook đó chạy khi **harness** gọi git — tức ngoài sandbox, dưới quyền user agent, **có mạng**. Đã tái hiện: hook chạy thật | thêm `-c core.hooksPath=/dev/null` vào **mọi** lệnh git của harness, kể cả `checkout` |
+| **Agent chạy được lệnh shell dù bạn tưởng đã cấm** | `--allowedTools` **KHÔNG phải danh sách trắng đóng** — nó chỉ *tự-duyệt sẵn*. Trong chế độ `-p` headless, **Bash được cấp mặc định**; `Write`/`Edit` thì bị chặn. Kiểm thật: bỏ hẳn Bash khỏi `--allowedTools` mà `whoami` vẫn chạy | **`--disallowedTools Bash`** là cách duy nhất chặn. Cần truy vấn dữ liệu thì đưa thành **công cụ MCP** có tham số, đừng đưa qua shell |
+| Dashboard báo tiến trình "chết" trong khi chúng vẫn chạy | `PrivateTmp=true` dựng mount namespace riêng; trong đó `/proc` **chỉ thấy tiến trình của chính nó** → `pgrep -u <user khác>` luôn trống | bỏ `PrivateTmp` ở service cần nhìn tiến trình user khác (hoặc đặt `ProtectProc=default`) |
+| `yarn install` fail `Found incompatible module`, rồi mọi test im lặng không chạy | `engines` trong `package.json` không khớp Node của máy | `YARN_IGNORE_ENGINES=true yarn install --ignore-engines` — đúng cách CI của repo đang làm. **Kiểm `EXIT=0` chứ đừng cho chạy nền rồi quên** |
 
 ## 6. Vận hành
 

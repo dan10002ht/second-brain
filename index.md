@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-25 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 item ngày 08-25: 3 digest + 1 shipped + 2 decision + 1 resource)_
+_Cập nhật: 2026-08-26 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 5 item ngày 08-26: 2 digest + 1 shipped + 1 decision + 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -20,7 +20,7 @@ _Cập nhật: 2026-08-25 · Trạng thái: đã seed 12 project + notes học t
 - [[ai-eng-guide]] — bộ guide 5 layer (Prompt → Context → Harness → Loop → Graph) cho team dev Avada dùng Claude Code. → [[ai-eng-thuat-ngu]] · [[ai-eng-01-prompt]] · [[ai-eng-02-context]] · [[ai-eng-03-harness]] · [[ai-eng-04-loop]] · [[ai-eng-05-graph]] · [[ai-eng-cho-tester]] (cho QA)
 
 **AVADA / Shopify apps (work):**
-- [[agent-support-design]] — Agent support 24/7: agent cắm trên VM `dantt-solar` nhận ticket helpdesk risk thấp, điều tra root cause, chỉ mở MR nháp khi có test đỏ→xanh + verifier PASS (deadline team 7/9). Thư mục `10-projects/agent-support/`.
+- [[agent-support-design]] — **Agent support 24/7 ĐANG CHẠY** trên VM `dantt-solar`: bắt ticket mới từ kênh Slack `C07URV6QMJ8`, điều tra bằng dữ liệu prod, mở MR nháp khi có test đỏ→xanh + verifier độc lập PASS. **Đọc mục 0 (Vào việc nhanh) trước** — tài liệu dài, viết theo thứ tự thời gian.
 - [[setup-cho-team-khac]] — hướng dẫn 5 team còn lại dựng lại Agent support 24/7, kèm 6 cái bẫy đã vấp và chi phí đo được (~$2.1/case triage).
 - [[runbook-agent-pdf-invoice]] — runbook agent đọc trước khi điều tra case `pdf-invoice` (bẫy yup 0.29 nuốt lỗi, jest không quét `__tests__/`, preview ≠ đường gửi).
 - [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops) · [[functions-cost-audit-2026-08-11]] (chi phí Functions: v2 hoà vốn với v1, đóng chủ đề migrate).
@@ -235,6 +235,9 @@ _Cập nhật: 2026-08-25 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-25]] — Chặn vượt tồn kho chạy đúng trong test nhưng vô hiệu 100% trên production vì Liquid không emit `inventory_management`; `selling_plan: null` không phải nguyên nhân 422 của `/cart/add.js` (sold out mới là); và test do chính lane viết đã đóng đinh một hành vi sai (đơn vị month dùng như tuần) thành "expected".
 - [[digest-pdf-2026-08-25]] — Mảnh cuối làm email vừa cột preview 277px không phải min-width hay font-size mà là cột ảnh co được kiểu Joy (`width:60px` + `img{width:100%}`); hai `<td>` thật thay `inline-block` để hai cột không bao giờ rơi xuống; và muốn gửi mail bằng data store thật thì phải viết script trong `src/commands/` vì "Send test" chỉ dùng sample order.
 - [[digest-ticket-mcrsv-2026-08-25]] — `public.tickets` và `tickets.tickets` là hai bảng trùng tên khác schema nên `SELECT` không đặt `search_path` đọc ra bảng rỗng và làm tôi kết luận sai hai lần; job `test-go` đỏ mọi lần chạy vì 0 file `.pb.go` được track mà CI không có bước sinh proto; và `env.example` được track chính là thứ sinh ra `.env` sai.
+- [[shipped-subscriptions-2026-08-26]] — Không có ref master, không tag, không version bump — 4 commit landing joyxjoy trên `feat/joyxjoy-landing` (chặn vượt tồn kho dùng chung staple/one-off, báo lỗi khi cart add hỏng + xoá 2 component chết, redirect add-to-cart PDP sang trang builder kèm 961 dòng theme khách vào repo docs) và một commit CI `[deploy-all]` đẩy `feat/portal-preview` lên staging 3. ⚠️ có 3 mục "cần xác nhận".
+- [[digest-subscriptions-2026-08-26]] — Add extension vào theme editor rồi Save không làm API đổi một chữ nào — chỉ khi vào MENU mới đo được; `replace_all` thay luôn dòng cuối của chính method mới nên `renderPortalForCustomer` gọi lại chính nó; và reserve chiều cao cho IndexTable mobile làm CLS xấu đi nên đã revert.
+- [[digest-ticket-mcrsv-2026-08-26]] — Check-in chưa bao giờ chạy được ở dev vì `.env` ghi hostname của Docker Compose; lỗi nhập liệu ra 500 vì `errors.New` trượt `errors.As`; cột `updated_by` kiểu uuid nhận chuỗi rỗng; và mã QR bắt buộc phải có nhưng chưa bao giờ được đối chiếu.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -285,6 +288,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-24-landing-joyxjoy-dung-plan-cua-app]] — Widget đọc plan group của app qua metafield `plan_v2` (mang sẵn `sellingPlanId` Shopify + `discountConfig.tiers`) và merchant nhập plan group id trong theme editor; bỏ hẳn cách suy tần suất từ `delivery_policy`/tên plan và tự tính savings theo `compare_at_price` (review 2026-11-24).
 - [[2026-08-25-swap-line-item-property-tung-box]] — Bỏ cách ghi swap vào order note của cả đơn, chuyển sang line item property `Swap Item` gắn trên từng box, vì đó là thứ store khách đang thật sự dùng để soạn hàng. ⚠️ CHƯA MERGE (review 2026-11-25).
 - [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]] — Chọn để ticket-service tự INSERT vào bảng `tickets` khi `ConfirmReservation` thành công, thay vì để một service khác gọi API `CreateTicket` sau khi thanh toán — vì `checkin-service` đọc `ticket.Status` chứ không đọc booking, nên không có ticket là check-in từ chối mọi vé (review 2026-11-25).
+- [[2026-08-26-banner-portal-theo-menu]] — Bỏ hướng dò xem merchant đã add customer-account extension trong theme editor hay chưa (chứng minh được là API không nhìn thấy), đổi sang điều kiện duy nhất đo được — extension có nằm trong menu customer account hay không (review 2026-11-26).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
@@ -308,6 +312,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-khong-in-secret-ra-chat]] — khi user đưa token hoặc chỉ chỗ lấy key, chỉ tham chiếu tên biến và truyền qua env của lệnh; không echo giá trị, không liệt kê danh sách biến khi đang dò tìm, và thiếu token thì tìm đường không cần token chứ không đi moi.
 - [[feedback-khong-dung-vs-chua-lam-toi]] — trước khi gắn nhãn một service/module là thừa và đề xuất cleanup, phải đọc plan/roadmap xem nó là đường cụt hay chỉ là phần chưa tới lượt build — dữ kiện đo được (không có reference nào) không phân biệt được hai thứ đó.
 - [[feedback-dung-xin-chot-khi-chi-thi-da-co]] — khi user đã ra một chỉ thị bao trùm ("hoàn thiện nhất có thể, không làm qua loa"), việc dừng lại hỏi "anh chốt cái nào" cho hai việc rõ ràng nằm trong đó là đẩy quyết định ngược về phía user, không phải cẩn thận.
+- [[feedback-nhat-du-lane-song-song]] — Skill cho tối đa 4 lane mỗi lượt mà tôi chỉ chạy 1 rồi dừng chờ — đó là tự thận trọng quá, không phải cẩn thận, và không cần `/loop` mới chạy song song được.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable

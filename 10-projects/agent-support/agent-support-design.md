@@ -1,7 +1,7 @@
 ---
 type: project
 title: Agent support 24/7 — design
-summary: Agent cắm 24/7 trên VM dantt-solar nhận ticket helpdesk đã được TS phân loại risk thấp, điều tra root cause, và chỉ mở MR nháp khi có test đỏ→xanh + verifier độc lập PASS.
+summary: Agent support 24/7 ĐANG CHẠY trên VM dantt-solar — bắt ticket mới từ kênh Slack C07URV6QMJ8, điều tra bằng dữ liệu prod, mở MR nháp khi có test đỏ→xanh + verifier độc lập PASS. Đọc mục 0 trước.
 tags: [project, avada, agent, support, automation, ai, subscription, pdf]
 created: 2026-08-25
 updated: 2026-08-25
@@ -13,6 +13,92 @@ status: active
 Spec cho hệ thống agent chạy không người trông, xử lý case support của
 `subscriptions` và `pdf-invoice`. Deadline team: **7/9** — cả 6 team phải chạy được
 workflow này.
+
+## 0. Vào việc nhanh — đọc mục này trước
+
+> Tài liệu này viết theo thứ tự thời gian nên rất dài. Mục 0 là hiện trạng; các mục
+> sau là *vì sao* nó thành ra như vậy. Đang debug hay sửa gì thì đọc mục 0 rồi nhảy
+> thẳng tới phần liên quan.
+
+**Hệ thống ĐANG CHẠY.** Lên sóng 2026-08-26 11:18 (giờ VN).
+
+### Nó làm gì
+
+Bot ticket đăng case mới vào kênh Slack `C07URV6QMJ8` (`subscription-pdf-label-restore-support`).
+Agent bắt trong vòng 1 phút → thả 👀 + nhắn vào thread → điều tra → nếu sửa được thì
+viết test đỏ→xanh → verifier độc lập chấm → mở **MR nháp** trên GitLab, assignee dantt.
+Xong thì sửa lại chính tin nhắn đó trong thread và đổi emoji thành ✅/⚠️/❌.
+
+### Vào máy
+
+```bash
+ssh dantt-solar                      # đã cấu hình sẵn ~/.ssh/config trên Mac
+```
+
+Hai user, **cố ý tách**:
+
+| User | Chạy gì | Giữ secret gì |
+|---|---|---|
+| `dantt` (có sudo) | ingest · gate · shopify-proxy · slack-bridge · dashboard · morning-report | **khoá giải mã token merchant**, webhook secret, token Slack, service account |
+| `agent` (**không sudo**) | triage · implement · verify · curator · janitor · backup | chỉ token GitLab (phạm vi hẹp) + bản sao SA chỉ-view |
+
+Ranh giới này là thứ chặn được nhiều lỗ nhất — xem mục về kiểm an ninh. **Đừng gộp
+hai user lại cho tiện.**
+
+### Nhìn trạng thái
+
+| Muốn gì | Làm gì |
+|---|---|
+| Xem tổng quan | **http://dantt-solar:8789** (chỉ trong tailnet) |
+| Xem một case | `agent-case <mã-ticket>` — có cả lệnh `claude --resume` để đọc lại suy luận |
+| Xem case gần đây | `agent-case --list` |
+| Log một service | `journalctl --user -u agent-<tên> -f` (service của `agent` thì thêm `sudo -u agent XDG_RUNTIME_DIR=/run/user/$(id -u agent)`) |
+| **Dừng khẩn cấp** | nút trên dashboard, hoặc `touch /srv/agent/PAUSE` |
+
+### File ở đâu
+
+```
+/srv/agent/            hàng đợi, log, báo cáo, stats   (dùng chung, nhóm agentq)
+/home/agent/           repos/ · work/ · knowledge/ · code đang chạy
+/home/dantt/agent/     code phía dantt + bản sao để commit
+~/.config/avada/       secret (chmod 600, KHÔNG nằm trong git)
+```
+
+### Sao lưu
+
+GitHub **private** `dan10002ht/automation-agent-brain`, tự đẩy mỗi 4 tiếng:
+
+- nhánh `main` — tri thức (`knowledge/`: runbook + gotchas + case notes)
+- nhánh `code` — mã nguồn + **14 unit systemd** + `SETUP.md`
+
+Secret **không** nằm trong repo. Mất máy thì: clone code → cài unit → xin lại secret
+theo `SETUP.md` mục 2 → clone knowledge.
+
+### Hai công tắc
+
+| | Đang | Nghĩa là |
+|---|---|---|
+| `SLACK_POST` | **true** | agent thả emoji + nhắn vào thread support thật |
+| `ENABLE_MR` | **true** | verifier PASS → push branch + mở MR `Draft:` |
+
+Đổi trong unit file rồi `systemctl --user restart`.
+
+### Còn thiếu gì (tính tới 26/08)
+
+1. **Chưa từng tạo MR thật lần nào** — đoạn `implement → verify → push → MR` chưa đi trọn
+2. **Transcript Codex chưa bắt được lần nào** (code đã viết, chưa chạy qua)
+3. **0 ticket thật kể từ lúc lên sóng** → chưa có số liệu chất lượng nào đáng tin
+4. `--max-turns 60` chưa chỉnh theo dữ liệu — đợi vài chục case
+
+### Ba điều đã học đắt, đừng lặp lại
+
+- **`--allowedTools` KHÔNG chặn được Bash** trong headless — nó chỉ tự-duyệt sẵn. Chỉ
+  `--disallowedTools` mới chặn. Muốn cho agent truy vấn dữ liệu thì đưa thành **công cụ
+  MCP**, đừng đưa qua shell.
+- **Siết quyền phải kèm đo lại năng lực.** Bỏ Bash đi là mất `git log` — thứ làm nên báo
+  cáo tốt nhất — mà không có gì báo.
+- **Không bao giờ `catch` rồi `continue` mà không log.** Một case từng nằm im 8 phút vì
+  file sai mode và vòng quét nuốt lỗi.
 
 ## 1. Bối cảnh
 
@@ -680,6 +766,601 @@ runbook → agent điều tra → phát hiện runbook lỗi thời → runbook 
 Agent tự đặt `confidence: low` và liệt kê 5 mục chưa kiểm được (cần payload thật, cần
 repro live) thay vì khẳng định bừa — đúng luật đã ép trong prompt.
 
+### Service account + `agent-query` — 2026-08-26, commit `e966028`
+
+**Khoảng trống lộ ra khi cắm SA:** triage chỉ có `Read`/`Grep`/`Glob`, không có cách
+nào chạy query. Mở `Bash` tự do là phá luôn ranh giới chỉ-đọc.
+
+Cách xử lý: CLI `agent-query` — **chỉ-đọc theo cấu tạo**, trong file không tồn tại một
+lệnh ghi nào. Rồi cho phép đúng CLI đó: `--allowedTools ... 'Bash(agent-query:*)'`.
+Không phải "agent được dặn đừng ghi", mà là **không có đường nào để ghi**.
+
+| Lệnh | Việc |
+|---|---|
+| `fs cols/get/where/count <app> …` | Firestore |
+| `logs <app> "<filter>" --hours N` | Cloud Logging |
+| `bq <app> "<SQL>"` | BigQuery, **dry-run trước** |
+
+**Hàng rào BigQuery chặn theo SỐ BYTE quét, không theo số dòng** — một query quét 26 GB
+vẫn có thể chỉ trả về 5 dòng, nên giới hạn dòng không bảo vệ được gì. Trần 5 GB.
+
+Kiểm chứng 10 ca, tất cả đúng:
+
+| Thử | Kết quả |
+|---|---|
+| Firestore `count shops` prod | **16.059** — dữ liệu thật |
+| Logging lỗi 24h | log thật của prod |
+| BQ query không lọc thời gian | **chặn: "sẽ quét 13 GB, vượt trần 5 GB"** |
+| BQ query có lọc | `quetGB: 0`, 2.892 dòng |
+| `INSERT`/`DELETE`/`DROP` | chặn ở tầng cú pháp |
+| `agent` đọc khoá giải mã | vẫn `Permission denied` |
+
+**Quyết định về quyền:** SA viewer thì **agent được cầm** (không ghi được gì) — khác
+khoá giải mã token merchant, thứ đó cho ra token admin **ghi được**, nên vẫn chỉ `dantt`
+giữ và phải đi qua `shopify-proxy`. Ranh giới đặt theo *khả năng gây hại*, không theo
+*mức nhạy cảm cảm tính*.
+
+**Proxy đa app:** route đổi thành `/shopify/<app>/<shop>/…`, mỗi app một SA + một khoá
+riêng. `pdf-invoice` báo lỗi tường minh (*"chua co khoa giai ma — dat bien
+ACCESS_TOKEN_KEY_PDF"*) thay vì hỏng im lặng. **Còn thiếu: khoá giải mã của PDF Invoice.**
+
+### Đo lại cùng một ticket, trước và sau khi có dữ liệu
+
+| | Không có dữ liệu (25/08) | Có `agent-query` (26/08) |
+|---|---|---|
+| Mục "chưa kiểm tra" | **4** | **1** |
+| Cách kết luận | đoán từ code | kiểm rồi mới nói |
+
+Agent tra shop bằng `agent-query`, thấy `demo-shop.myshopify.com = 0/16059 doc`, và kết
+luận thẳng là shop không tồn tại nên **không thể kiểm chứng** — thay vì bịa dữ liệu cho
+khớp giả thuyết. Đúng cái lỗi làm hỏng hai bản sửa hôm 25/08.
+
+Chẩn đoán cũng sắc hơn: tìm ra `shopService.js:297` **có sẵn comment mô tả đúng bug này**
+và self-heal `fixInstallmentDiscountRecurring` **chỉ có cho installment, không có cho
+volume**; `shopService.js:274-276` ghi rõ `null` bị Shopify **ép thành 1**; hai chỗ
+default `recurringCycleLimit = 1` (`discountService.js:438` và `:833`). Rồi **loại trừ**
+code volume hiện tại vì nó truyền `0` tường minh → bug nằm ở dữ liệu tạo trước đợt
+rework 18–22/08.
+
+**Giới hạn của phép đo này:** ticket test dùng shop giả, nên agent chỉ chứng minh được
+là *biết mình không có dữ liệu*. Muốn đo thật giá trị của SA thì cần ticket có **shop
+thật** — chỉ có khi cắm webhook vào luồng ticket thật.
+
+### Cổng 3b — ticket đã đóng (thêm 2026-08-26)
+
+Phát hiện khi dantt hỏi *"một số issue đã có người fix rồi mà nhỉ?"*. Đúng — và cổng
+lúc đó **không hề kiểm ticket đã đóng hay chưa**. Trong luồng thật, một
+`ticket.updated` của ticket đã xong vẫn lọt qua và agent vẫn đi sửa lại.
+
+Kiểm ba ticket thật lấy từ kênh support để test — **cả ba đều đã xử lý xong**:
+
+| Ticket | Kết cục thật |
+|---|---|
+| `PDF-260824-GMk5hf` | *"cái tên product ok r"* — đã fix |
+| `JSUB-260819-gJLMAS` | *"Done nha ae, **metafield data của khách không update**, a update lại rồi"* — fix bằng **thao tác dữ liệu**, không phải code. Agent sẽ đi tìm một bug không tồn tại trong repo |
+| `JSUB-260817-s5ezNY` | đã dựng demo, khách ok — **không phải bug** |
+
+Cổng mới gác theo `doneAt` và `ticketStatus ∈ {closed, done, resolved, solved, completed}`.
+
+**Cố ý KHÔNG gác theo `tsStatus === 'done'`** — chưa xác minh được nó nghĩa là "cả
+ticket xong" hay chỉ "phần của TS xong, bàn giao cho dev". Gác nhầm thì agent không bao
+giờ nhận được case nào. Cần hỏi Quảng (TS Lead).
+
+8/8 ca test đúng.
+
+**Không có MR rác nào được tạo** — kịp tắt `ENABLE_MR` trước khi verify chạy tới. Kiểm
+`git ls-remote --heads origin "agent/*"` trên remote: trống.
+
+### Chạy 3 ticket THẬT — và hai lỗi cấu hình của tôi lộ ra (26/08)
+
+Kết quả trên ticket thật lấy từ kênh support:
+
+| Ticket | Kết cục | Tin cậy | Đánh giá |
+|---|---|---|---|
+| `JSUB-260817-s5ezNY` | **blocked** | high | ✅ đây là **bẫy có chủ đích** — yêu cầu tính năng, không phải bug. Agent dừng đúng |
+| `JSUB-260819-gJLMAS` | **blocked** | medium | ✅ đúng — người thật cũng fix bằng **thao tác dữ liệu** (`metafield không update`), không phải code |
+| `PDF-260824-GMk5hf` | triaged → Codex dừng | high | ⚠️ triage và implement **cãi nhau về việc file có tồn tại không** |
+
+Ca thứ ba lộ ra **lỗi cấu hình của tôi**, không phải lỗi model:
+
+| | cwd | File có? |
+|---|---|---|
+| triage | `~/repos/pdf` ở **`master`** | ✅ có |
+| implement | worktree từ **`origin/develop`** | ❌ không |
+
+Tôi hardcode `BASE_OF['pdf-invoice'] = 'origin/develop'` chỉ vì thấy repo **có** nhánh
+đó. Thực tế `develop` là **nhánh chết từ 13/04/2022**; master đi trước **3.764 commit**
+và có cả thư mục theme mà develop không có. Không có bước chấm chéo hai model thì MR đầu
+tiên của PDF đã nhắm vào một nhánh chết, và không ai hiểu vì sao diff lại kỳ quặc.
+
+**Sửa tận gốc:** nhánh gốc giờ **đọc từ `git symbolic-ref refs/remotes/origin/HEAD`**,
+không hardcode. Lỗi loại này sẽ không lặp lại ở 5 team kia.
+
+**Lỗi thứ hai, im lặng hơn:** `yarn install` của `pdf` **chưa bao giờ chạy xong** —
+fail với `Found incompatible module`, `EXIT=1`. Tôi cho chạy nền hôm 25/08 rồi không
+kiểm lại. Hệ quả: cổng 8 (test đỏ→xanh) **không bao giờ qua được cho app PDF** → PDF
+vĩnh viễn không ra MR, mà không có dấu hiệu gì. Sửa bằng `--ignore-engines`, đúng cách
+CI của repo đang làm (`YARN_IGNORE_ENGINES: 'true'`).
+
+Bài học chung: **cho chạy nền thì phải quay lại kiểm mã thoát.**
+
+### Đổi nguồn vào: thread Slack thay vì webhook (26/08)
+
+dantt phản đối webhook, và lý do đứng vững: **webhook bắn cả `ticket.updated`**, nên
+một ticket cũ bị ai đó đổi trạng thái vẫn đánh thức agent. Cổng 3b chỉ chặn được ticket
+*đã đóng*, không chặn được ticket *đang có người làm*.
+
+Một **thread mới** trong kênh support thì gần như luôn nghĩa là "case vừa đến, chưa ai
+đụng". Thiết kế mới (`slack-bridge.js`, chạy bằng `dantt`):
+
+```
+poll kênh mỗi 3 phút
+  └─ tin mới của bot ticket, app thuộc phạm vi
+       └─ CHỜ 10 PHÚT   ← để người có quyền nhận trước
+            └─ thread vẫn 0 reply?
+                 ├─ có người vào → BỎ QUA, ghi log "người đã nhận"
+                 └─ chưa ai → reply "🤖 đang xử lý", tạo case, nhớ ts
+                                └─ xong → chat.update chính tin đó thành kết quả
+```
+
+| | Webhook | Thread mới |
+|---|---|---|
+| Bắt ticket cũ bị sửa | có | **không xảy ra** |
+| Biết người đã nhận chưa | không | **có — đếm reply** |
+| Chống trùng việc với người | không | **có — note hiện ngay trong thread** |
+| Số tin trong thread | 2 | **1** (sửa tại chỗ) |
+
+Cái "chờ 10 phút" cho CS/TS quyền ưu tiên: ai vào trước thì agent lui, không ai phải
+tắt gì cả.
+
+**Mất đi so với webhook:** không có `tsStatus`/`tagIds`/`doneAt` (tin Slack chỉ có App /
+Shop URL / Ticket / Issue); trễ 3–13 phút. Không mâu thuẫn — sau này bật webhook làm
+nguồn thứ hai vẫn được vì dedupe đã theo `ticketId`.
+
+**Bóc tin: 24/24 tin thật trong kênh parse đúng** (app, shop, mã ticket, tiêu đề).
+
+**Lỗi tự bắt được trước khi chạy:** lần chạy đầu chưa có con trỏ → sẽ kéo 50 tin gần
+nhất và coi **toàn bộ ticket cũ là mới** — đúng cái vấn đề thiết kế này sinh ra để
+tránh. Đã thêm bước khởi tạo con trỏ: lần đầu chỉ đặt mốc, không xử lý gì. Log xác nhận
+*"khoi tao con tro — bo qua toan bo lich su, soTinBoQua: 50"*.
+
+**Token:** dùng token cá nhân `xoxp-` của dantt (đã duyệt), do user `dantt` giữ —
+`agent` không đọc được. Mọi tin đều mở đầu bằng *"máy chạy tự động — không phải người
+gõ"* để đồng nghiệp không hiểu nhầm. Có bộ lọc từ cấm giống cổng 5 trước khi gửi.
+
+Hiện `SLACK_POST=false`: vẫn poll, vẫn nhận case, vẫn chạy — **chưa đăng gì lên Slack**.
+
+### Làm cứng cơ chế poll — 6 lớp chống hỏng im lặng (26/08, commit `1284b55`)
+
+Poll hỏng theo kiểu **im lặng**: service vẫn `active` nhưng không còn đọc kênh, sáng ra
+tưởng đêm qua không có ticket. Rà lại và tìm ra 6 chỗ:
+
+| # | Hỏng thế nào | Đã vá bằng |
+|---|---|---|
+| 1 | **Mất `slack-state.json`** → rơi vào nhánh "lần đầu" → **bỏ qua toàn bộ lịch sử** | mốc `.slack-initialized` phân biệt *lần đầu thật* với *mất trạng thái*; mất trạng thái thì **quét lùi 6h + báo động** |
+| 2 | **Request HTTPS treo** → tiến trình sống nhưng đứng im, systemd không cứu | `req.setTimeout(15s)` |
+| 3 | **>50 tin giữa 2 lần poll** | phân trang theo `has_more`/`next_cursor`, tối đa 10 trang |
+| 4 | **Token bị revoke** | nhận diện `invalid_auth`/`token_revoked`/… → ghi file `ALARM-slack` |
+| 5 | **Không biết nó còn poll không** | ghi `lastPollAt`; tổng kết sáng báo động nếu quá 30 phút |
+| 6 | **Rate limit** | đọc header `Retry-After` của Slack, lùi đúng số giây đó, thử lại tối đa 3 lần |
+
+Chỗ 6 phát hiện được vì tôi restart service liên tục lúc test và **bị Slack chặn thật** —
+lúc đó mới thấy code chỉ ghi log rồi bỏ qua.
+
+Chỗ 1 có một biến thể tinh vi: mốc `.slack-initialized` ban đầu chỉ được ghi trong nhánh
+khởi tạo. Nghĩa là hệ thống đã chạy (có con trỏ, chưa có mốc) mà mất file trạng thái thì
+**vẫn rơi vào nhánh "lần đầu"** — đúng cái đang định chặn. Sửa: ghi mốc **bất cứ khi nào
+có con trỏ hợp lệ**.
+
+**Kiểm chứng bằng cách gây hỏng thật:** xoá `slack-state.json` → log ra
+`BAO DONG · mat-trang-thai · quét lùi 6h`, file `ALARM-slack` được tạo. Rate limit → log
+`bi rate limit, lui lai roi thu lai, choGiay: 10` rồi tự phục hồi.
+
+**Tổng kết sáng** giờ canh riêng nguồn vào, vì *"service active"* không có nghĩa là *"còn
+đọc kênh"*:
+
+```
+:white_check_mark: 8/8 service đang chạy
+Nguồn vào Slack: poll cuối 0 phút trước · đang chờ nhận: 0
+```
+
+### Quản lý context — mỗi task một session (chốt 26/08)
+
+dantt hỏi *"mỗi task 1 session được không?"*. **Đang là vậy rồi** — ba bước đều gọi
+tiến trình mới, không mang gì từ case trước sang:
+
+| Bước | Context nhận được |
+|---|---|
+| triage | runbook + ticket + hướng dẫn |
+| implement | ticket + **báo cáo triage** (không phải transcript triage) |
+| verify | **chỉ** ticket + diff + output test |
+
+Ranh giới ở `verify` là **cố ý về đúng-sai**, không phải để tiết kiệm: cho nó đọc lập
+luận triage là nó bị neo vào kết luận cũ và gần như luôn PASS.
+
+**Nhưng chi phí không nằm ở số session** — số đo: `cache_read = 3.121.444` so với
+`output = 19.769`. Tiền nằm ở **context phình bên trong một session**: mỗi lượt
+grep/read cộng thêm vào context, mỗi lượt sau phải gửi lại toàn bộ. 35–60 lượt × context
+lớn dần = 99% chi phí.
+
+Nên đòn bẩy là **giảm số lượt và giảm thứ phải đọc**, không phải chia nhỏ session:
+
+1. hạ `--max-turns` 60 → 35 (Sonnet chỉ dùng 35; 60 là trần thừa)
+2. runbook chỉ đúng chỗ hơn — cắt hẳn giai đoạn mò, lớn nhất
+3. thu hẹp phạm vi grep theo package
+
+Đã ghi `luotTriage` / `luotVerify` / `tokenDocCache` vào `stats.jsonl` để tuần sau chỉnh
+bằng phân bố thật thay vì đoán.
+
+**Thứ cố ý mang qua giữa các session** là `knowledge/cases/` và runbook — trí nhớ đi qua
+**tri thức đã chắt lọc**, không đi qua transcript. Đó là lý do `curator` tồn tại.
+
+### Emoji + tin xác nhận (26/08, commit `d262c60`)
+
+dantt chốt: agent **vừa thả emoji vừa nhắn tin** khi nhận việc.
+
+| Lúc | Trên tin ticket | Trong thread |
+|---|---|---|
+| nhận việc | 👀 `eyes` | tin "đang xử lý" |
+| xong, có kết quả | ✅ `white_check_mark` | sửa lại chính tin đó |
+| cần người | ⚠️ `warning` | như trên |
+| chạy hỏng | ❌ `x` | như trên |
+
+Emoji để **liếc qua kênh là biết case nào máy đang lo**; tin nhắn để đọc chi tiết. Hai
+vai khác nhau, không thừa.
+
+Đã kiểm quyền `reactions.add`/`reactions.remove` bằng token của dantt trên
+`#agent-auto-check` — cả hai `ok`. **Luồng đầy-đủ (nhận → đăng → sửa → đổi emoji) chưa
+chạy thật lần nào** vì `SLACK_POST=false`; nó sẽ được kiểm bởi chính ticket thật đầu tiên.
+
+### Nâng chất lượng output rồi bật lại MR (26/08, commit `c3b5517`)
+
+dantt chốt: MR không chạm prod và dantt review, nên cứ tạo. Trước khi bật, vá đúng
+**hai thứ đã làm hỏng hai MR hôm 25/08**:
+
+**1. Test "đỏ" vì SAI LÝ DO — giờ máy chặn được, không cần trông vào model.**
+
+Ca PAR-2: test đỏ ở commit chỉ-test chỉ vì **thiếu file import**, không phải vì tái
+hiện bug. Cổng đỏ→xanh cũ chỉ nhìn mã thoát nên cho qua; chỉ verifier đọc kỹ mới bắt.
+
+Nhưng jest **nói thẳng ra trong output** — đây là thứ kiểm bằng máy chắc chắn hơn nhiều
+so với trông chờ model đọc kịp:
+
+| Output ở commit chỉ-test | Kết luận |
+|---|---|
+| `Test suite failed to run` · `Cannot find module` · `SyntaxError` · `No tests found` · `must contain at least one test` | **test hỏng** → chặn |
+| `expect(received).toBe(expected)` · `AssertionError` | fail đúng lý do → cho qua |
+
+6/6 ca test đúng.
+
+**2. Bản sửa dựa trên hình dạng dữ liệu TỰ BỊA.**
+
+Ca PAR-4: đề xuất đọc `shop.ianaTimezone` trong khi luồng thật giữ ở `shopInfo`; giá
+trị thật là `undefined`, test chỉ xanh vì tự chế input shape không tồn tại.
+
+Không vá được ở `implement` — Codex chạy sandbox **không có mạng** nên không gọi được
+`agent-query`. Phải vá ở `triage` (nơi có quyền đọc dữ liệu) rồi truyền kết luận sang:
+
+- luật mới trong prompt triage: nếu hướng sửa phụ thuộc **một field có tồn tại / mang giá
+  trị gì**, PHẢI xác minh bằng `agent-query` **hoặc** bằng cách đọc code của **caller thật**
+- thêm field `dataShapeVerified` + `dataShapeEvidence` vào schema báo cáo
+- `implement` nhận cờ đó và được nhắc: *"bạn KHÔNG có mạng; nếu báo cáo không khẳng định
+  đã xác minh thì hãy đọc code caller thật, đừng tự chế input shape trong test cho khớp"*
+
+**`ENABLE_MR=true`.** MR luôn `Draft:`, assignee dantt (`id=35`), label `agent-generated`,
+target đọc từ `origin/HEAD`.
+
+**Bẫy lặp lại lần 2:** chèn text có backtick vào template literal của prompt làm đứt chuỗi
+JS. `node --check` bắt được, nhưng lần trước tôi suýt deploy file chưa đổi vì patch fail
+mà check vẫn xanh (nó check file cũ). **Patch fail thì phải kiểm file có thực sự đổi không.**
+
+### Màn hình trạng thái + bật cả hai công tắc (26/08)
+
+**`http://dantt-solar:8789`** — mở bằng trình duyệt bất kỳ máy nào trong tailnet.
+
+**Cố ý KHÔNG đưa ra internet:** trang này lộ mã ticket, tên shop, đường dẫn code. Webhook
+(8787) vẫn công khai qua Funnel; dashboard (8789) chỉ trong tailnet. Đã kiểm: Funnel chỉ
+map `/` → `8787`, không đụng 8789.
+
+**Cố ý CHỈ ĐỌC — không có nút bấm nào.** Muốn dừng thì SSH rồi `touch /srv/agent/PAUSE`.
+Một trang web có quyền ghi là một bề mặt tấn công không đáng đổi lấy chút tiện lợi.
+
+Nội dung: băng cảnh báo (PAUSE/COOLDOWN/tiến trình chết/báo động nguồn vào) · 8 tiến
+trình · case đang chạy kèm số phút · hàng đợi từng trạng thái · poll Slack lần cuối ·
+tiền Claude hôm nay · 20 case gần nhất (kết cục, verifier, độ tin cậy, số lượt, giây, tiền).
+
+Đọc trạng thái tiến trình bằng `pgrep`, **không dùng sudo** — một tiến trình phục vụ web
+không nên có đường gọi sudo.
+
+**Hai công tắc đã bật:**
+
+| | |
+|---|---|
+| `SLACK_POST=true` | agent thả 👀 + nhắn vào thread support |
+| `ENABLE_MR=true` | verify PASS → push branch + mở MR `Draft:` |
+
+**`CLAIM_DELAY_MS=0`** — dantt chốt **không chờ**: ticket mới vào là nhận luôn. Poll rút
+xuống 1 phút nên độ trễ tối đa ~1 phút. Đánh đổi đã biết: agent không nhường người nữa,
+cơ chế "bỏ qua nếu có người đã reply" chỉ còn tác dụng khi ai đó reply trong vòng 1 phút.
+
+### Dashboard v2 — cập nhật thật, click sang Slack, nút tạm dừng (26/08)
+
+**`http://dantt-solar:8789`** — chỉ trong tailnet, không qua Funnel.
+
+**Cập nhật không reload:** server trả JSON ở `/api/state`, client tự vẽ lại mỗi 3s.
+Không nhảy mất chỗ đang xem. Có nút *Làm mới*, nút *Ngừng tự cập nhật*, dòng
+*"cập nhật Ns trước"*, và chấm chuyển xám + ghi "mất kết nối" khi rớt mạng —
+thay vì đứng im giả vờ ổn.
+
+**Bố cục theo dây chuyền:** `vừa nhận → qua cổng → điều tra → chờ sửa → đang sửa →
+chờ kiểm → đang kiểm │ xong · cần người · hỏng`. Liếc một cái là biết đang tắc ở khâu nào.
+
+**Mã ticket là link sang thread Slack.** Kèm cột **shop** (bỏ đuôi `.myshopify.com`) và
+**vấn đề**. Bấm vào hàng (ngoài link) thì mở chi tiết: thời gian từng bước, **chi phí**,
+số lượt, số lần thử lại, link MR, hướng nghi ngờ, vì sao dừng, đường dẫn báo cáo.
+
+dantt chốt: **tiền không hiện trong bảng**, chỉ trong chi tiết. Bảng để lướt, chi tiết
+để soi.
+
+`stats.jsonl` cũ không có shop/tiêu đề/link → dashboard tra lại từ chính file case trong
+`queue/<trạng thái>/`; `curator` cũng đã bắt đầu ghi thẳng ba trường đó từ nay.
+
+### Nút Tạm dừng / Chạy lại — đổi ý so với thiết kế ban đầu
+
+Ban đầu tôi cố ý làm trang **chỉ đọc**. dantt hỏi có nút pause không, và lập luận cũ của
+tôi sai ở đúng chỗ này: **PAUSE là hành động AN TOÀN** — nó chỉ dừng việc, không push
+được gì, không chạm prod. Đó là nút đáng có sẵn trong tầm tay lúc 11h đêm thấy agent làm
+gì đó lạ.
+
+Ba rào giữ lại:
+
+| Rào | Vì sao |
+|---|---|
+| **Chỉ `POST`** | `GET` trả 405 — không bấm nhầm qua link, trình duyệt không nạp trước |
+| **Chỉ hai hành động** | tạo/xoá `/srv/agent/PAUSE`, không có endpoint nào khác ghi được |
+| **Ghi `control.log`** | mỗi lần bật/tắt lưu thời điểm + IP nguồn |
+
+Kiểm chứng: `GET → 405` · `POST /api/pause → {"ok":true,"tamDung":true}` + file xuất hiện
+· `POST /api/resume` → file biến mất · `control.log` ghi đủ 2 dòng kèm IP.
+
+**Bẫy systemd bắt được lúc dựng:** dashboard báo `triage/implement/verify/curator` **chết**
+trong khi chúng đang chạy. Thử từng thuộc tính: `NoNewPrivileges` → thấy ·
+**`PrivateTmp=yes` → KHÔNG thấy** · `MemoryMax` → thấy. `PrivateTmp` dựng mount namespace
+riêng, trong đó `/proc` **chỉ thấy tiến trình của chính nó**. Đáng nói vì nó hỏng theo
+hướng *an toàn giả* — báo đỏ khi mọi thứ đang ổn; ngược lại mới nguy. Đã ghi lý do ngay
+trong unit file để sau không ai bật lại, và thêm vào `SETUP.md`.
+
+### Mốc "lên sóng" — chỉ hiện case thật (26/08)
+
+Mọi case trước `2026-08-26T04:18:55Z` đều là ticket test dùng để dựng hệ thống. Để lẫn
+vào bảng thì tỉ lệ PASS/FAIL đọc ra sai hoàn toàn.
+
+`/srv/agent/.go-live` chứa một chuỗi ISO; dashboard lọc **trước khi tính bất cứ con số
+nào**, nên cả KPI "hôm nay" lẫn bảng case đều tính từ lúc lên sóng. Đầu trang ghi rõ mốc
+và số case test đã ẩn (*"ẩn 10 case test trước đó"*) — ẩn mà không nói thì lần sau chính
+mình cũng tưởng hệ thống chưa chạy gì.
+
+Không có file thì hiện tất cả — mặc định an toàn cho team khác dựng lại.
+
+### Lỗ hổng quyền — `--allowedTools` không chặn được Bash (26/08, commit `b27f25b`)
+
+dantt hỏi *"các session tự động có bị chặn không, hay chạy ở yolo mode?"*. Kiểm bằng
+thực nghiệm thay vì trả lời theo trí nhớ — và phát hiện một lỗ thật.
+
+**Kết quả đo:**
+
+| Thử | Kết quả |
+|---|---|
+| Claude ghi file | **bị chặn** ✅ |
+| Claude chạy `whoami` | **CHẠY ĐƯỢC** ❌ |
+| Codex gọi mạng | `Could not resolve host` — chặn ✅ |
+| Codex ghi ngoài workspace | không được ✅ |
+
+**Nguyên nhân:** `--allowedTools` **không phải danh sách trắng đóng** — nó chỉ *tự-duyệt
+sẵn* những gì được liệt kê. Trong chế độ `-p` headless, **Bash được cấp mặc định**
+(`Write`/`Edit` thì không). Kiểm chứng thêm: bỏ hẳn `Bash` khỏi `--allowedTools` mà
+`whoami` **vẫn chạy** — nên cả `triage` lẫn `verify` đều đang có shell.
+
+**Mức nghiêm trọng:** triage có token GitLab trong `~/.config/avada/git.env`, nên về lý
+thuyết **triage có thể `git push`** — trong khi cả thiết kế dựa trên giả định "triage chỉ
+đọc". Rào duy nhất còn đứng là việc tách user (SA chỉ-view, không đọc được khoá giải mã).
+Đúng thứ đã dựng hôm 25/08 — nhưng **không được phép là rào cuối cùng**.
+
+**Ba cách đã thử, hai cách sai:**
+
+| Cách | `whoami` | `agent-query` |
+|---|---|---|
+| chỉ `--allowedTools` (đang dùng) | chạy ❌ | chạy |
+| `--disallowedTools Bash` | chặn ✅ | **cũng chặn** ❌ |
+| denylist từng lệnh nguy hiểm | **vẫn chạy** ❌ | — |
+
+Denylist sai về bản chất — không ai liệt kê hết được lệnh nguy hiểm.
+
+**Cách đúng: bỏ hẳn shell, đưa truy vấn thành công cụ MCP.**
+
+`agent-query-mcp.js` — máy chủ MCP stdio (viết tay JSON-RPC, không phụ thuộc bản SDK)
+bọc lại `agent-query`, phơi ra 6 công cụ: `fs_cols` `fs_get` `fs_where` `fs_count`
+`logs` `bq`. Tham số được kiểm và truyền qua `execFile` dạng **mảng**, nên không chèn
+lệnh được. **Model điền tham số, không viết được dòng lệnh.**
+
+Triage giờ chạy với `--mcp-config` + `--strict-mcp-config` + `--disallowedTools Bash`.
+Verify cũng thêm `--disallowedTools Bash` (nó không cần shell — harness tự chạy test rồi
+truyền output vào).
+
+**Kiểm lại sau khi vá, 4/4 đúng:**
+
+| Thử | Kết quả |
+|---|---|
+| chạy `whoami` | **BỊ CHẶN** |
+| chạy `git status` | **BỊ CHẶN** — *"không có công cụ shell"* |
+| đếm document Firestore | **16.059** — vẫn truy vấn được |
+| ghi file | **BỊ CHẶN** |
+
+Bài học chung: **"tôi đã truyền cờ giới hạn" không phải bằng chứng.** Cờ đó có nghĩa gì
+thì phải thử mới biết — và ở đây nó có nghĩa gần như ngược lại với tên của nó.
+
+### Kiểm Codex — hai lỗ khác, nguy hơn về hậu quả (26/08, commit `ca4466a`)
+
+dantt bảo kiểm Codex xem có lỗ tương tự. Có, và khác loại:
+
+| Thử | Kết quả |
+|---|---|
+| Đọc token GitLab của chính nó | **ĐỌC ĐƯỢC** ❌ |
+| Đọc service account GCP | **ĐỌC ĐƯỢC** ❌ |
+| Đọc khoá giải mã của `dantt` | **BỊ CHẶN** ✅ — nhờ **tách user**, không nhờ sandbox |
+| **Chép secret vào workspace** | **CHÉP ĐƯỢC** ❌ |
+| `git push` | chặn (không phân giải được DNS) ✅ |
+| **Cài git hook** | **TẠO ĐƯỢC** ❌ |
+| Đọc repo khác | đọc được |
+
+**`workspace-write` chỉ giới hạn GHI. ĐỌC thì gần như toàn máy.** Đó là điểm khác căn
+bản so với lỗ của Claude — Claude thì làm được *hành động*, Codex thì *nhìn thấy* thứ
+không nên thấy.
+
+**Chuỗi rủi ro 1 — secret lọt vào MR:**
+Codex đọc `git.env` → chép vào worktree → harness commit + push → **token nằm trong MR
+trên GitLab**, ai xem repo cũng thấy.
+
+**Chuỗi rủi ro 2 — thoát sandbox qua git hook:**
+Codex viết `.git/hooks/post-checkout` → `verify.js` chạy `git checkout` để kiểm đỏ→xanh
+→ **hook chạy ngoài sandbox**, dưới quyền `agent`, **có mạng**. Đây là đường thoát thật
+sự: sandbox chỉ quản tiến trình Codex, không quản tiến trình harness.
+
+**Đã tái hiện chuỗi 2 bằng thí nghiệm:** cài hook, chạy `git checkout` kiểu cũ → hook
+**chạy thật**; chạy với `-c core.hooksPath=/dev/null` → không chạy.
+
+**Hai lớp vá:**
+
+1. **Tắt hook ở MỌI lệnh git của harness** — `-c core.hooksPath=/dev/null`, kể cả hai
+   lệnh `checkout` trong `proveRedGreen`.
+2. **Quét secret trong diff** — hai lần: trước khi tính là `implemented`, và **lại một
+   lần ngay trước khi push** (push là hành động không lùi lại được; kiểm hai lần rẻ hơn
+   nhiều so với rotate token).
+
+Bộ quét có hai lớp: **mẫu chung** (`glpat-`, `sk-ant-`, `xox*-`, `whsec_`, private key,
+service-account JSON, `AIza`, `ghp_`) và **so với giá trị thật** của secret đang nằm trên
+máy. Lớp thứ hai quan trọng hơn — mẫu chung luôn có thể lách, còn so thẳng giá trị thật
+thì không.
+
+7/7 ca test đúng, gồm ca dùng **token GitLab thật** trong diff → bắt được bởi cả hai lớp.
+
+**Giới hạn đã biết:** một agent cố tình có thể cắt nhỏ secret ra để lách (ca test cuối
+cho thấy đoạn 12 ký tự lọt). Bộ quét này chặn rò rỉ **vô ý** — là rủi ro thực tế — chứ
+không chống được đối thủ chủ đích. Muốn chặn triệt để thì phải bỏ token ra khỏi tầm đọc
+của user chạy Codex, mà việc đó lại vướng vì chính harness cần token để push.
+
+### Siết quyền xong thì agent còn làm được việc không? (26/08)
+
+dantt hỏi thẳng câu đó, và câu hỏi đúng — **siết quá tay thì hệ thống an toàn mà vô dụng**.
+
+**Một năng lực đã bị tôi làm hỏng:** bỏ Bash đi thì triage **mất lịch sử git**. Mà đó
+chính là thứ làm nên báo cáo tốt nhất từ trước tới nay — khớp mốc *"xảy ra từ ~20/08"*
+của khách với các commit `72e72bfd9` / `1aa7e6898`. `Read`/`Grep`/`Glob` không đọc được
+lịch sử.
+
+Khôi phục bằng **3 công cụ git chỉ-đọc trong MCP** thay vì mở lại Bash:
+
+| Công cụ | Việc |
+|---|---|
+| `git_log(repo, since, until, grep, path)` | khớp mốc thời gian khách báo với thay đổi code |
+| `git_show(repo, sha, full)` | xem một commit |
+| `git_blame(repo, file, line)` | dòng này đổi từ commit nào |
+
+Tham số truyền dạng mảng qua `execFile`, tắt hook — giữ nguyên đảm bảo "không có shell".
+
+**Đo lại năng lực sau khi siết, 4/4 chạy:**
+
+| Năng lực | Kết quả |
+|---|---|
+| Đọc/grep code | ✅ |
+| Lịch sử git | ✅ tìm ra `72e72bfd9`, `82c9bf4aa`, `e6609468f` trong 18–23/08 |
+| Firestore prod | ✅ `16059` |
+| `git_blame` | ✅ `recurringCycleLimit = 0` đến từ commit **`788a420536`** |
+
+Mục cuối là kiểm chứng độc lập đáng giá: **đúng commit mà tôi tự tay tìm ra hôm 25/08**
+khi phân tích ca volume-bundle — agent tìm lại được bằng công cụ mới.
+
+Bài học: **siết quyền phải kèm đo lại năng lực.** Nếu chỉ kiểm "đã chặn được gì" mà
+không kiểm "còn làm được gì", sẽ có ngày phát hiện agent im lặng kém đi mà không biết
+vì sao.
+
+### Debug một ca chạy sai (26/08, commit sau `ffd42b1`)
+
+dantt hỏi *"hiện tại có debug được không?"*. Rà lại thì dấu vết **có nhiều** — nhưng nằm
+rải rác 7 chỗ, nên thực tế không ai lần:
+
+| Nguồn | Nội dung |
+|---|---|
+| `journalctl --user -u agent-*` | log từng service |
+| `/srv/agent/reports/<ticket>.md` | báo cáo điều tra |
+| `/srv/agent/queue/<state>/<ticket>.json` | bản ghi đầy đủ: report, diff, proof, verdict, retry |
+| `stats.jsonl` · `decisions.jsonl` · `ledger.jsonl` | số liệu, quyết định cổng, mọi delivery |
+| `shopify-audit.jsonl` · `control.log` | mọi lời gọi Shopify, mọi lần bật/tắt |
+| `~/work/<ticket>` | worktree — **code thật còn nguyên** |
+| `~/.claude/projects/**` · `~/.codex/sessions/**` | **transcript đầy đủ** (42 + 27 phiên) |
+
+**Mắt xích thiếu:** transcript có sẵn nhưng **không có cách nối từ mã ticket sang file
+phiên**. Nên khi báo cáo sai, chỉ thấy kết luận cuối, không truy được agent đã nghĩ gì.
+
+Vá: lưu `session_id` (Claude trả trong phong bì JSON) và đường dẫn phiên Codex (tìm file
+`.jsonl` mới nhất tạo trong lúc chạy) vào bản ghi case.
+
+**`agent-case <mã-ticket>`** gom hết lại theo dòng thời gian: mốc thời gian · quyết định
+cổng · kết luận điều tra + chỗ nghi ngờ + chưa kiểm tra · bản sửa + commit · **bằng chứng
+đỏ→xanh** · kiểm chéo · vì sao dừng · lịch sử thử lại · chi phí · **lệnh `claude --resume`
+để đọc lại toàn bộ suy luận** · đường dẫn worktree/báo cáo/MR.
+
+`agent-case --list` liệt kê case gần nhất.
+
+Điểm đáng giá nhất không phải bảng số liệu, mà là dòng `claude --resume <id>` — nó biến
+"agent kết luận lạ quá" từ một chuyện phải đoán thành một chuyện đọc được.
+
+### Guard cho chế độ 24/7 — không dừng chờ ai (26/08)
+
+dantt: *"agent 24/7, tôi không muốn phải vào duyệt permission"*.
+
+**Không có chỗ nào chờ duyệt.** Chế độ headless **không hỏi** — nó **từ chối thẳng rồi
+chạy tiếp**. Đã kiểm: đòi ghi file → trả lời ngay *"BỊ CHẶN"*, không treo.
+
+Nhưng chính điều đó là rủi ro tinh vi hơn: **bị từ chối thì nó im lặng làm tiếp, chỉ là
+kém đi** — đúng như việc bỏ Bash làm mất `git log` mà không có gì báo.
+
+**Phong bì JSON có gì dùng được** (đã dò thật):
+
+| Trường | Ý nghĩa |
+|---|---|
+| `subtype: error_max_turns` + `is_error: true` | **chạm trần lượt** — tín hiệu sạch |
+| `permission_denials: []` | ⚠️ **rỗng khi công cụ không được cấp** — model không thấy nên không thử. Chỉ bắt được trường hợp công cụ *có* mà bị chặn lúc chạy |
+| `session_id` · `stop_reason` · `num_turns` | truy vết |
+
+**Ba guard đã dựng:**
+
+1. **Chạm trần lượt có tên riêng.** Trước đây rơi vào `failed` chung với lỗi parse — hai
+   nguyên nhân khác hẳn nhau mà đọc log như nhau. Giờ thành `report-only` với lý do
+   *"runbook chưa đủ tốt cho loại case này"*, và tổng kết sáng **đếm riêng**.
+2. **Verifier chạm trần thì KHÔNG tính PASS** — thiếu dữ kiện để kết luận thì kết luận an
+   toàn là chặn lại.
+3. **Ghi `permission_denials`** — nhưng không dựa vào một mình nó, vì giới hạn ở trên.
+   Phải đo năng lực riêng (bài kiểm 4/4).
+
+### Hai lỗi của chính tôi, cùng một gốc
+
+**Sửa trên VM mà không sửa bản gốc.** Vá `0o600 → 0o660` bằng `sed` trực tiếp trên máy,
+rồi lần deploy sau ghi đè từ scratchpad → **mất bản vá**. Xảy ra hai lần trong mười phút
+(`morning-report` mất bản vá đếm service, `gate` mất bản vá mode file).
+
+Hậu quả lần thứ hai: case nằm ở `ready` **8 phút, không một dòng log**. Vì vòng quét có:
+
+```js
+} catch { continue; }
+```
+
+Không đọc được file → **bỏ qua im lặng, mãi mãi**. Đã đổi thành ghi log rõ ràng ở cả ba
+worker.
+
+Hai bài học, đều đắt: **sửa trên máy phải sửa cả bản gốc**, và **không bao giờ `catch`
+rồi `continue` mà không log** — hỏng im lặng là kiểu hỏng đắt nhất, vừa tự chứng minh.
+
 ## 7. Cần bổ sung
 
 ### 7a. Phải xin người khác (đường găng)
@@ -690,7 +1371,7 @@ repro live) thay vì khẳng định bừa — đúng luật đã ép trong prom
 | C2 | Quyền tạo webhook `/admin/webhooks` | Quảng (U01N91HCC3F) | không đăng ký được URL Funnel |
 | C3 | Bảng `tagIds`→tên tag, enum `tsStatus`, chốt tag nào = agent được phép | Quảng (TS Lead) + Hoàng (TechLead) | cổng 3–4 sập |
 | C4 | Deploy token GitLab role developer, 2 repo | Hoàng (TechLead, U01NCB7NX6F) | không clone, không mở MR |
-| C5 | Service account GCP **chỉ quyền view**: Firestore + BigQuery + Cloud Logging, prod cả 2 app | người giữ GCP project | agent đoán theo code. ⚠️ Trong `C07URV6QMJ8` (25/08) chính dantt nói *"cấp trên ko cho share SA luôn cơ"* và đề xuất *"tạo 1 bảng khác để debug"*; đang bàn ở nhóm Techlead. Sau đó dantt xác nhận **quyền view vẫn xin được** — nếu vướng thì đây là chỗ vướng, và phương án B là bảng debug riêng do chính dantt đề xuất. |
+| C5 | ✅ **XONG 26/08** — Service account GCP **chỉ quyền view**: Firestore + BigQuery + Cloud Logging, prod cả 2 app | người giữ GCP project | agent đoán theo code. ⚠️ Trong `C07URV6QMJ8` (25/08) chính dantt nói *"cấp trên ko cho share SA luôn cơ"* và đề xuất *"tạo 1 bảng khác để debug"*; đang bàn ở nhóm Techlead. Sau đó dantt xác nhận **quyền view vẫn xin được** — nếu vướng thì đây là chỗ vướng, và phương án B là bảng debug riêng do chính dantt đề xuất. |
 | C6 | Slack bot token `xoxb-` riêng cho agent | admin workspace | agent báo dưới tên dantt |
 
 **C3 là mục rủi ro nhất** — không khó làm, nhưng cần người khác đồng ý một quy ước,

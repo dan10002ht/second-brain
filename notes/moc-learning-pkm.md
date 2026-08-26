@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-24
+updated: 2026-08-26
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -84,6 +84,9 @@ updated: 2026-08-24
 - [[feedback-khong-in-secret-ra-chat]] — mở khi một token đang đi qua tay mình trong lúc làm việc:
   chỉ nhắc **tên biến** và truyền qua env của đúng lệnh đó; transcript được lưu ra đĩa và
   `brain-digest` đọc lại mỗi tối nên một lần in ra chat là không rút lại được.
+- [[feedback-nhat-du-lane-song-song]] — mở ở bước nhặt task của `/looptasks`/`/looptasksv2`: hạn mức
+  là 4 lane/lượt, chạy 1 lane rồi ngồi chờ là tự thu hẹp phạm vi chứ không đổi lại được an toàn nào;
+  chỉ giảm lane khi có lý do đo được (va chạm file thật, swap/RAM), và `/loop` chỉ là đồng hồ.
 - [[tien-khong-duoc-lay-float-lam-chuan]] — mở khi đang viết hoặc đang *kiểm* một phép tính tiền: giá
   trị trung gian đúng vẫn hỏng ở bước nhân ngược về cents, và nếu chuẩn đối chiếu của phép kiểm cũng là
   float thì hai bên sai giống nhau nên brute-force báo 0 lệch ở đúng những case nó sai.
@@ -146,6 +149,10 @@ updated: 2026-08-24
 - [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]] — mở khi một bản ghi "đáng lẽ phải có" mà
   bảng rỗng: API tạo nó tồn tại trên gateway nhưng không luồng nào gọi — hợp đồng trên giấy không ai
   thực thi; lời giải là phát hành ngay trong transaction đã biết chắc kết quả.
+- [[digest-ticket-mcrsv-2026-08-26]] — mở khi một tính năng "chưa bao giờ chạy được ở dev" mà code
+  trông đúng, hoặc khi một field bắt buộc được coi là một phép kiểm: hostname Docker Compose lọt vào
+  `.env` chạy native, `errors.New` trượt `errors.As` biến lỗi nhập liệu thành 500, và `qr_code` chỉ
+  được đòi *có mặt* chứ chưa bao giờ được đối chiếu.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 
