@@ -79,6 +79,7 @@ App Shopify (do AVADA phát triển, tên nội bộ `@avada/app`, brand "Joy Su
 
 ## Liên quan
 
+- [[discount-per-cycle-audit-2026-08-27]] — **giá theo cycle sai ở 2 tầng discount**: nhánh legacy không nhận `currentBillingCycle` (charge sai tiền thật), và đường tính giá không dùng `getValidDiscounts` (sai hiển thị). Còn 4 câu chưa chốt.
 - [[subscriptions-debug-runbook]] — **cách debug bằng data thật** (prod query, BigQuery, Shopify token, Redis, race condition)
 - [[ts-type-narrowing]] (đối chiếu — repo này cố tình KHÔNG dùng TS)
 - [[app-development]] (Shopify)

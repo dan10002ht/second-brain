@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-26
+updated: 2026-08-27
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -87,6 +87,14 @@ updated: 2026-08-26
 - [[feedback-nhat-du-lane-song-song]] — mở ở bước nhặt task của `/looptasks`/`/looptasksv2`: hạn mức
   là 4 lane/lượt, chạy 1 lane rồi ngồi chờ là tự thu hẹp phạm vi chứ không đổi lại được an toàn nào;
   chỉ giảm lane khi có lý do đo được (va chạm file thật, swap/RAM), và `/loop` chỉ là đồng hồ.
+- [[gate-hop-nhat-truoc-khi-merge]] — mở khi hai lane song song cùng PASS verifier mà gate đỏ ngay sau
+  merge, hoặc khi định tin một FAIL: cách ly worktree khiến mỗi verifier nhìn một *nhánh của thực tại*,
+  nên trạng thái hợp nhất là thứ không ai từng chấm — merge trước, chấm sau.
+- [[2026-08-27-he-thi-giac-chong-ai-slop]] — mở khi một yêu cầu chất lượng chỉ tồn tại dưới dạng tính
+  từ trong prompt ("đẹp", "gọn", "đừng slop"): chốt một hướng cụ thể rồi biến nó thành chỉ số đếm được
+  trong CI với baseline siết dần — kèm giới hạn thẳng thắn của cách đó.
+- [[feedback-ui-component-300-dong-atomic]] — mở khi nhận việc frontend: hai luật (component ~300 dòng,
+  cây thư mục atomic design) chỉ có hiệu lực khi thành một dòng trong gate, và đo trước rồi mới hứa.
 - [[tien-khong-duoc-lay-float-lam-chuan]] — mở khi đang viết hoặc đang *kiểm* một phép tính tiền: giá
   trị trung gian đúng vẫn hỏng ở bước nhân ngược về cents, và nếu chuẩn đối chiếu của phép kiểm cũng là
   float thì hai bên sai giống nhau nên brute-force báo 0 lệch ở đúng những case nó sai.
@@ -153,6 +161,10 @@ updated: 2026-08-26
   trông đúng, hoặc khi một field bắt buộc được coi là một phép kiểm: hostname Docker Compose lọt vào
   `.env` chạy native, `errors.New` trượt `errors.As` biến lỗi nhập liệu thành 500, và `qr_code` chỉ
   được đòi *có mặt* chứ chưa bao giờ được đối chiếu.
+- [[digest-ticket-mcrsv-2026-08-27]] — mở khi một bypass auth "đã chặn được middleware" mà trình duyệt
+  vẫn ra login, hoặc khi định tin một phép đo viewport: `RoleGuard` phía client redirect sau hydrate nên
+  `curl` 200 không chứng minh gì, và bằng chứng đúng là DOM sau hydrate; kèm quarantine bảng chết bằng
+  `SET SCHEMA` và công cụ đo phải phân biệt "không tràn" với "không đo được".
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 
