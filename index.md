@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-27 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 item ngày 08-27: 3 digest + 1 shipped + 1 decision + 1 feedback + 1 resource)_
+_Cập nhật: 2026-08-28 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 6 item ngày 08-28: 3 digest + 1 shipped + 2 decision)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -23,7 +23,7 @@ _Cập nhật: 2026-08-27 · Trạng thái: đã seed 12 project + notes học t
 - [[agent-support-design]] — **Agent support 24/7 ĐANG CHẠY** trên VM `dantt-solar`: bắt ticket mới từ kênh Slack `C07URV6QMJ8`, điều tra bằng dữ liệu prod, mở MR nháp khi có test đỏ→xanh + verifier độc lập PASS. **Đọc mục 0 (Vào việc nhanh) trước** — tài liệu dài, viết theo thứ tự thời gian.
 - [[setup-cho-team-khac]] — hướng dẫn 5 team còn lại dựng lại Agent support 24/7, kèm 6 cái bẫy đã vấp và chi phí đo được (~$2.1/case triage).
 - [[runbook-agent-pdf-invoice]] — runbook agent đọc trước khi điều tra case `pdf-invoice` (bẫy yup 0.29 nuốt lỗi, jest không quét `__tests__/`, preview ≠ đường gửi).
-- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops) · [[functions-cost-audit-2026-08-11]] (chi phí Functions: v2 hoà vốn với v1, đóng chủ đề migrate) · [[discount-per-cycle-audit-2026-08-27]] (3 bug giá subscription: !2502 + !2503 đã merge và repair xong — cái thu dư 8 EUR thật là plans[] lệch sellingPlanId, không phải tier; còn bug subtotal admin hiện 56 chưa vá).
+- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops) · [[functions-cost-audit-2026-08-11]] (chi phí Functions: v2 hoà vốn với v1, đóng chủ đề migrate) · [[discount-per-cycle-audit-2026-08-27]] (3 bug giá subscription: !2502 + !2503 đã merge và repair xong — cái thu dư 8 EUR thật là plans[] lệch sellingPlanId, không phải tier; bug subtotal admin hiện 56 đã đóng bằng !2504 `v2.34.90`, xem [[shipped-subscriptions-2026-08-28]]).
   _Project đầu tiên dùng cấu trúc thư mục `10-projects/<project>/` — project nào phình thêm file thì gom vào folder, project nhỏ giữ note phẳng. Task list là `BRIEF.md` trong folder đó (state của `/looptasks`, cố ý nằm ngoài graph)._
 - [[joy]] — Joy Loyalty & Rewards SaaS (deep).
 - [[joy-subscription-artifacts]] — kho artifact/CDN build của Joy Subscription.
@@ -243,6 +243,10 @@ _Cập nhật: 2026-08-27 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-subscriptions-2026-08-27]] — Phí ship 0 EUR của kookut không phải lỗi code mà là cấu hình delivery profile của merchant (nhóm SUBSCRIPTION chỉ có MỘT rate, profile app trỏ vào lại 0 sản phẩm); hai file trùng tên `shippingProfileService.js` và một lần `grep -v` lọc nhầm khiến tôi kết luận sai ba lượt liên tiếp; audit V1→V2 cho store khách gộp 60 product thành 3 plan và không đụng Bird/Zapiet/delivery_date.
 - [[digest-pdf-2026-08-27]] — Khối địa chỉ rỗng trong mail reminder là dữ liệu thật của đơn B2B tạo tay chứ không phải app làm mất, nên fix là ẩn cả khối; cách Joy giữ hai cột không bao giờ rơi là hai `<td>` thật cộng `width: calc((100% - 1px)/2)` chứ không `min-width`; và gửi mail bằng data store thật phải đi đường script với người nhận ghi cứng.
 - [[digest-ticket-mcrsv-2026-08-27]] — Bypass middleware phía server không đủ vì `(admin)`/`(org)` còn `RoleGuard` phía client chuyển hướng sau hydrate — phải chứng minh bằng DOM sau hydrate chứ không phải mã HTTP; kèm dòng `public` của template Gatsby nuốt `frontend/public/` của Next, quarantine bảng chết bằng `SET SCHEMA`, và tràn ngang thật 11px đúng tại breakpoint 768px.
+- [[shipped-subscriptions-2026-08-28]] — Master nhận 3 tag liên tiếp trong một ngày (`v2.34.88` !2502 legacy change-discount neo ở cycle 0, `v2.34.89` !2503 giữ `plans[]` đúng `sellingPlanId`, `v2.34.90` !2504 lấy app discount từ `discountAllocations` — đóng nốt bug subtotal 56 mà audit hôm qua ghi là chưa vá); trên nhánh `fix/kookut-issues`: fix re-quote đúng option khách chọn + 5 script probe shipping read-only. Không revert, không cờ deploy, không migration. ⚠️ có 2 mục "cần xác nhận".
+- [[digest-subscriptions-2026-08-28]] — Xoá cycle edit sau commit draft cũng revert luôn skip nhưng Firestore mới là nguồn chọn đơn để charge; app không hề đọc được giá của phương thức khách chọn vì `deliveryOptions` bị comment out; và import từ Loop dựng lại được contract từ order + transaction log chứ không cần contract của app kia.
+- [[digest-pdf-2026-08-28]] — Ba lần tôi kết luận sai về email payment reminder đều do phép đo của chính tôi chứ không do code — HTML còn merge tag chưa thay, file CSS chọn theo kích thước, và bề ngang đo trong iframe; kèm cụm gotcha khi giao việc cho lane codex.
+- [[digest-ticket-mcrsv-2026-08-28]] — Mã QR suy ra từ chính `ticket_id` nên gõ tay là qua được check-in; một gate đo layout chỉ đáng tin khi nó tự khai "đo được mấy phép" và FAIL khi bằng 0; và nhiều lane cùng lái Chrome qua CDP làm chết luôn Chrome của user.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -295,6 +299,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]] — Chọn để ticket-service tự INSERT vào bảng `tickets` khi `ConfirmReservation` thành công, thay vì để một service khác gọi API `CreateTicket` sau khi thanh toán — vì `checkin-service` đọc `ticket.Status` chứ không đọc booking, nên không có ticket là check-in từ chối mọi vé (review 2026-11-25).
 - [[2026-08-26-banner-portal-theo-menu]] — Bỏ hướng dò xem merchant đã add customer-account extension trong theme editor hay chưa (chứng minh được là API không nhìn thấy), đổi sang điều kiện duy nhất đo được — extension có nằm trong menu customer account hay không (review 2026-11-26).
 - [[2026-08-27-he-thi-giac-chong-ai-slop]] — Chốt một hướng thị giác cụ thể (Dice/RA — ảnh làm chủ, chữ nén-đậm, góc sắc, nền trung tính) rồi biến nó thành gate đếm số trong CI, thay vì mô tả "làm đẹp" trong prompt; tách hẳn việc redesign 28 trang khỏi việc nâng cấp venue designer (review 2026-11-27).
+- [[2026-08-28-shipping-lay-gia-tu-rate-table]] — Joy Subscription bỏ cách hỏi Shopify một cart quote để suy phí ship định kỳ, chuyển sang tự đọc delivery profile của merchant (`methodDefinitions` + điều kiện `TOTAL_PRICE`) rồi resolve giá cho đúng phương thức khách đã chọn, có toggle chặn để không đụng 5.306 shop đang ở mặc định. ⚠️ CHƯA MERGE — MR !2513 trên `fix/kookut-issues` (review 2026-11-28).
+- [[2026-08-28-import-loop-chi-contract-song-paused]] — Bỏ 88 contract Cancelled khỏi file import và ép toàn bộ 37 contract còn sống về `Paused`, để việc bật lại là thao tác có chủ ý của merchant sau khi đã huỷ bên Loop — thay vì import nguyên 125 dòng theo trạng thái gốc (review 2026-11-28).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
