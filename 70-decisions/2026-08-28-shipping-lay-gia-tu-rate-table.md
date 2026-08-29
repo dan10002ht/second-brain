@@ -4,7 +4,7 @@ title: Phí ship định kỳ lấy từ rate table của merchant, không lấy
 summary: Joy Subscription bỏ cách hỏi Shopify một cart quote để suy phí ship định kỳ, chuyển sang tự đọc delivery profile của merchant (methodDefinitions + điều kiện TOTAL_PRICE) rồi resolve giá cho đúng phương thức khách đã chọn, có toggle chặn để không đụng 5.306 shop đang ở mặc định.
 tags: [avada, subscription, shopify, shipping, architecture]
 created: 2026-08-28
-updated: 2026-08-28
+updated: 2026-08-29
 status: active
 review: 2026-11-28
 source: project `subscriptions` — session history 2026-08-28 (kookut)
@@ -24,6 +24,7 @@ trong `getLowestShippingRate`, và cách sửa cuối cùng là **đổi nguồn
 - Nhánh lúc **tạo contract** cũng dùng nguồn này, nhưng có **toggle chặn** để không đổi hành vi
   của 5.306 shop đang nằm ở mặc định.
 - MR !2513, 3 commit trên `fix/kookut-issues`, không tự merge.
+  **ĐÃ MERGE 2026-08-28** — `18aadcc78`, tag `v2.34.95` (xem [[shipped-subscriptions-2026-08-29]]).
 
 ## Why
 
@@ -50,4 +51,5 @@ trong `getLowestShippingRate`, và cách sửa cuối cùng là **đổi nguồn
 
 Liên quan: [[subscriptions]] · [[digest-subscriptions-2026-08-28]] · [[digest-subscriptions-2026-08-27]] ·
 [[digest-subscriptions-2026-08-20]] · [[shipped-subscriptions-2026-08-28]] ·
+[[shipped-subscriptions-2026-08-29]] ·
 [[kookut-yeu-cau-cau-hinh-shipping]] · [[2026-08-28-import-loop-chi-contract-song-paused]]
