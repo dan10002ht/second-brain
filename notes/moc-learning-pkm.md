@@ -95,6 +95,12 @@ updated: 2026-08-27
   trong CI với baseline siết dần — kèm giới hạn thẳng thắn của cách đó.
 - [[feedback-ui-component-300-dong-atomic]] — mở khi nhận việc frontend: hai luật (component ~300 dòng,
   cây thư mục atomic design) chỉ có hiệu lực khi thành một dòng trong gate, và đo trước rồi mới hứa.
+- [[fixture-khong-phai-hop-dong-du-lieu]] — mở ở bước SAU [[gate-tu-viet-la-nguon-xanh-gia]], khi gate đã
+  đỏ được thật mà tính năng vẫn vô hiệu trên prod: thứ chưa ai chấm là *dữ liệu* gate chạy trên đó, và
+  cùng một người viết code lẫn fixture thì test chỉ chứng minh code khớp giả định của chính mình.
+- [[feedback-trich-code-nguyen-van]] — mở khi định dán một dòng code "rút gọn cho dễ đọc" vào chat: giữa
+  phiên debug mọi dòng code dán ra được đọc như bằng chứng, nên trích nguyên văn kèm `path:line` — và khi
+  user trích code hỏi lại, grep chuỗi đó trong repo trước khi trả lời.
 - [[tien-khong-duoc-lay-float-lam-chuan]] — mở khi đang viết hoặc đang *kiểm* một phép tính tiền: giá
   trị trung gian đúng vẫn hỏng ở bước nhân ngược về cents, và nếu chuẩn đối chiếu của phép kiểm cũng là
   float thì hai bên sai giống nhau nên brute-force báo 0 lệch ở đúng những case nó sai.
@@ -165,6 +171,9 @@ updated: 2026-08-27
   vẫn ra login, hoặc khi định tin một phép đo viewport: `RoleGuard` phía client redirect sau hydrate nên
   `curl` 200 không chứng minh gì, và bằng chứng đúng là DOM sau hydrate; kèm quarantine bảng chết bằng
   `SET SCHEMA` và công cụ đo phải phân biệt "không tràn" với "không đo được".
+- [[digest-ticket-mcrsv-2026-08-30]] — mở khi sắp đọc verdict của một verifier cho task *điều tra nhiều
+  câu hỏi*: dòng tiêu đề `PASS` có thể phủ lên một C3 FAIL — bắt nó chấm từng kết luận một; kèm cách cắt
+  ba vùng chạm 44px chồng nhau bằng `clipPath` thay vì thu vùng chạm theo zoom.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 

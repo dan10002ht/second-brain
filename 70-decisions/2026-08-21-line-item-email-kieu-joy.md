@@ -65,5 +65,6 @@ Chốt **C**. Test "ngưỡng stack 151px" của hướng B bị **xoá**, thay 
 
 ## Liên quan
 
+[[layout-email-html-co-duoc]] (bản khái quát hoá của quyết định này, áp cho mọi khối chứ không riêng line item) ·
 [[digest-pdf-2026-08-21]] · [[do-be-ngang-headless-chrome]] ·
 [[2026-08-13-wholesale-table-chi-chua-item-grid]] · [[pdf]] · [[subscriptions]]

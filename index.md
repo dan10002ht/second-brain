@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-29 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 1 item ngày 08-29: shipped subscriptions)_
+_Cập nhật: 2026-08-30 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 5 item ngày 08-30: 1 decision, 1 digest, 1 feedback, 2 resource)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -74,6 +74,8 @@ _Cập nhật: 2026-08-29 · Trạng thái: đã seed 12 project + notes học t
 - [[gui-viec-cho-lane-khong-co-ack]] — message gửi vào TUI của agent lane có ba cách chết im lặng (newline hiểu thành Enter nên chỉ nửa câu tới, paste dài kẹt trong ô nhập, lane treo 0% CPU) — nên sau mỗi lần giao việc phải xác nhận bằng ba tín hiệu độc lập chứ không coi việc đã giao là đã nhận.
 - [[tien-khong-duoc-lay-float-lam-chuan]] — `17.935 * 100 === 1793.4999…` nên `Math.round` trên float lệch 1 cent; và khi brute-force đi tìm chỗ lệch, nếu chuẩn đối chiếu cũng là float thì phép kiểm sẽ báo sạch đúng ở những case nó sai.
 - [[gate-hop-nhat-truoc-khi-merge]] — mỗi lane chạy trong worktree riêng nên verifier của nó không thể thấy tương tác với task khác cùng landed — hai task cùng PASS vẫn làm đỏ gate ngay sau khi merge cả hai, và không có ai trong quy trình có nghĩa vụ bắt được điều đó.
+- [[fixture-khong-phai-hop-dong-du-lieu]] — một test đỏ được, mutation đúng chiều, gate xanh — vẫn không chứng minh gì, nếu dữ liệu nó chạy trên đó do chính người viết code dựng ra; chỗ hỏng thật nằm ở khoảng cách giữa fixture và hợp đồng dữ liệu của producer thật.
+- [[layout-email-html-co-duoc]] — sàn bề ngang của một email là tổng những thứ KHÔNG co được (ảnh cố định, `nowrap`, padding chồng nhiều tầng) nên `min-width` gần như luôn là chẩn đoán sai; hai thứ phải nằm cùng hàng là việc của hai `<td>` thật, và mọi phép đo phải chạy trên HTML đã thay hết merge tag.
 - [[api-key-cong-khai-khong-phai-secret]] — với secret thật thì rotate = xong, vì toàn bộ vấn đề là vô hiệu hoá giá trị cũ; nhưng với một key vốn được in ra browser (Firebase/Google API key, publishable key), giá trị mới cũng lộ ngay lượt tải trang đầu tiên, nên biện pháp thật là restrict theo referrer/API + thứ tự "đổi mọi consumer → redeploy → verify → mới xoá key cũ".
 
 **Học tập:**
@@ -248,6 +250,7 @@ _Cập nhật: 2026-08-29 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-pdf-2026-08-28]] — Ba lần tôi kết luận sai về email payment reminder đều do phép đo của chính tôi chứ không do code — HTML còn merge tag chưa thay, file CSS chọn theo kích thước, và bề ngang đo trong iframe; kèm cụm gotcha khi giao việc cho lane codex.
 - [[shipped-subscriptions-2026-08-29]] — Master nhận 4 MR (`v2.34.95` !2513 phí ship định kỳ đọc từ rate table merchant — nhánh của quyết định 08-28 ĐÃ merge, `v2.34.96` !2511 chặn code discount đã hết lượt định giá mọi upcoming order bằng `billableRank` suy live, !2514 gate đọc cả liquid theme-custom + thiếu package không còn đọc thành pass, !2509 kookut) cộng 1 MR mockup/PRD; trên nhánh: Parcely thành provider thứ ba, widget yearly-price cho theme custom, chặn ATC ở window capture, MCP key UI. Không revert, không cờ deploy, không migration. ⚠️ có 1 mục "cần xác nhận" (phí ship 0 của kookut: cấu hình merchant hay hành vi Shopify — hai nguồn nói khác nhau).
 - [[digest-ticket-mcrsv-2026-08-28]] — Mã QR suy ra từ chính `ticket_id` nên gõ tay là qua được check-in; một gate đo layout chỉ đáng tin khi nó tự khai "đo được mấy phép" và FAIL khi bằng 0; và nhiều lane cùng lái Chrome qua CDP làm chết luôn Chrome của user.
+- [[digest-ticket-mcrsv-2026-08-30]] — Một verifier trả PASS ở dòng tiêu đề nhưng FAIL ở một trong ba kết luận nó tự chấm, nên verdict phải đọc theo từng kết luận chứ không đọc dòng đầu; và ba vùng chạm 44px chồng nhau giải được bằng `clipPath` phân vùng thay vì thu vùng chạm theo zoom.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
@@ -302,6 +305,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-27-he-thi-giac-chong-ai-slop]] — Chốt một hướng thị giác cụ thể (Dice/RA — ảnh làm chủ, chữ nén-đậm, góc sắc, nền trung tính) rồi biến nó thành gate đếm số trong CI, thay vì mô tả "làm đẹp" trong prompt; tách hẳn việc redesign 28 trang khỏi việc nâng cấp venue designer (review 2026-11-27).
 - [[2026-08-28-shipping-lay-gia-tu-rate-table]] — Joy Subscription bỏ cách hỏi Shopify một cart quote để suy phí ship định kỳ, chuyển sang tự đọc delivery profile của merchant (`methodDefinitions` + điều kiện `TOTAL_PRICE`) rồi resolve giá cho đúng phương thức khách đã chọn, có toggle chặn để không đụng 5.306 shop đang ở mặc định. ĐÃ MERGE 2026-08-28 (`v2.34.95`, MR !2513) — xem [[shipped-subscriptions-2026-08-29]] (review 2026-11-28).
 - [[2026-08-28-import-loop-chi-contract-song-paused]] — Bỏ 88 contract Cancelled khỏi file import và ép toàn bộ 37 contract còn sống về `Paused`, để việc bật lại là thao tác có chủ ý của merchant sau khi đã huỷ bên Loop — thay vì import nguyên 125 dòng theo trạng thái gốc (review 2026-11-28).
+- [[2026-08-30-archive-backup]] — repo `~/projects/backup` không có commit 80 ngày và chưa từng xuất hiện trong bất kỳ digest/shipped nào — đề xuất chuyển khỏi `10-projects/` theo nghĩa PARA "không active", trách nhiệm bảo trì app vẫn sống ở area [[shopify-app-dev]] (review 2026-11-30).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
@@ -327,6 +331,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-dung-xin-chot-khi-chi-thi-da-co]] — khi user đã ra một chỉ thị bao trùm ("hoàn thiện nhất có thể, không làm qua loa"), việc dừng lại hỏi "anh chốt cái nào" cho hai việc rõ ràng nằm trong đó là đẩy quyết định ngược về phía user, không phải cẩn thận.
 - [[feedback-nhat-du-lane-song-song]] — Skill cho tối đa 4 lane mỗi lượt mà tôi chỉ chạy 1 rồi dừng chờ — đó là tự thận trọng quá, không phải cẩn thận, và không cần `/loop` mới chạy song song được.
 - [[feedback-ui-component-300-dong-atomic]] — hai luật user đặt cho code frontend — một component nên quanh 300 dòng và cây thư mục đi theo atomic design (atoms/molecules/organisms) — và chúng chỉ có hiệu lực khi được biến thành số đo trong gate, không phải một dòng dặn trong prompt.
+- [[feedback-trich-code-nguyen-van]] — tôi viết một dòng code "rút gọn cho dễ đọc" trong tin nhắn, user đọc nó như code thật trong repo và mất một lượt đi tranh luận về dòng không hề tồn tại.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable

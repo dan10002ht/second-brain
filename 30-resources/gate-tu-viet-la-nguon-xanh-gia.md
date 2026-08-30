@@ -45,4 +45,6 @@ fi
 
 Cùng lớp với [[truong-last-verified]] (dấu xác minh mà CI chỉ kiểm được *có trường*, không kiểm được *đúng*) và [[bang-chung-phan-biet-duoc]] (mọi kết luận tự chấm đều là bằng chứng vắng mặt). Trong `/looptasks` thì đây là lý do verifier phải là agent context sạch, xem [[2026-08-04-looptasks-verifier-doc-lap]] — nhưng verifier chỉ hữu ích nếu **thước nó cầm** cũng bị nghi ngờ.
 
+Bước tiếp theo khi gate đã đỏ được thật mà tính năng vẫn vô hiệu trên prod: [[fixture-khong-phai-hop-dong-du-lieu]] — lúc đó thứ chưa ai chấm không phải cái gate mà là dữ liệu nó chạy trên đó.
+
 Liên quan: [[gate-quet-ma-nguon-bang-ast]] · [[brief-state-agent-loop]] · [[digest-ticket-mcrsv-2026-08-22]] · [[2026-08-22-cau-truc-doc-theo-vong-doi]] · [[2026-08-13-tach-gate-khoi-cham-tung-bug]]
