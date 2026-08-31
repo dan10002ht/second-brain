@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-30 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 5 item ngày 08-30: 1 decision, 1 digest, 1 feedback, 2 resource)_
+_Cập nhật: 2026-08-31 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 1 item ngày 08-31: 1 digest)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -251,6 +251,7 @@ _Cập nhật: 2026-08-30 · Trạng thái: đã seed 12 project + notes học t
 - [[shipped-subscriptions-2026-08-29]] — Master nhận 4 MR (`v2.34.95` !2513 phí ship định kỳ đọc từ rate table merchant — nhánh của quyết định 08-28 ĐÃ merge, `v2.34.96` !2511 chặn code discount đã hết lượt định giá mọi upcoming order bằng `billableRank` suy live, !2514 gate đọc cả liquid theme-custom + thiếu package không còn đọc thành pass, !2509 kookut) cộng 1 MR mockup/PRD; trên nhánh: Parcely thành provider thứ ba, widget yearly-price cho theme custom, chặn ATC ở window capture, MCP key UI. Không revert, không cờ deploy, không migration. ⚠️ có 1 mục "cần xác nhận" (phí ship 0 của kookut: cấu hình merchant hay hành vi Shopify — hai nguồn nói khác nhau).
 - [[digest-ticket-mcrsv-2026-08-28]] — Mã QR suy ra từ chính `ticket_id` nên gõ tay là qua được check-in; một gate đo layout chỉ đáng tin khi nó tự khai "đo được mấy phép" và FAIL khi bằng 0; và nhiều lane cùng lái Chrome qua CDP làm chết luôn Chrome của user.
 - [[digest-ticket-mcrsv-2026-08-30]] — Một verifier trả PASS ở dòng tiêu đề nhưng FAIL ở một trong ba kết luận nó tự chấm, nên verdict phải đọc theo từng kết luận chứ không đọc dòng đầu; và ba vùng chạm 44px chồng nhau giải được bằng `clipPath` phân vùng thay vì thu vùng chạm theo zoom.
+- [[digest-ticket-mcrsv-2026-08-31]] — Nhóm miễn trừ `([[:alnum:]_-]+:)?` của gate arbitrary-value nhận cả `7px` nên `p-[7px:var(--x)]` lọt, và danh sách whitelist chỉ đúng khi trích theo cấu trúc chứ không grep chuỗi; ảnh chụp headless 390px bị cắt là ảo ảnh khiến tôi giao hai lane đi sửa lỗi không tồn tại; gate khởi động server phải giết cả process group.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)

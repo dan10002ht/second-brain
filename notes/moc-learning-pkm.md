@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-08-27
+updated: 2026-08-31
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -174,6 +174,10 @@ updated: 2026-08-27
 - [[digest-ticket-mcrsv-2026-08-30]] — mở khi sắp đọc verdict của một verifier cho task *điều tra nhiều
   câu hỏi*: dòng tiêu đề `PASS` có thể phủ lên một C3 FAIL — bắt nó chấm từng kết luận một; kèm cách cắt
   ba vùng chạm 44px chồng nhau bằng `clipPath` thay vì thu vùng chạm theo zoom.
+- [[digest-ticket-mcrsv-2026-08-31]] — mở khi một gate regex "đã chặn đúng suốt" vẫn để lọt, hoặc khi
+  định tin một ảnh chụp headless: chỗ thủng nằm ở nhánh MIỄN TRỪ chứ không ở nhánh bắt lỗi, whitelist
+  phải trích theo cấu trúc chứ không grep chuỗi, và ảnh 390px bị cắt xén là thước dối trực quan nhất
+  nên khó nghi nhất; kèm gate dựng server phải giết cả process group.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
 
