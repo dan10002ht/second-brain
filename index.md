@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-08-31 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 1 item ngày 08-31: 1 digest)_
+_Cập nhật: 2026-09-01 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 7 item ngày 09-01: 3 digest, 2 resource, 1 MOC mới, 1 đề xuất đổi tên)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -55,6 +55,8 @@ _Cập nhật: 2026-08-31 · Trạng thái: đã seed 12 project + notes học t
   - [[functions-pricing-v1-v2]]: v1 và v2 có đơn giá CPU/RAM/request y hệt nhau; tiền tiết kiệm ở v2 đến từ concurrency và tách rời CPU/RAM, không đến từ đơn giá.
 - `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]], [[lich-dinh-ky-neo-theo-ngay-du-kien]] (scheduler định kỳ neo theo mốc *dự kiến* của kỳ trước, không theo ngày xử lý thực tế — chống drift).
 - [[do-layout-shift-bang-browser-automation]] — đo CLS bằng agent-browser/Playwright: phần lớn "0 shift" là harness hỏng, luôn chạy control test, `buffered: true`, đo ≥5 lần, assert trang đã render trước khi tin con số.
+- [[bigquery-avada]] — trang gốc cho mọi thứ BigQuery ở Avada: cost bị phồng vì attribution sai chứ hiếm khi vì query nặng, pruning chỉ chạy khi filter đúng cột partition, và bảng shard/mirror hỏng âm thầm cho tới khi UI crash.
+- [[redis-queue-khong-dung-chung-instance-cache]] — instance cache cấu hình eviction để bảo vệ RAM, nên một job đẩy vào đó có thể bị đuổi lặng lẽ; hàng đợi phải nằm trên instance `noeviction`, và "cùng là Redis" không phải lý do gộp.
 - [[caching-layers]] — caching qua các layer (client→CDN→proxy→app→Redis→DB): 3 pattern lõi + 3 cái khó (invalidation, key, stampede).
 - [[bang-chung-phan-biet-duoc]] — mọi kết luận miễn trừ công việc ("gate đỏ là pre-existing", "không thấy log", "đo ra 0", "verifier PASS") đều là bằng chứng vắng mặt hoặc tự chấm; chỉ bằng chứng phân biệt được hai giả thuyết mới kết luận được — và nó luôn rẻ hơn hậu quả.
 - [[migrate-repo-gitlab-on-prem]] — đổi `origin` là phần dễ; phần dễ hỏng là nhánh vẫn track remote cũ, push branch trigger deploy staging và push tag trigger deploy production — kèm cách xử lý nhánh diverged và tạo MR bằng push option.
@@ -252,7 +254,12 @@ _Cập nhật: 2026-08-31 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-ticket-mcrsv-2026-08-28]] — Mã QR suy ra từ chính `ticket_id` nên gõ tay là qua được check-in; một gate đo layout chỉ đáng tin khi nó tự khai "đo được mấy phép" và FAIL khi bằng 0; và nhiều lane cùng lái Chrome qua CDP làm chết luôn Chrome của user.
 - [[digest-ticket-mcrsv-2026-08-30]] — Một verifier trả PASS ở dòng tiêu đề nhưng FAIL ở một trong ba kết luận nó tự chấm, nên verdict phải đọc theo từng kết luận chứ không đọc dòng đầu; và ba vùng chạm 44px chồng nhau giải được bằng `clipPath` phân vùng thay vì thu vùng chạm theo zoom.
 - [[digest-ticket-mcrsv-2026-08-31]] — Nhóm miễn trừ `([[:alnum:]_-]+:)?` của gate arbitrary-value nhận cả `7px` nên `p-[7px:var(--x)]` lọt, và danh sách whitelist chỉ đúng khi trích theo cấu trúc chứ không grep chuỗi; ảnh chụp headless 390px bị cắt là ảo ảnh khiến tôi giao hai lane đi sửa lỗi không tồn tại; gate khởi động server phải giết cả process group.
+- [[digest-pdf-2026-09-01]] — Verifier FAIL giả vì worktree của lane thiếu commit của nhánh chị em; "không phải font-size" là kết luận sai do so nhầm tiêu đề thay vì so từng chỗ; và cách tìm thứ giữ sàn bề ngang là gỡ từng khối rồi đo, không phải cộng số học.
+- [[digest-subscriptions-2026-09-01]] — Widget volume bundle không cướp được nút ATC của theme Horizon nên theme tự submit quantity=1; và file transaction log của Loop là thứ CHỨNG MINH heuristic đoán payment method đúng, không phải thứ thay nó.
+- [[digest-ticket-mcrsv-2026-09-01]] — Một guard đối chiếu env chỉ đúng khi nó quét cả cây thay vì mang sẵn danh sách file; đếm gộp cả batch làm ghế đã refund lẫn với vé mới; và verifier nêu hai finding thì phải xử lý cả hai, không chỉ cái đầu.
+- [[dat-ten-loat-note-subscription]] — 11 note tháng 7 còn mang tên ngược (`subscription-digest-*`, `subscription-shipped-*`) trong khi 64 note sau và mọi job đều dùng `digest-subscriptions-*`/`shipped-subscriptions-*` — mỗi lần tra theo tên chỉ thấy một nửa loạt. ⚠️ kế hoạch đã kiểm, CHƯA thực hiện.
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
+- [[moc-ticket-mcrsv]] — **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (18 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
 
@@ -350,3 +357,4 @@ _(chưa có)_
 _Khi một chủ đề có nhiều note, tạo một MOC ở đây để gom link._
 
 - [[moc-learning-pkm]] — Học tập & Quản lý tri thức cá nhân (Rust / TS / Python + phương pháp).
+- [[moc-ticket-mcrsv]] — Repo đặt vé microservice (ngoài Avada): nghiệp vụ vé, hạ tầng/CI, bảo mật, và quy trình agent/verifier. _Đề xuất treo: rút 18 dòng digest ở mục Notes xuống một dòng trỏ vào MOC này — cần người duyệt._

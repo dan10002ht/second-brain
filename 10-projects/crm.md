@@ -31,5 +31,5 @@ Active. Commit gần đây tập trung vào backfill/resync dữ liệu transact
 - Docs tính năng nằm ở `docs/features/` + BUNDLE_CAMPAIGN, WHATS_NEW_API — tham khảo trước khi động vào campaign API.
 
 ## Liên quan
-- [[bigquery-sync]]
+- [[bigquery-avada]]
 - [[firestore-multitenant]]
