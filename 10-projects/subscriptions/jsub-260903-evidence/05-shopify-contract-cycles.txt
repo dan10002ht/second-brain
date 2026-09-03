@@ -1,0 +1,61 @@
+GRAPHQL QUERY (verbatim):
+
+query ContractAndCycles($contractId: ID!) {
+  subscriptionContract(id: $contractId) {
+    id status nextBillingDate createdAt updatedAt
+    billingPolicy { interval intervalCount minCycles maxCycles }
+  }
+  subscriptionBillingCycles(
+    contractId: $contractId
+    first: 20
+    billingCyclesIndexRangeSelector: {startIndex: 0, endIndex: 20}
+  ) {
+    edges {
+      node {
+        cycleIndex skipped billingAttemptExpectedDate edited
+        billingAttempts(first: 10) {
+          nodes {
+            id idempotencyKey ready errorCode errorMessage createdAt completedAt
+            order { id name }
+          }
+        }
+      }
+    }
+  }
+}
+GRAPHQL VARIABLES:
+{
+  "contractId": "gid://shopify/SubscriptionContract/18289688830"
+}
+GRAPHQL RESPONSE:
+{
+  "errors": [
+    {
+      "message": "Billing cycle index out of range.",
+      "locations": [
+        {
+          "line": 7,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "code": "BAD_REQUEST"
+      },
+      "path": [
+        "subscriptionBillingCycles"
+      ]
+    }
+  ],
+  "data": null,
+  "extensions": {
+    "cost": {
+      "requestedQueryCost": 59,
+      "actualQueryCost": 3,
+      "throttleStatus": {
+        "maximumAvailable": 2000,
+        "currentlyAvailable": 1997,
+        "restoreRate": 100
+      }
+    }
+  }
+}

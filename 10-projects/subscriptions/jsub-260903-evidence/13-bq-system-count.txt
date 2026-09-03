@@ -1,0 +1,383 @@
+QUERY (verbatim):
+SELECT table_name FROM `avada-subscription-app.firestore_sync.INFORMATION_SCHEMA.TABLES` WHERE table_name IN ('orders_latest', 'subscriptionContracts_latest') ORDER BY table_name
+[
+  {
+    "table_name": "orders_latest"
+  },
+  {
+    "table_name": "subscriptionContracts_latest"
+  }
+]
+QUERY (verbatim):
+SELECT table_name, column_name, data_type FROM `avada-subscription-app.firestore_sync.INFORMATION_SCHEMA.COLUMNS` WHERE table_name IN ('orders_latest', 'subscriptionContracts_latest') ORDER BY table_name, ordinal_position
+[
+  {
+    "table_name": "orders_latest",
+    "column_name": "document_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "document_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "cycle_index",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "cycle_start_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "cycle_end_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "timestamp",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "event_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "operation",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "shop_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "subscription_contract_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "status",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "processed",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "skipped",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "created_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "billing_attempt_expected_date",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "order_no",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "charge_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "customer_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "lines",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "billing_attempts",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "customer",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "currency_code",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "order_s",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "is_origin",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "edited",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "document_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "document_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "timestamp",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "event_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "operation",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "shop_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "status",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "processed",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "product_title",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "subscription_contract_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "product_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "email",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "customer_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "cancelled_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "paused_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "created_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "updated_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "product",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "plan",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "products",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "plans",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "current_billing_cycle",
+    "data_type": "INT64"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "increase_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "revenue_in_usd",
+    "data_type": "FLOAT64"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "shop_currency",
+    "data_type": "STRING"
+  }
+]
+QUERY (verbatim):
+SELECT
+  COUNT(*) AS active_without_future_order_count,
+  COUNTIF(c.shop_id = '9jtujpdIpXKCAqW6TWOY') AS target_shop_count,
+  COUNTIF(c.subscription_contract_id = '18289688830') AS target_contract_count,
+  COUNT(DISTINCT c.shop_id) AS affected_shop_count
+FROM `avada-subscription-app.firestore_sync.subscriptionContracts_latest` c
+WHERE UPPER(c.status) = 'ACTIVE'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM `avada-subscription-app.firestore_sync.orders_latest` o
+    WHERE o.shop_id = c.shop_id
+      AND o.subscription_contract_id = c.subscription_contract_id
+      AND o.billing_attempt_expected_date > CURRENT_TIMESTAMP()
+  )
+[
+  {
+    "active_without_future_order_count": 80,
+    "target_shop_count": 1,
+    "target_contract_count": 1,
+    "affected_shop_count": 30
+  }
+]
+QUERY (verbatim):
+SELECT c.shop_id, COUNT(*) AS affected_contract_count
+FROM `avada-subscription-app.firestore_sync.subscriptionContracts_latest` c
+WHERE UPPER(c.status) = 'ACTIVE'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM `avada-subscription-app.firestore_sync.orders_latest` o
+    WHERE o.shop_id = c.shop_id
+      AND o.subscription_contract_id = c.subscription_contract_id
+      AND o.billing_attempt_expected_date > CURRENT_TIMESTAMP()
+  )
+GROUP BY c.shop_id
+ORDER BY affected_contract_count DESC
+LIMIT 20
+[
+  {
+    "shop_id": "Y6YTAoSEuYp3mAEgOVQC",
+    "affected_contract_count": 11
+  },
+  {
+    "shop_id": "5tjuFs7Gv18PXbS3t1mX",
+    "affected_contract_count": 9
+  },
+  {
+    "shop_id": "MbclgynyCcOrCb0j2rNu",
+    "affected_contract_count": 7
+  },
+  {
+    "shop_id": "i1JL8UuRvtTWNYSLOYnk",
+    "affected_contract_count": 7
+  },
+  {
+    "shop_id": "Joi5sAVigSrlwuqJJMNC",
+    "affected_contract_count": 6
+  },
+  {
+    "shop_id": "FnpGC3PqUHAytKh6zm1n",
+    "affected_contract_count": 5
+  },
+  {
+    "shop_id": "HYHHm3DSjfdvguXlsjYy",
+    "affected_contract_count": 5
+  },
+  {
+    "shop_id": "dnQbuz2gg41BBWoi0WFB",
+    "affected_contract_count": 4
+  },
+  {
+    "shop_id": "Njm3Jpr0S28LZQGqs6Pa",
+    "affected_contract_count": 3
+  },
+  {
+    "shop_id": "ymJmdrJNKeR9NfHRmGeP",
+    "affected_contract_count": 2
+  },
+  {
+    "shop_id": "yZgPFviZgiNJOr91x7CJ",
+    "affected_contract_count": 2
+  },
+  {
+    "shop_id": "a88n5JHcq8AuNSYMn27A",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "akB6BipCV9r9r5Dx6EUI",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "lDtKvp3191XqaNDk0EoA",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "BJMcSOAh23GyWtAcw43N",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "hVhY6VixUezoNEWGVsXU",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "jq2f5t9GR3Kca1L0JKQF",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "LgNVNT4WhSrYUy1936NZ",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "i2MAJAimNNm4Uiktd4dh",
+    "affected_contract_count": 1
+  },
+  {
+    "shop_id": "iH6xZyoYoBphsd049giE",
+    "affected_contract_count": 1
+  }
+]

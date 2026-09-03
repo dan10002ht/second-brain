@@ -1,0 +1,117 @@
+GRAPHQL QUERY (verbatim):
+
+query ContractAndCycles($contractId: ID!) {
+  subscriptionContract(id: $contractId) {
+    id status nextBillingDate createdAt updatedAt
+    billingPolicy { interval intervalCount minCycles maxCycles }
+  }
+  subscriptionBillingCycles(
+    contractId: $contractId
+    first: 20
+    billingCyclesIndexRangeSelector: {startIndex: 1, endIndex: 5}
+  ) {
+    edges {
+      node {
+        cycleIndex skipped billingAttemptExpectedDate edited
+        billingAttempts(first: 10) {
+          nodes {
+            id idempotencyKey ready errorCode errorMessage createdAt completedAt
+            order { id name }
+          }
+        }
+      }
+    }
+  }
+}
+GRAPHQL VARIABLES:
+{
+  "contractId": "gid://shopify/SubscriptionContract/18289688830"
+}
+GRAPHQL RESPONSE:
+{
+  "data": {
+    "subscriptionContract": {
+      "id": "gid://shopify/SubscriptionContract/18289688830",
+      "status": "ACTIVE",
+      "nextBillingDate": "2026-08-28T10:00:00Z",
+      "createdAt": "2026-07-17T10:40:47Z",
+      "updatedAt": "2026-07-17T10:40:51Z",
+      "billingPolicy": {
+        "interval": "WEEK",
+        "intervalCount": 14,
+        "minCycles": 2,
+        "maxCycles": null
+      }
+    },
+    "subscriptionBillingCycles": {
+      "edges": [
+        {
+          "node": {
+            "cycleIndex": 1,
+            "skipped": false,
+            "billingAttemptExpectedDate": "2026-10-23T10:00:00Z",
+            "edited": false,
+            "billingAttempts": {
+              "nodes": []
+            }
+          }
+        },
+        {
+          "node": {
+            "cycleIndex": 2,
+            "skipped": false,
+            "billingAttemptExpectedDate": "2027-01-29T10:00:00Z",
+            "edited": false,
+            "billingAttempts": {
+              "nodes": []
+            }
+          }
+        },
+        {
+          "node": {
+            "cycleIndex": 3,
+            "skipped": false,
+            "billingAttemptExpectedDate": "2027-05-07T10:00:00Z",
+            "edited": false,
+            "billingAttempts": {
+              "nodes": []
+            }
+          }
+        },
+        {
+          "node": {
+            "cycleIndex": 4,
+            "skipped": false,
+            "billingAttemptExpectedDate": "2027-08-13T10:00:00Z",
+            "edited": false,
+            "billingAttempts": {
+              "nodes": []
+            }
+          }
+        },
+        {
+          "node": {
+            "cycleIndex": 5,
+            "skipped": false,
+            "billingAttemptExpectedDate": "2027-11-19T10:00:00Z",
+            "edited": false,
+            "billingAttempts": {
+              "nodes": []
+            }
+          }
+        }
+      ]
+    }
+  },
+  "extensions": {
+    "cost": {
+      "requestedQueryCost": 59,
+      "actualQueryCost": 10,
+      "throttleStatus": {
+        "maximumAvailable": 2000,
+        "currentlyAvailable": 1990,
+        "restoreRate": 100
+      }
+    }
+  }
+}

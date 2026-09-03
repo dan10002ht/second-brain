@@ -1,0 +1,2 @@
+QUERY (verbatim): db.collection("backgroundActivities").where("shopId", "==", "9jtujpdIpXKCAqW6TWOY").where("contractId", "==", 18289688830).get()
+COUNT: 0

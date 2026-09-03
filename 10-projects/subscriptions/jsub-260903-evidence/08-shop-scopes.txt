@@ -1,0 +1,10 @@
+App: Joy Subscription App on kc-watson.myshopify.com
+
+Total granted scopes: 48
+Target scope "unauthenticated_read_product_inventory": ❌ NOT GRANTED
+
+All unauthenticated_* scopes:
+  - unauthenticated_read_checkouts
+  - unauthenticated_read_content
+  - unauthenticated_read_product_listings
+  - unauthenticated_write_checkouts

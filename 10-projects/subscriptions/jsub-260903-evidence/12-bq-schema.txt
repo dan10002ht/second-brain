@@ -1,0 +1,264 @@
+QUERY (verbatim):
+SELECT table_name FROM `avada-subscription-app.firestore_sync.INFORMATION_SCHEMA.TABLES` WHERE table_name IN ('orders_latest', 'subscriptionContracts_latest') ORDER BY table_name
+[
+  {
+    "table_name": "orders_latest"
+  },
+  {
+    "table_name": "subscriptionContracts_latest"
+  }
+]
+QUERY (verbatim):
+SELECT table_name, column_name, data_type FROM `avada-subscription-app.firestore_sync.INFORMATION_SCHEMA.COLUMNS` WHERE table_name IN ('orders_latest', 'subscriptionContracts_latest') ORDER BY table_name, ordinal_position
+[
+  {
+    "table_name": "orders_latest",
+    "column_name": "document_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "document_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "cycle_index",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "cycle_start_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "cycle_end_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "timestamp",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "event_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "operation",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "shop_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "subscription_contract_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "status",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "processed",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "skipped",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "created_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "billing_attempt_expected_date",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "order_no",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "charge_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "customer_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "lines",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "billing_attempts",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "customer",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "currency_code",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "order_s",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "is_origin",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "orders_latest",
+    "column_name": "edited",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "document_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "document_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "timestamp",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "event_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "operation",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "shop_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "status",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "processed",
+    "data_type": "BOOL"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "product_title",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "subscription_contract_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "product_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "email",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "customer_name",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "cancelled_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "paused_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "created_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "updated_at",
+    "data_type": "TIMESTAMP"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "product",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "plan",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "products",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "plans",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "current_billing_cycle",
+    "data_type": "INT64"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "increase_id",
+    "data_type": "STRING"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "revenue_in_usd",
+    "data_type": "FLOAT64"
+  },
+  {
+    "table_name": "subscriptionContracts_latest",
+    "column_name": "shop_currency",
+    "data_type": "STRING"
+  }
+]

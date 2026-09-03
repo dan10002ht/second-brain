@@ -1,0 +1,74 @@
+QUERY (verbatim):
+SELECT status, COUNT(*) AS future_order_count
+FROM `avada-subscription-app.firestore_sync.orders_latest`
+WHERE billing_attempt_expected_date > CURRENT_TIMESTAMP()
+GROUP BY status
+ORDER BY future_order_count DESC
+[
+  {
+    "status": "UNBILLED",
+    "future_order_count": 270968
+  },
+  {
+    "status": "BILLED",
+    "future_order_count": 8
+  }
+]
+QUERY (verbatim):
+SELECT
+  COUNT(*) AS active_without_actionable_future_order_count,
+  COUNTIF(c.shop_id = '9jtujpdIpXKCAqW6TWOY') AS target_shop_count,
+  COUNTIF(c.subscription_contract_id = '18289688830') AS target_contract_count,
+  COUNT(DISTINCT c.shop_id) AS affected_shop_count
+FROM `avada-subscription-app.firestore_sync.subscriptionContracts_latest` c
+WHERE UPPER(c.status) = 'ACTIVE'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM `avada-subscription-app.firestore_sync.orders_latest` o
+    WHERE o.shop_id = c.shop_id
+      AND o.subscription_contract_id = c.subscription_contract_id
+      AND o.billing_attempt_expected_date > CURRENT_TIMESTAMP()
+      AND UPPER(COALESCE(o.status, '')) NOT IN ('SKIPPED', 'CANCELLED')
+  )
+[
+  {
+    "active_without_actionable_future_order_count": 80,
+    "target_shop_count": 1,
+    "target_contract_count": 1,
+    "affected_shop_count": 30
+  }
+]
+QUERY (verbatim):
+SELECT 'contract' AS kind, document_id, timestamp, updated_at AS source_updated_at,
+       TIMESTAMP_DIFF(timestamp, updated_at, SECOND) AS export_lag_seconds
+FROM `avada-subscription-app.firestore_sync.subscriptionContracts_latest`
+WHERE shop_id = '9jtujpdIpXKCAqW6TWOY' AND subscription_contract_id = '18289688830'
+UNION ALL
+SELECT 'order' AS kind, document_id, timestamp, created_at AS source_updated_at,
+       TIMESTAMP_DIFF(timestamp, created_at, SECOND) AS export_lag_seconds
+FROM `avada-subscription-app.firestore_sync.orders_latest`
+WHERE shop_id = '9jtujpdIpXKCAqW6TWOY' AND subscription_contract_id = '18289688830'
+[
+  {
+    "kind": "contract",
+    "document_id": "JRKTpPq35j6CUKpStThC",
+    "timestamp": {
+      "value": "2026-07-17T10:41:02.510289000Z"
+    },
+    "source_updated_at": {
+      "value": "2026-07-17T10:41:02.351Z"
+    },
+    "export_lag_seconds": 0
+  },
+  {
+    "kind": "order",
+    "document_id": "RdmH1eEy6eker1RZlXFy",
+    "timestamp": {
+      "value": "2026-07-17T10:41:02.504392000Z"
+    },
+    "source_updated_at": {
+      "value": "2026-07-17T10:40:52.697Z"
+    },
+    "export_lag_seconds": 9
+  }
+]

@@ -1,0 +1,67 @@
+REQUEST (verbatim): POST https://logging.googleapis.com/v2/entries:list
+BODY (verbatim):
+{
+  "resourceNames": [
+    "projects/avada-subscription-app"
+  ],
+  "filter": "timestamp >= \"2026-09-03T01:53:20Z\" AND timestamp <= \"2026-09-03T01:54:00Z\" AND SEARCH(\"9tshlof15k0w\")",
+  "orderBy": "timestamp asc",
+  "pageSize": 100
+}
+RESULT COUNT: 3
+[
+  {
+    "timestamp": "2026-09-03T01:53:26.909521285Z",
+    "severity": "DEBUG",
+    "logName": "projects/avada-subscription-app/logs/cloudfunctions.googleapis.com%2Fcloud-functions",
+    "resource": {
+      "type": "cloud_function",
+      "labels": {
+        "project_id": "avada-subscription-app",
+        "region": "us-central1",
+        "function_name": "backgroundSubscriber"
+      }
+    },
+    "textPayload": "Function execution started",
+    "labels": {
+      "execution_id": "9tshlof15k0w",
+      "runtime_version": "nodejs20_20260819_20_20_2_RC00"
+    }
+  },
+  {
+    "timestamp": "2026-09-03T01:53:26.957472Z",
+    "logName": "projects/avada-subscription-app/logs/cloudfunctions.googleapis.com%2Fcloud-functions",
+    "resource": {
+      "type": "cloud_function",
+      "labels": {
+        "project_id": "avada-subscription-app",
+        "region": "us-central1",
+        "function_name": "backgroundSubscriber"
+      }
+    },
+    "textPayload": "===== Handle background handler: ====> 9jtujpdIpXKCAqW6TWOY sync-upcoming-orders-after-attempt =====",
+    "labels": {
+      "execution_id": "9tshlof15k0w",
+      "instance_id": "00a41e8c1da14f39ff5e88834e363c251abc694a1454831650047535ec80472b7abfe182f45e2d5050b03c8642848d4afe0d671524f2c2a3f9cf9880c27095ff139adc6ee914248781a8a126e5d3b5d2a7b6",
+      "runtime_version": "nodejs20_20260819_20_20_2_RC00"
+    }
+  },
+  {
+    "timestamp": "2026-09-03T01:53:27.920706794Z",
+    "severity": "DEBUG",
+    "logName": "projects/avada-subscription-app/logs/cloudfunctions.googleapis.com%2Fcloud-functions",
+    "resource": {
+      "type": "cloud_function",
+      "labels": {
+        "function_name": "backgroundSubscriber",
+        "project_id": "avada-subscription-app",
+        "region": "us-central1"
+      }
+    },
+    "textPayload": "Function execution took 1011 ms, finished with status: 'ok'",
+    "labels": {
+      "execution_id": "9tshlof15k0w",
+      "runtime_version": "nodejs20_20260819_20_20_2_RC00"
+    }
+  }
+]

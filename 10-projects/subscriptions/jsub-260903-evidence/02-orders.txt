@@ -1,0 +1,17 @@
+=== orders: 1 ===
+
+--- order doc RdmH1eEy6eker1RZlXFy ---
+{
+  "cycleIndex": 0,
+  "status": "BILLED",
+  "orderId": 6828276285694,
+  "billingAttemptExpectedDate": {
+    "_seconds": 1784284845,
+    "_nanoseconds": 0
+  },
+  "createdAt": "2026-07-17T10:40:52.000Z",
+  "updatedAt": "2026-07-17T10:41:02.000Z"
+}
+  order doc top-level keys: __id, isOrigin, customer, billingAttemptExpectedDate, orderId, order, status, skipped, subscriptionContractId, shopId, cycleIndex, billingAttempts, product, lineCount, lines, plan, price, variantIds, productIds, processed, originAttemptDate, createdAt, updatedBy, tags, chargeId, updatedAt
+  RAW lines (1):
+  [0] {"lineId":"gid://shopify/SubscriptionLine/b4b3fbb2-f22f-422a-befa-b4559cb68b52","product":{"id":"8251835351294","title":"Hill's Prescription Diet z/d Dry Dog Food","quantity":1,"variant":{"id":"44666215661822","title":"17.6lbs","image":"https://cdn.shopify.com/s/files/1/0673/6986/1374/files/7901-8676-hills-prescription-diet-zd-dog-food_6_13507e93-5115-49cf-9236-352fe67dc2bb.jpg?v=1764382625","price":242.2,"compareAtPrice":0},"categoryId":"35","afterCycle":null,"basePrice":242.2,"currentPrice":230.09,"afterCyclesPrice":230.09,"lineDiscountedPrice":230.09},"pricingPolicy":{"basePrice":{"amount":242.2},"cycleDiscounts":[{"afterCycle":0,"computedPrice":{"amount":230.09}}]},"id":"b4b3fbb2-f22f-422a-befa-b4559cb68b52","customAttributes":[{"key":"upload","value":"https://upload.cloudlift.app/s/kc-watson/NWWjk8gUDu.pdf"},{"key":"__selling_plan_id","value":"8faa1f07-edae-4517-ab50-ea5904488926"}],"discountAllocations":[],"sellingPlanId":"8faa1f07-edae-4517-ab50-ea5904488926","shopifySellingPlanId":"5413732606"}

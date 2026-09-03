@@ -1,0 +1,31 @@
+{
+  "errors": [
+    {
+      "message": "Billing cycle start date out of range.",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "extensions": {
+        "code": "BAD_REQUEST"
+      },
+      "path": [
+        "subscriptionBillingCycles"
+      ]
+    }
+  ],
+  "data": null,
+  "extensions": {
+    "cost": {
+      "requestedQueryCost": 57,
+      "actualQueryCost": 2,
+      "throttleStatus": {
+        "maximumAvailable": 2000,
+        "currentlyAvailable": 1998,
+        "restoreRate": 100
+      }
+    }
+  }
+}

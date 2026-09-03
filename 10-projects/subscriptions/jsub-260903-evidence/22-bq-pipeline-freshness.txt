@@ -1,0 +1,30 @@
+QUERY (verbatim):
+SELECT 'contracts' AS source, MAX(timestamp) AS latest_export_event, CURRENT_TIMESTAMP() AS measured_at,
+  TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), MAX(timestamp), SECOND) AS seconds_behind_latest_event
+FROM `avada-subscription-app.firestore_sync.subscriptionContracts_latest`
+UNION ALL
+SELECT 'orders' AS source, MAX(timestamp) AS latest_export_event, CURRENT_TIMESTAMP() AS measured_at,
+  TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), MAX(timestamp), SECOND) AS seconds_behind_latest_event
+FROM `avada-subscription-app.firestore_sync.orders_latest`
+[
+  {
+    "source": "contracts",
+    "latest_export_event": {
+      "value": "2026-09-03T03:25:11.505126000Z"
+    },
+    "measured_at": {
+      "value": "2026-09-03T03:29:01.970006000Z"
+    },
+    "seconds_behind_latest_event": 230
+  },
+  {
+    "source": "orders",
+    "latest_export_event": {
+      "value": "2026-09-03T03:22:22.354723000Z"
+    },
+    "measured_at": {
+      "value": "2026-09-03T03:29:01.970006000Z"
+    },
+    "seconds_behind_latest_event": 399
+  }
+]

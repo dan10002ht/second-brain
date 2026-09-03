@@ -1,0 +1,254 @@
+QUERY 1 (verbatim): db.collection("shops").doc("9jtujpdIpXKCAqW6TWOY").get()
+{
+  "id": "9jtujpdIpXKCAqW6TWOY",
+  "shopifyDomain": "kc-watson.myshopify.com",
+  "plan": "free"
+}
+QUERY 2 (verbatim): db.collection("subscriptionContracts").where("shopId", "==", "9jtujpdIpXKCAqW6TWOY").where("subscriptionContractId", "==", 18289688830).get()
+{
+  "docId": "JRKTpPq35j6CUKpStThC",
+  "subscriptionContractId": 18289688830,
+  "status": "ACTIVE",
+  "currentBillingCycle": 1,
+  "sellingPlanId": "5413732606",
+  "product": {
+    "id": "8251835351294",
+    "title": "Hill's Prescription Diet z/d Dry Dog Food",
+    "quantity": 1,
+    "variant": {
+      "id": "44666215661822",
+      "title": "17.6lbs",
+      "image": "https://cdn.shopify.com/s/files/1/0673/6986/1374/files/7901-8676-hills-prescription-diet-zd-dog-food_6_13507e93-5115-49cf-9236-352fe67dc2bb.jpg?v=1764382625",
+      "price": 242.2,
+      "compareAtPrice": 0
+    },
+    "categoryId": "35",
+    "afterCycle": null,
+    "basePrice": 242.2,
+    "currentPrice": 230.09,
+    "afterCyclesPrice": 230.09,
+    "lineDiscountedPrice": 230.09,
+    "sellingPlanId": "8faa1f07-edae-4517-ab50-ea5904488926"
+  },
+  "products": [
+    {
+      "id": "8251835351294",
+      "title": "Hill's Prescription Diet z/d Dry Dog Food",
+      "quantity": 1,
+      "variant": {
+        "id": "44666215661822",
+        "title": "17.6lbs",
+        "image": "https://cdn.shopify.com/s/files/1/0673/6986/1374/files/7901-8676-hills-prescription-diet-zd-dog-food_6_13507e93-5115-49cf-9236-352fe67dc2bb.jpg?v=1764382625",
+        "price": 242.2,
+        "compareAtPrice": 0
+      },
+      "categoryId": "35",
+      "afterCycle": null,
+      "basePrice": 242.2,
+      "currentPrice": 230.09,
+      "afterCyclesPrice": 230.09,
+      "lineDiscountedPrice": 230.09,
+      "sellingPlanId": "8faa1f07-edae-4517-ab50-ea5904488926",
+      "contractLineId": "b4b3fbb2-f22f-422a-befa-b4559cb68b52",
+      "subscriptionBoxId": "",
+      "customAttributes": [
+        {
+          "key": "upload",
+          "value": "https://upload.cloudlift.app/s/kc-watson/NWWjk8gUDu.pdf"
+        },
+        {
+          "key": "__selling_plan_id",
+          "value": "8faa1f07-edae-4517-ab50-ea5904488926"
+        }
+      ]
+    }
+  ],
+  "productIds": [
+    "8251835351294"
+  ],
+  "customerId": 9114296156414,
+  "plan": {
+    "paymentType": "pay-as-you-go",
+    "discountType": "percentage",
+    "discountValue": 5,
+    "discountTypeChanged": "percentage",
+    "discountValueChanged": 10,
+    "enabledChangeDiscount": false,
+    "enabledFreeShipping": false,
+    "enabledDiscount": true,
+    "enabledAmountDiscount": true,
+    "numberBeforeChange": 1,
+    "frequency": "week",
+    "frequencyValue": 6,
+    "enabledMaximumOrder": false,
+    "enabledMinimumOrder": true,
+    "enabledCutOff": false,
+    "minimumOrderCancel": 3,
+    "maximumOrderExpire": 150,
+    "title": "Every 6 weeks",
+    "renewalDayWeek": "same-day",
+    "renewalDayMonth": "same-day",
+    "renewalDayYear": "same-day",
+    "renewalMonthYear": null,
+    "cutOffDayWeek": 2,
+    "cutOffDayMonth": 5,
+    "prepaidFrequency": 10,
+    "sellingPlanId": "8faa1f07-edae-4517-ab50-ea5904488926",
+    "originSellingPlanId": "5413732606",
+    "subscriptionProductId": "bQiDE01BtMnjqb31IgJf",
+    "isNewVersion": true,
+    "translations": {
+      "en": {
+        "title": "Every 6 weeks",
+        "description": "Delivery every 6 weeks, save {{initial_discount}}."
+      }
+    },
+    "discountConfig": {
+      "enabled": true,
+      "tiers": [
+        {
+          "fromOrder": 1,
+          "type": "percentage",
+          "value": 5,
+          "toOrder": "all"
+        }
+      ]
+    },
+    "hideSubActions": false,
+    "hideSubActionAfterOrder": 0
+  },
+  "plans": [
+    {
+      "paymentType": "pay-as-you-go",
+      "discountType": "percentage",
+      "discountValue": 5,
+      "discountTypeChanged": "percentage",
+      "discountValueChanged": 10,
+      "enabledChangeDiscount": false,
+      "enabledFreeShipping": false,
+      "enabledDiscount": true,
+      "enabledAmountDiscount": true,
+      "numberBeforeChange": 1,
+      "frequency": "week",
+      "frequencyValue": 6,
+      "enabledMaximumOrder": false,
+      "enabledMinimumOrder": true,
+      "enabledCutOff": false,
+      "minimumOrderCancel": 3,
+      "maximumOrderExpire": 150,
+      "title": "Every 6 weeks",
+      "renewalDayWeek": "same-day",
+      "renewalDayMonth": "same-day",
+      "renewalDayYear": "same-day",
+      "renewalMonthYear": null,
+      "cutOffDayWeek": 2,
+      "cutOffDayMonth": 5,
+      "prepaidFrequency": 10,
+      "sellingPlanId": "8faa1f07-edae-4517-ab50-ea5904488926",
+      "originSellingPlanId": "5413732606",
+      "subscriptionProductId": "bQiDE01BtMnjqb31IgJf",
+      "isNewVersion": true,
+      "translations": {
+        "en": {
+          "title": "Every 6 weeks",
+          "description": "Delivery every 6 weeks, save {{initial_discount}}."
+        }
+      },
+      "discountConfig": {
+        "enabled": true,
+        "tiers": [
+          {
+            "fromOrder": 1,
+            "type": "percentage",
+            "value": 5,
+            "toOrder": "all"
+          }
+        ]
+      },
+      "hideSubActions": false,
+      "hideSubActionAfterOrder": 0
+    }
+  ],
+  "subscriptionProductId": "bQiDE01BtMnjqb31IgJf",
+  "lineId": "b4b3fbb2-f22f-422a-befa-b4559cb68b52",
+  "lineIds": [
+    "b4b3fbb2-f22f-422a-befa-b4559cb68b52"
+  ],
+  "isPaymentFailed": false,
+  "currency": "SGD",
+  "shopCurrency": "SGD",
+  "revenueInUSD": 176.3470132752689,
+  "deliveryPrice": {
+    "amount": "0.0",
+    "currencyCode": "SGD"
+  },
+  "deliveryMethod": {
+    "type": "shipping",
+    "name": "Jeremy Tan",
+    "shippingOption": {
+      "title": "Free"
+    },
+    "address1": "467 Admiralty Drive",
+    "address2": "#10-197",
+    "city": "Singapore",
+    "country": "Singapore",
+    "countryCode": "SG",
+    "firstName": "Jeremy",
+    "lastName": "Tan",
+    "phone": "82236568",
+    "zip": "750467"
+  },
+  "countryCode": "SG",
+  "isInstallment": false,
+  "installmentPeriod": null,
+  "isManual": true,
+  "email": "jeremyjwtan@gmail.com",
+  "customerName": "Jeremy Tan",
+  "customer": {
+    "email": "jeremyjwtan@gmail.com",
+    "firstName": "Jeremy",
+    "lastName": "Tan",
+    "displayName": "Jeremy Tan",
+    "phone": null
+  },
+  "customerPaymentMethod": {
+    "id": "gid://shopify/CustomerPaymentMethod/b03aff7659e0c26e57cd866ab43bd8d2",
+    "revoked": false,
+    "type": "CustomerPaymentMethod",
+    "brand": "mastercard",
+    "expiryMonth": 12,
+    "expiryYear": 2028,
+    "lastDigits": "3776",
+    "maskedNumber": "•••• •••• •••• 3776",
+    "name": "Jeremy Tan"
+  },
+  "shopifySyncedAt": "2026-07-17T10:40:52.300Z",
+  "originStartDate": "2026-08-28T10:40:45.000Z",
+  "originStartCycleIndex": 1,
+  "isNewVersion": true,
+  "isImported": false,
+  "originOrderName": "#10532",
+  "initialDiscountIds": [],
+  "trialEndsAt": null,
+  "trialProcessed": false,
+  "paymentMethodId": "gid://shopify/CustomerPaymentMethod/b03aff7659e0c26e57cd866ab43bd8d2",
+  "contractSubscriberType": "return",
+  "defaultNote": "",
+  "shopId": "9jtujpdIpXKCAqW6TWOY",
+  "isProcessedTags": false,
+  "createdAt": "2026-07-17T10:40:52.303Z",
+  "processed": true,
+  "increaseId": 1773,
+  "updatedAt": "2026-07-17T10:41:02.351Z"
+}
+QUERY 3 (verbatim): db.collection("subscriptionContracts").where("shopId", "==", "9jtujpdIpXKCAqW6TWOY").where("status", "==", "ACTIVE").select("subscriptionContractId").get()
+QUERY 4 (verbatim): db.collection("orders").where("shopId", "==", "9jtujpdIpXKCAqW6TWOY").where("billingAttemptExpectedDate", ">", new Date("2026-09-03T03:12:51.897Z")).select("subscriptionContractId").get()
+{
+  "asOf": "2026-09-03T03:12:51.897Z",
+  "futureOrderDocCount": 5064,
+  "activeContractCount": 506,
+  "activeWithoutFutureOrderCount": 1,
+  "activeWithoutFutureOrderIds": [
+    18289688830
+  ]
+}
