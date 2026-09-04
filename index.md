@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-09-03 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 09-03: 1 digest subscriptions, 2 feedback)_
+_Cập nhật: 2026-09-04 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 6 item ngày 09-04: 2 digest, 1 shipped, 2 decision, 1 feedback)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -23,7 +23,7 @@ _Cập nhật: 2026-09-03 · Trạng thái: đã seed 12 project + notes học t
 - [[agent-support-design]] — **Agent support 24/7 ĐANG CHẠY** trên VM `dantt-solar`: bắt ticket mới từ kênh Slack `C07URV6QMJ8`, điều tra bằng dữ liệu prod, mở MR nháp khi có test đỏ→xanh + verifier độc lập PASS. **Đọc mục 0 (Vào việc nhanh) trước** — tài liệu dài, viết theo thứ tự thời gian.
 - [[setup-cho-team-khac]] — hướng dẫn 5 team còn lại dựng lại Agent support 24/7, kèm 6 cái bẫy đã vấp và chi phí đo được (~$2.1/case triage).
 - [[runbook-agent-pdf-invoice]] — runbook agent đọc trước khi điều tra case `pdf-invoice` (bẫy yup 0.29 nuốt lỗi, jest không quét `__tests__/`, preview ≠ đường gửi).
-- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops) · [[functions-cost-audit-2026-08-11]] (chi phí Functions: v2 hoà vốn với v1, đóng chủ đề migrate) · [[discount-per-cycle-audit-2026-08-27]] (3 bug giá subscription: !2502 + !2503 đã merge và repair xong — cái thu dư 8 EUR thật là plans[] lệch sellingPlanId, không phải tier; bug subtotal admin hiện 56 đã đóng bằng !2504 `v2.34.90`, xem [[shipped-subscriptions-2026-08-28]]) · [[jsub-260903-upcoming-order]] (contract manual ACTIVE mất sạch upcoming cycle — cron billing không self-heal; 80 contract/30 shop cùng triệu chứng) · [[digest-subscriptions-2026-09-03]] (phí ship tầng *cycle*: khách sửa một kỳ thì kỳ đó giữ `deliveryPrice` cũ của contract — !2524, ngược chiều với quyết định 08-28 ở tầng contract).
+- [[subscriptions]] — Joy Subscription: app bán hàng theo gói định kỳ (deep). → [[subscriptions-debug-runbook]] (debug/ops) · [[functions-cost-audit-2026-08-11]] (chi phí Functions: v2 hoà vốn với v1, đóng chủ đề migrate) · [[discount-per-cycle-audit-2026-08-27]] (3 bug giá subscription: !2502 + !2503 đã merge và repair xong — cái thu dư 8 EUR thật là plans[] lệch sellingPlanId, không phải tier; bug subtotal admin hiện 56 đã đóng bằng !2504 `v2.34.90`, xem [[shipped-subscriptions-2026-08-28]]) · [[jsub-260903-upcoming-order]] (contract manual ACTIVE mất sạch upcoming cycle — cron billing không self-heal; 80 contract/30 shop cùng triệu chứng) · [[digest-subscriptions-2026-09-03]] (phí ship tầng *cycle*: khách sửa một kỳ thì kỳ đó giữ `deliveryPrice` cũ của contract — !2524, ngược chiều với quyết định 08-28 ở tầng contract) · [[digest-subscriptions-2026-09-04]] (portal không mount vì div marker biến mất khỏi page — không phải scripttag; `resync-order` bị chặn cứng trên prod).
   _Project đầu tiên dùng cấu trúc thư mục `10-projects/<project>/` — project nào phình thêm file thì gom vào folder, project nhỏ giữ note phẳng. Task list là `BRIEF.md` trong folder đó (state của `/looptasks`, cố ý nằm ngoài graph)._
 - [[joy]] — Joy Loyalty & Rewards SaaS (deep).
 - [[joy-subscription-artifacts]] — kho artifact/CDN build của Joy Subscription.
@@ -259,8 +259,11 @@ _Cập nhật: 2026-09-03 · Trạng thái: đã seed 12 project + notes học t
 - [[digest-ticket-mcrsv-2026-09-01]] — Một guard đối chiếu env chỉ đúng khi nó quét cả cây thay vì mang sẵn danh sách file; đếm gộp cả batch làm ghế đã refund lẫn với vé mới; và verifier nêu hai finding thì phải xử lý cả hai, không chỉ cái đầu.
 - [[dat-ten-loat-note-subscription]] — 11 note tháng 7 còn mang tên ngược (`subscription-digest-*`, `subscription-shipped-*`) trong khi 64 note sau và mọi job đều dùng `digest-subscriptions-*`/`shipped-subscriptions-*` — mỗi lần tra theo tên chỉ thấy một nửa loạt. ⚠️ kế hoạch đã kiểm, CHƯA thực hiện.
 - [[digest-subscriptions-2026-09-03]] — Phí ship là thuộc tính của CONTRACT còn lines là thuộc tính của CYCLE, nên khách sửa một kỳ thì kỳ đó thừa hưởng phí ship cũ; và `jest.requireActual` làm cả một suite chạy mà đăng ký 0 test — số suite không đổi trong khi mất 42 test.
+- [[digest-subscriptions-2026-09-04]] — Customer portal không hiện ở store khách vì div marker app tạo lúc install đã biến mất khỏi page chứ không phải scripttag không load; endpoint chữa order kẹt bị tắt cứng trên prod; và một số shop không bị thu transaction fee là do ngưỡng tối thiểu $10, không phải bug.
+- [[digest-ticket-mcrsv-2026-09-04]] — Dấu `:` của `::timestamptz` bị `sqlx` nuốt thành named parameter nên query hỏng, và test hồi quy đầu tiên không canh được cơ chế đó; field thiếu trong request message của proto làm service không bao giờ nhận được giá trị dù client gửi; và mock gateway cho phép chạy frontend khi máy không đủ chỗ cho cả backend.
+- [[shipped-subscriptions-2026-09-04]] — Master nhận 3 tag trong một ngày (`v2.35.4` !2512 Parcely giữ pickup point trên đơn recurring, `v2.35.5` !2525 brand icon cho màn MCP consent, `v2.35.6` !2524 tính lại phí ship khi khách sửa MỘT KỲ + refactor gộp resolver); trên nhánh: 3 script vận hành phí ship dùng lại được và card Customer portal version theo mockup mới (bỏ checkbox navigation menu). Không revert, không cờ deploy, không migration. ⚠️ có mục "cần xác nhận" (một hay hai seam tính lại phí ship).
 - [[moc-learning-pkm]] — **MOC**: điểm vào chủ đề học tập & PKM.
-- [[moc-ticket-mcrsv]] — **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (18 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
+- [[moc-ticket-mcrsv]] — **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (19 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 
 ## 📅 Daily (10-daily/) — nhật ký ngày (ephemeral)
 
@@ -315,6 +318,8 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[2026-08-28-shipping-lay-gia-tu-rate-table]] — Joy Subscription bỏ cách hỏi Shopify một cart quote để suy phí ship định kỳ, chuyển sang tự đọc delivery profile của merchant (`methodDefinitions` + điều kiện `TOTAL_PRICE`) rồi resolve giá cho đúng phương thức khách đã chọn, có toggle chặn để không đụng 5.306 shop đang ở mặc định. ĐÃ MERGE 2026-08-28 (`v2.34.95`, MR !2513) — xem [[shipped-subscriptions-2026-08-29]] (review 2026-11-28).
 - [[2026-08-28-import-loop-chi-contract-song-paused]] — Bỏ 88 contract Cancelled khỏi file import và ép toàn bộ 37 contract còn sống về `Paused`, để việc bật lại là thao tác có chủ ý của merchant sau khi đã huỷ bên Loop — thay vì import nguyên 125 dòng theo trạng thái gốc (review 2026-11-28).
 - [[2026-08-30-archive-backup]] — repo `~/projects/backup` không có commit 80 ngày và chưa từng xuất hiện trong bất kỳ digest/shipped nào — đề xuất chuyển khỏi `10-projects/` theo nghĩa PARA "không active", trách nhiệm bảo trì app vẫn sống ở area [[shopify-app-dev]] (review 2026-11-30).
+- [[2026-09-04-bo-checkbox-nav-menu-portal]] — App thôi giữ một toggle bật/tắt link Customer Portal trong navigation menu; thay bằng helptext "click here" gọi đúng `openManageMenus()` — merchant tự quản menu bên Shopify, còn giá trị `accessLink.customerPortalNavigation` đã lưu thì vẫn được hydrate và ghi lại nguyên vẹn. ⚠️ CHƯA VÀO MASTER (nhánh `feat/portal-preview`) (review 2026-12-04).
+- [[2026-09-04-venue-2d-dung-3d-xem]] — Không viết lại designer thành 3D và cũng không giữ nguyên 2D thuần — 2D vẫn là đường authoring, 3D là lớp xem có ở cả designer lẫn trang bán vé, cả hai đọc cùng một model zone/seat (review 2026-12-04).
 - [[2026-08-17-installment-bundle-mot-engine]] — hai kiểu bán trả góp (giao dần từng kỳ vs dồn giao ở kỳ cuối) đều dựng trên đúng engine "Customize each order" sẵn có, khác nhau ở cấu hình từng cycle chứ không ở nhánh code; giá mỗi kỳ ép theo giá sản phẩm cha (review 2026-11-17).
 
 ## 💬 Feedback (feedback/)
@@ -343,6 +348,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-trich-code-nguyen-van]] — tôi viết một dòng code "rút gọn cho dễ đọc" trong tin nhắn, user đọc nó như code thật trong repo và mất một lượt đi tranh luận về dòng không hề tồn tại.
 - [[feedback-chi-tao-mr-user-merge]] — Ở repo project của Avada, agent dừng lại ở bước tạo MR; quyết định merge (và deploy theo sau) là của user, kể cả khi gate xanh và verifier PASS.
 - [[feedback-bao-gio-theo-gio-vn]] — Mọi mốc thời gian nói với user phải quy về Asia/Ho_Chi_Minh (UTC+7); nếu giữ giờ gốc của công cụ thì phải ghi rõ đó là UTC.
+- [[feedback-claude-dieu-phoi-codex-implement]] — Khi lane codex hỏng thì sửa nguyên nhân rồi giao lại đúng vai, không tự chuyển sang subagent Claude viết code — mất luôn lớp chấm chéo giữa hai họ model.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
 
 ## 📦 Sources (sources/) — nguồn thô immutable

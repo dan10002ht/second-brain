@@ -1,10 +1,10 @@
 ---
 type: note
 title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
-summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (18 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
+summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (19 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-01
+updated: 2026-09-04
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -58,6 +58,10 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   trong ngân sách Docker 12GB, không LocalStack, không cloud.
 - [[digest-ticket-mcrsv-2026-08-12]] — mở khi con số load test trông vô lý: bắn từ một máy = một IP nên
   rate limiter 100 req/15 phút của gateway quyết định luôn baseline.
+- [[digest-ticket-mcrsv-2026-09-04]] — mở khi một query `sqlx` hỏng mà SQL trông đúng: `sqlx` compile
+  named parameter trước driver nên dấu `:` của `::timestamptz` bị ăn mất; kèm bài học test hồi quy so
+  chuỗi SQL *trước* bước compile thì xanh cả khi bug còn nguyên, và field thiếu trong request message
+  của proto làm client gửi bao nhiêu cũng vô nghĩa.
 - [[redis-queue-khong-dung-chung-instance-cache]] — mở trước khi nối một job vào Redis: instance cache
   có `maxmemory-policy` eviction nên nó được phép vứt job của bạn, im lặng. (Khái quát hoá từ task 136.)
 
@@ -93,10 +97,12 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   chỉ-có-README đã xoá, thứ đã nối dây mà chưa bấm nút thì giữ.
 - [[2026-08-27-he-thi-giac-chong-ai-slop]] — mở khi làm UI: chốt hướng thị giác rồi biến thành gate
   đếm số trong CI, thay vì mô tả "làm đẹp" trong prompt.
+- [[2026-09-04-venue-2d-dung-3d-xem]] — mở trước khi động vào venue designer: 2D giữ vai authoring,
+  3D chỉ là lớp xem (có ở cả designer lẫn trang bán vé), cả hai đọc **cùng một** model zone/seat.
 
 ## Chưa gom vào mục nào
 
-Không có digest cho các ngày 08-15, 08-16, 08-23, 08-29 — chuỗi ngày **không liên tục**, đừng suy ra
+Không có digest cho các ngày 08-15, 08-16, 08-23, 08-29, 09-02, 09-03 — chuỗi ngày **không liên tục**, đừng suy ra
 là thiếu note. (Cố ý không viết thành wiki-link để `brain-lint` không báo link hỏng.)
 
 Cụm này chưa từng sinh note `shipped-*`, khác với `subscriptions`/`pdf` — repo ngoài Avada nên
