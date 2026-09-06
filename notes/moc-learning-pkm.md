@@ -26,6 +26,9 @@ updated: 2026-08-31
   rỗng liên tiếp thì tự huỷ cron và tổng kết chỗ đang bị chặn.
 - [[feedback-khong-khep-viec-khi-con-khe-ho]] — mở khi định đóng một task với lý lẽ "khe còn lại
   nhỏ": fail 2–3 vòng cùng hướng là tín hiệu sai cách tiếp cận, không phải cần thêm một vòng.
+- [[phep-kiem-quan-sat-sai-tang]] — mở khi một test/gate **đỏ được thật** mà vẫn xanh trên bản
+  chưa vá: ba biến số hay đặt sai là tầng (quan sát trước bước biến đổi sinh ra bug), phạm vi
+  (danh sách file gõ tay = allowlist ngầm), đơn vị đếm (suite pass mù trước suite rỗng).
 - [[gate-quet-ma-nguon-bang-ast]] — mở khi định viết một gate "cấm log/gọi thứ này" bằng
   `grep`/regex: cú pháp là biến số nên gate luôn còn khe; AST làm nó hết là biến số.
 - [[2026-08-13-tach-gate-khoi-cham-tung-bug]] — mở khi chi phí verify của một task nhiều bug phình
