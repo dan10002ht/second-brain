@@ -183,6 +183,10 @@ updated: 2026-08-31
   nên khó nghi nhất; kèm gate dựng server phải giết cả process group.
 - [[dong-bo-chan-luong-khong-phai-chuyen-hieu-nang]] — mở khi câu hỏi là "viết đồng bộ thì chậm
   đúng không?": trọng tâm sai — hậu quả nặng là mất việc âm thầm và gửi trùng, không phải chậm.
+- [[digest-game-server-2026-09-07]] — mở khi bước từ BE app sang BE game, hoặc khi đang viết tài
+  liệu học cho chính mình: bảng đối chiếu hai mô hình (stateless/DB-trung-tâm vs stateful/tick),
+  vì sao sơ đồ kỹ thuật không được là ảnh do model sinh (sai chữ/số và không sửa được một mũi
+  tên), và vì sao "đủ nội dung" chưa phải "dạy được".
 
 ## Bối cảnh
 
