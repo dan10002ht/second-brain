@@ -4,7 +4,7 @@ title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
 summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (19 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-04
+updated: 2026-09-08
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -62,6 +62,8 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   named parameter trước driver nên dấu `:` của `::timestamptz` bị ăn mất; kèm bài học test hồi quy so
   chuỗi SQL *trước* bước compile thì xanh cả khi bug còn nguyên, và field thiếu trong request message
   của proto làm client gửi bao nhiêu cũng vô nghĩa.
+- [[digest-ticket-mcrsv-2026-09-08]] — mở khi frontend trả 500 mà `curl`/`node fetch` đều 200: Next
+  cache lại một lần fetch font hỏng, phải xoá `.next` trước khi đi truy mạng/proxy.
 - [[redis-queue-khong-dung-chung-instance-cache]] — mở trước khi nối một job vào Redis: instance cache
   có `maxmemory-policy` eviction nên nó được phép vứt job của bạn, im lặng. (Khái quát hoá từ task 136.)
 
@@ -88,6 +90,11 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   làm giao hai lane đi sửa lỗi không tồn tại.
 - [[digest-ticket-mcrsv-2026-08-14]] — mở khi chạy `/looptasks` dài: ~40 task một ngày, ba lần tự báo sai
   bị verifier bác bằng thí nghiệm.
+- [[digest-ticket-mcrsv-2026-09-08]] — mở khi một lệnh chờ Orca kẹt (`waiter_exists` mà không ai đánh
+  thức), khi codex nuốt prompt, hoặc khi tiêu chí nghiệm thu là **thị giác**: cảnh 3D dẹt vì đơn vị
+  chiều cao lệch hai bậc chỉ lộ ra khi mở ảnh ra nhìn, gate xanh và verifier PASS đều không thấy;
+  kèm một FAIL đúng (bản vá đúng, test hồi quy không canh cơ chế hỏng) và một done-criteria viết
+  quá tuyệt đối khiến worker báo `failed` đúng chữ.
 
 ## Doc & dọn dẹp
 
