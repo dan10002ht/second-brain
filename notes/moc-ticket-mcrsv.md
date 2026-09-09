@@ -1,10 +1,10 @@
 ---
 type: note
 title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
-summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (19 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
+summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (20 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-08
+updated: 2026-09-09
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -95,6 +95,11 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   chiều cao lệch hai bậc chỉ lộ ra khi mở ảnh ra nhìn, gate xanh và verifier PASS đều không thấy;
   kèm một FAIL đúng (bản vá đúng, test hồi quy không canh cơ chế hỏng) và một done-criteria viết
   quá tuyệt đối khiến worker báo `failed` đúng chữ.
+- [[digest-ticket-mcrsv-2026-09-09]] — mở khi viết **tiêu chí nghiệm thu** cho lane: `F34` bị
+  `Blocked On` vì mốc fps không đo được trên máy chỉ có swiftshader — lỗi ở tiêu chí, không ở worker;
+  thay bằng delta draw call = 1. Kèm ba thứ khác: câu trả lời của mình cho worker chính là spec (sai
+  ở đó thì worker làm đúng vẫn ra sai), phải chặn task theo **file** chứ không theo thứ tự brief vì
+  `/lt-orca` nhặt 4 task song song, và tin của worker chưa ack sẽ hiện lại mỗi vòng loop.
 
 ## Doc & dọn dẹp
 

@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-09-08
+updated: 2026-09-09
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -113,6 +113,10 @@ updated: 2026-09-08
 - [[tien-khong-duoc-lay-float-lam-chuan]] — mở khi đang viết hoặc đang *kiểm* một phép tính tiền: giá
   trị trung gian đúng vẫn hỏng ở bước nhân ngược về cents, và nếu chuẩn đối chiếu của phép kiểm cũng là
   float thì hai bên sai giống nhau nên brute-force báo 0 lệch ở đúng những case nó sai.
+- [[digest-aws-2026-09-09]] — mở khi giao subagent viết nội dung dạy học: với tài liệu thì **số là
+  hợp đồng** và không gate nào (SVG hợp lệ, `tsc`, build xanh) bắt được một phép chia sai 10 lần —
+  main agent phải tự tính lại; kèm luật "hook là hiện tại, ghi nhớ là quá khứ" khi cấu hình thực thi
+  mâu thuẫn với trí nhớ.
 
 ## Rust
 
@@ -193,6 +197,10 @@ updated: 2026-09-08
   liệu học cho chính mình: bảng đối chiếu hai mô hình (stateless/DB-trung-tâm vs stateful/tick),
   vì sao sơ đồ kỹ thuật không được là ảnh do model sinh (sai chữ/số và không sửa được một mũi
   tên), và vì sao "đủ nội dung" chưa phải "dạy được".
+- [[digest-game-server-2026-09-09]] — mở khi một con số trong tài liệu của chính mình sắp được trích
+  lại như sự thật: một triệu chứng đo được (tick thiếu 5%) từng bị suy diễn thẳng thành một hậu quả
+  chưa từng đo ("world lệch 30 giây") rồi sống trong hai file; cách chữa là chạy lại code thật và
+  thay con số lẻ bằng một công thức kiểm được ở nhiều mốc.
 
 ## Bối cảnh
 

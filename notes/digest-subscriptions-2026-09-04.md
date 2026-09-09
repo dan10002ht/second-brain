@@ -28,6 +28,11 @@ dựng đúng là hai câu hỏi khác nhau.
 `middleware/tsToolAuthMiddleware.js` chặn hẳn trên prod. Tôi đã nói ngược ở lượt trước rồi phải
 đính chính; bài học là kiểm middleware của endpoint trước khi hứa với user rằng có đường chữa.
 
+> ⚠️ **Đã lỗi thời từ 2026-09-08.** Việc chặn cứng đó là một lỗi phạm vi (guard đặt trước cả bước
+> kiểm master key nên khoá luôn cả `/api/v1` của cả fleet), đã được đảo ở `v2.35.16`: nay `resync`
+> chạy được trên prod, chỉ op cấp entitlement/plan/billing mới bị chặn. Xem
+> [[2026-09-09-ts-tool-prod-scope-theo-op]].
+
 Để trả lời câu "một chỗ hay nhiều chỗ", viết command scan **read-only**
 `packages/functions/src/commands/misc/scanStuckQueuedOrders.js`: quét 727 order doc `UNBILLED` của
 shop → đúng **1** trường hợp. Câu hỏi của user là *phạm vi*, không phải *bản vá* — trả lời bằng
