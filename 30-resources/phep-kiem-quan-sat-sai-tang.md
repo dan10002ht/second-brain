@@ -95,3 +95,6 @@ chứ không chỉ đọc lại phép kiểm ([[cham-viec-agent-nen]] · [[2026-
 Ca mới cùng hình dạng: [[digest-subscriptions-2026-09-06]] — so giá contract với **catalog hiện
 tại** thì 4 ca trông giống hệt nhau; chỉ khi đối chiếu **đơn đã charge** (artefact sau bước biến
 đổi cuối) mới tách được 3 bug khỏi 1 đúng.
+
+Cùng họ, khác chỗ hỏng: [[so-anh-khong-so-chu]] — phép kiểm dùng **sai đơn vị** (đo giao diện bằng
+text) chứ không phải sai tầng.

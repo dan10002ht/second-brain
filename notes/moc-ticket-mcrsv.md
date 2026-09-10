@@ -4,7 +4,7 @@ title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
 summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (20 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-09
+updated: 2026-09-10
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -100,6 +100,12 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   thay bằng delta draw call = 1. Kèm ba thứ khác: câu trả lời của mình cho worker chính là spec (sai
   ở đó thì worker làm đúng vẫn ra sai), phải chặn task theo **file** chứ không theo thứ tự brief vì
   `/lt-orca` nhặt 4 task song song, và tin của worker chưa ack sẽ hiện lại mỗi vòng loop.
+- [[digest-ticket-mcrsv-2026-09-10]] — mở khi một worker **có vẻ đang chạy mà thật ra đã chết**: ba
+  nguyên nhân khác nhau trong cùng một phiên (codex tự lên bản mới giữa phiên nên bản vá version cũ
+  hết nghĩa, Orca dựng worktree từ `origin/main` trước khi mình push, terminal bị dựng lại về màn
+  khởi động) — không có phép kiểm nào bao hết, thứ chung duy nhất là *phải kiểm sau khi dispatch*.
+  Kèm một tiêu chí bất khả thi về toán học do chính mình viết (F48) và luật release worker + xoá
+  worktree là **một bước của việc đóng task**.
 
 ## Doc & dọn dẹp
 
