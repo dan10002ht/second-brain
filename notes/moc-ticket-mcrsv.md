@@ -1,10 +1,10 @@
 ---
 type: note
 title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
-summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (20 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
+summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (21 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-10
+updated: 2026-09-11
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -106,6 +106,12 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   khởi động) — không có phép kiểm nào bao hết, thứ chung duy nhất là *phải kiểm sau khi dispatch*.
   Kèm một tiêu chí bất khả thi về toán học do chính mình viết (F48) và luật release worker + xoá
   worktree là **một bước của việc đóng task**.
+- [[digest-ticket-mcrsv-2026-09-11]] — mở khi **đóng task sau merge** hoặc khi viết brief cho verifier:
+  release worker + xoá worktree không có ai trong quy trình nhắc (triệu chứng duy nhất là pane thừa
+  trên sidebar, và người phát hiện là dantt); gate hợp nhất bắt đúng ca rule lên `error` giữa hai task
+  cùng PASS trong worktree riêng; và hình mẫu verifier đáng yêu cầu là **tự dựng một vi phạm ở file
+  khác** để chứng minh rule chặn cả repo. Kèm luật: giao lại việc cho verifier vòng N phải nói rõ mốc
+  so sánh, nếu không nó chấm nhầm phạm vi.
 
 ## Doc & dọn dẹp
 
