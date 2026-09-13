@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-09-09
+updated: 2026-09-13
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -104,6 +104,9 @@ updated: 2026-09-09
 - [[feedback-trich-code-nguyen-van]] — mở khi định dán một dòng code "rút gọn cho dễ đọc" vào chat: giữa
   phiên debug mọi dòng code dán ra được đọc như bằng chứng, nên trích nguyên văn kèm `path:line` — và khi
   user trích code hỏi lại, grep chuỗi đó trong repo trước khi trả lời.
+- [[viet-tai-lieu-day-duoc]] — mở TRƯỚC khi viết lesson/guide/runbook và trước khi commit bất kỳ
+  tài liệu nào có số trong đó: bài không dạy được hỏng ở thứ tự nhân quả, và mọi con số trong văn
+  xuôi là một claim mà không gate nào đỏ được — chỉ tính lại/chạy lại mới kiểm được.
 - [[digest-game-server-2026-09-08]] — mở khi một tài liệu học/note "đủ nội dung" mà đọc xong không đổi
   được cách nghĩ: hỏng ở thứ tự nhân quả (khái niệm → hệ quả) chứ không ở lượng chữ — đặt tình huống
   hỏng trước để người đọc tự thấy vì sao cần khái niệm, rồi mới đặt tên cho nó.
