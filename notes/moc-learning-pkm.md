@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-09-13
+updated: 2026-09-14
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -120,6 +120,19 @@ updated: 2026-09-13
   hợp đồng** và không gate nào (SVG hợp lệ, `tsc`, build xanh) bắt được một phép chia sai 10 lần —
   main agent phải tự tính lại; kèm luật "hook là hiện tại, ghi nhớ là quá khứ" khi cấu hình thực thi
   mâu thuẫn với trí nhớ.
+- [[soat-cheo-noi-dung-sinh-song-song]] — mở ở bước SAU [[digest-aws-2026-09-09]], khi đã verify từng
+  phần mà vẫn chưa yên tâm: ba lớp lỗi nằm *giữa* các phần (hệ số vay mượn bịa ra, nhãn/đơn vị lệch,
+  hai vế của cùng một câu không khớp) đi qua sạch mọi gate và chỉ người điều phối kiểm được — kèm hai
+  đòn bẩy rẻ dùng TRƯỚC khi soát (chia đợt, trần độ dài trong brief).
+- [[digest-aws-2026-09-14]] — mở khi muốn ca thật của ba lớp lỗi đó cùng năm lần agent bác lại brief
+  bằng số đo (cả năm lần agent đúng): cách xử không phải tin agent cũng không phải tin brief mà là
+  tự đo lại, vì brief chỉ là giả thuyết.
+- [[feedback-ra-het-duong-verify]] — mở khi sắp viết một câu "không verify được / platform không hỗ
+  trợ X": danh sách đó thường chỉ ghi lại **công cụ đầu tiên mình thử bị hỏng**, và người đọc tin nó
+  như một giới hạn của hệ thống — liệt kê hết đường còn lại, thử ít nhất đường thứ hai.
+- [[feedback-bug-la-bug-khong-cho-po-chot]] — mở khi tiếp nhận report/kết luận của agent khác: verify
+  *dữ kiện* mà không verify *cách đóng khung* thì vẫn truyền tiếp nguyên một quyết định sai — "cần PO
+  chốt" đúng cho một lựa chọn, không đúng cho thứ đang sai.
 
 ## Rust
 

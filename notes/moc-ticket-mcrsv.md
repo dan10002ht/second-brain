@@ -4,7 +4,7 @@ title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
 summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (21 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-11
+updated: 2026-09-14
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -112,6 +112,11 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   cùng PASS trong worktree riêng; và hình mẫu verifier đáng yêu cầu là **tự dựng một vi phạm ở file
   khác** để chứng minh rule chặn cả repo. Kèm luật: giao lại việc cho verifier vòng N phải nói rõ mốc
   so sánh, nếu không nó chấm nhầm phạm vi.
+
+- [[digest-ticket-mcrsv-2026-09-14]] — mở **trước khi viết plan từ một spec đã nằm đó vài ngày**: spec
+  là ảnh chụp tại thời điểm viết, và ở đây hai tiền đề của spec V3 đã chết sau 6 ngày (trang bán vé
+  không hề có chọn ghế; `getEventHandler` là passthrough nên V3 không cần đụng backend) — bước đầu là
+  đo lại tiền đề, không phải bám khuôn plan cũ.
 
 ## Doc & dọn dẹp
 
