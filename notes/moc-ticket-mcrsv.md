@@ -4,7 +4,7 @@ title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
 summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (21 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-14
+updated: 2026-09-15
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -117,6 +117,11 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   là ảnh chụp tại thời điểm viết, và ở đây hai tiền đề của spec V3 đã chết sau 6 ngày (trang bán vé
   không hề có chọn ghế; `getEventHandler` là passthrough nên V3 không cần đụng backend) — bước đầu là
   đo lại tiền đề, không phải bám khuôn plan cũ.
+- [[digest-ticket-mcrsv-2026-09-15]] — mở khi **hợp nhất hai worktree** hoặc khi một lane "đứng im":
+  F52 chuyển module còn F53 import theo đường cũ nên git merge sạch mà bản gộp không resolve được —
+  bắt được vì đọc phạm vi file từng worktree, không vì gate; kèm biến thể thứ ba của "prompt không
+  chạy" (đã paste nhưng chưa submit, gỡ bằng `--enter`), luật *push xong mới dispatch* vì Orca dựng
+  worktree từ `origin/main`, và `gate.sh` exit 127 vì macOS dọn `/tmp` chứ không phải gate hỏng.
 
 ## Doc & dọn dẹp
 

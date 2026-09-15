@@ -4,7 +4,7 @@ title: MOC — Học tập & Quản lý tri thức cá nhân
 summary: MOC — điểm vào chủ đề học tập & PKM, gom link tới các note liên quan.
 tags: [moc, pkm, learning, index]
 created: 2026-07-06
-updated: 2026-09-14
+updated: 2026-09-15
 ---
 
 # MOC — Học tập & Quản lý tri thức cá nhân
@@ -60,12 +60,19 @@ updated: 2026-09-14
 - [[do-be-ngang-headless-chrome]] — mở khi sắp kết luận "tràn / không tràn" từ một phép đo trong
   headless Chrome: sàn viewport 500px, `scrollWidth` trong iframe và `documentElement.scrollWidth`
   đều nói dối; assert chính cái thước trước, và một con số giả đưa vào brief sẽ ship ra code sai.
+- [[do-kich-thuoc-bundle]] — mở trước khi đưa ra một con số kích thước bundle: so nhầm chế độ build
+  (dev không minify trong `static/` vs production) đảo kết luận 14–25 lần, raw không phải thứ truyền
+  qua mạng, và quy trách nhiệm chỉ chắc khi stub từng import rồi build lại.
 - [[feedback-khong-dung-vs-chua-lam-toi]] — mở khi định gắn nhãn một service/module là thừa và đề
   xuất xoá: zero-reference khớp với cả "không ai cần" lẫn "chưa ai viết" — phải đọc plan/roadmap
   mới phân biệt được.
 - [[gate-tu-viet-la-nguon-xanh-gia]] — mở khi sắp tin verdict PASS của một gate script mình tự viết:
   `$?` bị nuốt bởi lệnh cuối trong subshell và test thiếu hạ tầng thì SKIP im lặng mà vẫn in `ok` —
   tiêm một lỗi thật vào và xem gate có đỏ không, trước khi dùng nó chấm ai.
+- [[args-khong-toi-prompt-agent]] — mở ở bước TRƯỚC đó, khi một báo cáo của subagent/skill trông
+  hoàn hảo mà nội dung lại lệch brief: nếu `args` không được thread vào prompt thì agent chạy prompt
+  mặc định và vẫn trả đúng schema + verdict + điểm số — `grep -n 'args' <script>` hoặc một chuỗi mồi
+  trong brief là hai phép kiểm duy nhất phân biệt được.
 - [[feedback-dung-xin-chot-khi-chi-thi-da-co]] — mở khi đang soạn một câu "anh chốt giúp em cái nào":
   nếu chỉ thị đứng sẵn đã trả lời và hai nhánh không đánh đổi nhau thì hỏi chốt là xin thu hẹp phạm
   vi, không phải cẩn thận — tự quyết, làm, rồi báo kết quả.
@@ -104,6 +111,9 @@ updated: 2026-09-14
 - [[feedback-trich-code-nguyen-van]] — mở khi định dán một dòng code "rút gọn cho dễ đọc" vào chat: giữa
   phiên debug mọi dòng code dán ra được đọc như bằng chứng, nên trích nguyên văn kèm `path:line` — và khi
   user trích code hỏi lại, grep chuỗi đó trong repo trước khi trả lời.
+- [[feedback-khong-bia-ten-nguoi]] — mở khi tóm tắt thread/ticket/MR của người khác: danh tính và
+  câu trích phải lấy nguyên văn từ nguồn hoặc ghi thẳng "không nêu tên" — không suy tên từ email,
+  handle Slack hay author git; ở luồng support, một cái tên bịa đi thẳng ra ngoài công ty.
 - [[viet-tai-lieu-day-duoc]] — mở TRƯỚC khi viết lesson/guide/runbook và trước khi commit bất kỳ
   tài liệu nào có số trong đó: bài không dạy được hỏng ở thứ tự nhân quả, và mọi con số trong văn
   xuôi là một claim mà không gate nào đỏ được — chỉ tính lại/chạy lại mới kiểm được.
@@ -127,6 +137,10 @@ updated: 2026-09-14
 - [[digest-aws-2026-09-14]] — mở khi muốn ca thật của ba lớp lỗi đó cùng năm lần agent bác lại brief
   bằng số đo (cả năm lần agent đúng): cách xử không phải tin agent cũng không phải tin brief mà là
   tự đo lại, vì brief chỉ là giả thuyết.
+- [[digest-aws-2026-09-15]] — mở khi bóc dữ liệu từ PDF hoặc khi một critic/agent cáo buộc bài của
+  mình sai: thụt lề của `pdftotext -layout` là tín hiệu đáng tin hơn marker, đo chênh giữa HAI parser
+  rẻ hơn tin parser mới, và cáo buộc của critic là giả thuyết phải tra nguồn có thẩm quyền — hai lần
+  trong một pass thì agent đúng còn tôi sai.
 - [[feedback-ra-het-duong-verify]] — mở khi sắp viết một câu "không verify được / platform không hỗ
   trợ X": danh sách đó thường chỉ ghi lại **công cụ đầu tiên mình thử bị hỏng**, và người đọc tin nó
   như một giới hạn của hệ thống — liệt kê hết đường còn lại, thử ít nhất đường thứ hai.
