@@ -1,10 +1,10 @@
 ---
 type: note
 title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
-summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (21 digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
+summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (toàn bộ digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-15
+updated: 2026-09-16
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -122,6 +122,14 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   bắt được vì đọc phạm vi file từng worktree, không vì gate; kèm biến thể thứ ba của "prompt không
   chạy" (đã paste nhưng chưa submit, gỡ bằng `--enter`), luật *push xong mới dispatch* vì Orca dựng
   worktree từ `origin/main`, và `gate.sh` exit 127 vì macOS dọn `/tmp` chứ không phải gate hỏng.
+- [[digest-ticket-mcrsv-2026-09-16]] — mở khi một task nghiệm thu trả `failed`, hoặc khi nghi một lỗi
+  là **hồi quy**: F56 tự dựng lại baseline rồi chứng minh bằng `git diff` rỗng trên hai file cai quản
+  hành vi đó — `failed` là kết quả hợp lệ, không phải worker làm dở. Kèm `rake` bị lật dấu sống từ V1
+  (độ lớn đúng nên mọi phép kiểm độ cao đều xanh), `[⏳]` là trạng thái vô hình không lọt vào cả lượt
+  quét "đang mở" lẫn "đã xong", và cơ chế chờ của Orca mất khả năng chặn sau khi waiter nền bị kill.
+- [[con-so-trong-tieu-chi-phai-kem-cach-do]] — mở **trước khi viết một con số vào done-criteria**:
+  bốn lần trong chính repo này, con số ai cũng tin hoá ra chưa bao giờ được đo. (Khái quát hoá từ
+  F33/F35/F48/F56.)
 
 ## Doc & dọn dẹp
 
