@@ -65,4 +65,5 @@ Thứ duy nhất kết luận được là **đọc request thật trong browser
 grep **URL nằm trong bundle đang được phục vụ**. → [[ack-khong-phai-hieu-ung]].
 
 Liên quan: [[app-development]] · [[digest-subscriptions-2026-09-09]] ·
-[[2026-09-09-portal-wholefoods-extension-rieng]] · [[shopify-token-exchange-migrate-offline-token]]
+[[2026-09-09-portal-wholefoods-extension-rieng]] · [[shopify-token-exchange-migrate-offline-token]] ·
+[[extension-khong-gioi-han-theo-shop]] (extension nằm trong bản release của app nên mọi merchant đều thấy — không giới hạn được theo shop)

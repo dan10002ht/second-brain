@@ -60,3 +60,5 @@ bespoke portal không — nếu có shop thứ hai thì cách này không nhân 
 - [[subscriptions]] · [[digest-subscriptions-2026-09-09]] · [[cau-extension-chay-that-tren-store]]
 - [[2026-09-08-bespoke-khong-vao-theme-app-extension]] — cùng nguyên tắc, tầng theme
 - [[2026-08-19-page-custom-o-theme-khach]]
+- [[2026-09-17-extension-wholefoods-khong-gate-theo-shop]] — hệ quả lúc go-live: extension riêng đó hiện trong danh sách "thêm page" của mọi merchant, chỉ đổi tên chứ chưa gate
+- [[extension-khong-gioi-han-theo-shop]] — cơ chế đằng sau: Shopify không cho giới hạn extension theo shop

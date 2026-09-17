@@ -4,7 +4,7 @@ title: Shipped Joy Subscription — commit landed 2026-09-15 (v2.35.30 + 2 lư�
 summary: Master nhận 3 merge — command migrate Simple Bundles → Fixed Bundle (`v2.35.30`) và hai lượt `[deploy-extensions]`, trong đó !2589 chữa modal Change frequency của contract import; khối lượng còn lại trên nhánh portal Wholefoods và joyxjoy (bundle giảm ~24KB, PropTypes strip ở production).
 tags: [avada, subscription, shopify, backend, react, preact, webpack, performance]
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-17
 source: repo `subscriptions` — git log 2026-09-15 (hash đã verify)
 ---
 
@@ -45,6 +45,11 @@ empty state có message + log contract identifier.
   khi** product của nó là fixed bundle. SB-16866: picker staples còn lọc bỏ product có plan
   không khớp contract ⇒ picker rỗng trên shop có plan-data mỏng; bỏ lọc ở danh sách, giữ chốt
   chặn lúc bấm.
+  ⚠️ **Sửa lại 2026-09-17:** mô tả SB-16866 ở trên là **triệu chứng phụ, không phải gốc**. Commit
+  `ac3e5f2f1` (xem [[shipped-subscriptions-2026-09-17]]) chỉ ra gốc ở tầng khác và rộng hơn: shop
+  chạy plan v2 nên `getPopularSubscriptions` đọc collection `subscriptionProducts` (v1) vốn rỗng hợp
+  lệ ⇒ endpoint trả `[]`. Phạm vi là **mọi shop plan v2, kể cả customer portal gốc** — bug toàn app,
+  không phải khiếm khuyết riêng của portal Wholefoods.
 - `ef706fbeb` SB-16809: card chỉ vẽ ảnh dòng đầu nên contract 1 box + 3 staples trông y hệt sub
   một sản phẩm. Dùng `ImageGroup` + tile "+N", áp cho cả ba card cùng shape (My subscriptions,
   Upcoming orders, History); một ảnh vẫn đi qua `ProductImage` để giữ placeholder.
