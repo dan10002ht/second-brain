@@ -3,7 +3,7 @@
 > LLM đọc file này ĐẦU TIÊN để biết brain có gì, rồi mới drill vào file cụ thể.
 > Cập nhật file này mỗi khi thêm/di chuyển note đáng kể.
 
-_Cập nhật: 2026-09-19 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 3 item ngày 09-19: 1 shipped + 1 digest + 1 decision)_
+_Cập nhật: 2026-09-20 · Trạng thái: đã seed 12 project + notes học tập từ ~/projects · inbox trống (xử lý 2 item ngày 09-20: 1 resource mới + 1 bản cập nhật area `shopify-app-dev`)_
 
 > **Brain ở project khác:** `brain-core.md` (root) được `~/.claude/CLAUDE.md` import nên
 > vào context ở MỌI repo — giữ mỏng, chỉ thứ luôn đúng. Tra sâu từ repo khác: skill `/brain`.
@@ -40,7 +40,7 @@ _Cập nhật: 2026-09-19 · Trạng thái: đã seed 12 project + notes học t
 
 ## 🔁 Areas (20-areas/) — trách nhiệm duy trì lâu dài
 
-- [[shopify-app-dev]] — phát triển & bảo trì app Shopify tại AVADA (mảng chính).
+- [[shopify-app-dev]] — phát triển & bảo trì các app Shopify embedded tại AVADA — mảng công việc chính; từ 09/2026 thêm bề mặt thứ năm là Customer Account extension (thêm extension = thêm cho MỌI merchant, không gate được theo shop).
 - [[dev-skills]] — kỹ năng lập trình: JS/TS/Node là trụ cột số một, Java (Spring Boot) và hạ tầng dịch vụ phân tán là trụ cột thứ hai (backend ngoài Avada), Go tách ra thành hướng học có lộ trình riêng (`game-server`), Rust vẫn là hướng học thêm.
 - [[aws-certification]] — học AWS & lấy chứng chỉ.
 
@@ -56,6 +56,7 @@ _Cập nhật: 2026-09-19 · Trạng thái: đã seed 12 project + notes học t
 - `firebase/` — [[firestore-multitenant]]: cô lập dữ liệu theo `shopId`.
   - [[functions-pricing-v1-v2]]: v1 và v2 có đơn giá CPU/RAM/request y hệt nhau; tiền tiết kiệm ở v2 đến từ concurrency và tách rời CPU/RAM, không đến từ đơn giá.
 - `patterns/` — [[controller-service-repository]], [[monorepo-yarn-workspaces]], [[lich-dinh-ky-neo-theo-ngay-du-kien]] (scheduler định kỳ neo theo mốc *dự kiến* của kỳ trước, không theo ngày xử lý thực tế — chống drift).
+- [[resolve-luc-doc-thay-vi-ghi-truoc]] — khi một giá trị thuộc về chỗ khác (bundle, location, plan, hạn mức), chép nó vào từng bản ghi bằng backfill/job ghi ngược là tạo bản sao phải giữ đồng bộ — nên mặc định là resolve lúc đọc; đổi lại phải quét HẾT đường đọc (không gate nào bắt sót), chịu chi phí trên hot path, và biết đúng ba ca phải ghi cứng.
 - [[do-layout-shift-bang-browser-automation]] — đo CLS bằng agent-browser/Playwright: phần lớn "0 shift" là harness hỏng, luôn chạy control test, `buffered: true`, đo ≥5 lần, assert trang đã render trước khi tin con số.
 - [[bigquery-avada]] — trang gốc cho mọi thứ BigQuery ở Avada: cost bị phồng vì attribution sai chứ hiếm khi vì query nặng, pruning chỉ chạy khi filter đúng cột partition, và bảng shard/mirror hỏng âm thầm cho tới khi UI crash.
 - [[redis-queue-khong-dung-chung-instance-cache]] — instance cache cấu hình eviction để bảo vệ RAM, nên một job đẩy vào đó có thể bị đuổi lặng lẽ; hàng đợi phải nằm trên instance `noeviction`, và "cùng là Redis" không phải lý do gộp.
