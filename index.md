@@ -107,6 +107,7 @@ _Cập nhật: 2026-09-20 · Trạng thái: đã seed 12 project + notes học t
 
 ## 🧠 Notes (notes/) — Zettelkasten, note atomic liên kết
 
+- [[slot-vm-hang-doi-build-implement]] — quyết định 14/09 được implement 21/09; đo thật heap 2048MB trong scope 4000M, slot idle 250MB thay vì 2100MB, và ext-deploy phải là bước "hỏng không chí mạng" mới không nhuộm đỏ mọi lượt pull.
 - [[atomic-notes-principle]] — mỗi note một ý, liên kết bằng wiki-link.
 - [[learning-in-public]] — viết ra để học sâu hơn.
 - [[graph-engineering]] — lớp thứ 5 (node/edge/shared-state); trong Claude Code, graph đúng nghĩa nhất là dynamic workflow — kế hoạch nằm trong script chứ không trong context window.
