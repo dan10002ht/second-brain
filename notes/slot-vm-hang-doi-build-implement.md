@@ -54,10 +54,33 @@ trước khi đi chẩn đoán lại từ đầu.
    Đây cũng là lý do done-criteria "kill -9 giữa bước build" đáng tồn tại: không test thì lỗi này
    chỉ xuất hiện lần đầu vào lúc runner chết thật, giữa đêm.
 
+## Hai slot pdf chưa bao giờ chạy được — và lý do không phải RAM
+
+Khi mở rộng từ 2 lên 4 slot, ba giả định "hai app giống nhau" gãy liên tiếp. Cả ba đều im lặng
+theo kiểu khác nhau, và không cái nào liên quan tới hàng đợi:
+
+| Giả định | Sự thật | Triệu chứng |
+|---|---|---|
+| cùng bản Node | subscriptions `engines.node` = 20, pdf-invoice = **22** | yarn chặn ở engines giữa bước build |
+| cùng tên artifact | sub ghi `embed-template.html`, pdf ghi **`embed.html`** | "build xong (mã 0) nhưng không ghi artifact" — trong khi nó ghi đủ |
+| cùng cách đọc config | sub dùng `functions.config()` (cần `.runtimeconfig.json`), pdf dùng **dotenv** (`.env.local`) | pdf chết ở bước cuối đòi `firebase login`, vì một thứ nó không dùng |
+
+Node 22 cài ra `/opt/node-22` (tải nodejs.org, kiểm SHASUMS256) và `duongDanLenh()` đặt nó lên
+đầu PATH cho đúng slot cần — trước cả shim corepack, vì `corepack yarn` cũng phải chạy đúng bản.
+Bằng chứng nó có hiệu lực: emulator in `✔ functions: Using node@22 from host`.
+
+Credential Shopify của pdf **đã nằm sẵn trên VM** trong `packages/functions/.env.local` của chính
+slot (sinh từ biến CI/CD `STAGING<N>_FUNCTIONS_ENV`) — chỉ khác tên: repo gọi `SHOPIFY_SECRET`,
+slotctl đòi `SHOPIFY_API_SECRET`. Không phải đi xin secret, chỉ phải đọc kỹ chỗ đã có.
+
 ## Ràng buộc mới là đĩa, đúng như dự đoán
 
-Sau khi install `sub-s4` + `pdf-s4`: `/srv` còn **6,8GB / 48GB (86%)**. RAM không còn là thứ
-chặn; muốn thêm slot có node_modules thì phải xin đĩa.
+Sau khi install `sub-s4` + `pdf-s4`: `/srv` còn 5,4GB / 48GB (89%). RAM không còn là thứ chặn —
+3 slot chạy cùng lúc chỉ tốn **1950MB / 5700MB** ngân sách slice.
+
+Dọn được 2,1GB mà không mất gì đang dùng: `journalctl --vacuum-size=300M` (1,4GB) + `apt clean`
+(0,6GB). Chỗ chiếm thật sự là `node_modules` của mỗi slot (~2,5GB) và `/home/agent/repos` (4,9GB).
+Muốn hơn 4 slot thì phải xin đĩa, đúng như tradeoff đã ghi.
 
 ## Liên quan
 
