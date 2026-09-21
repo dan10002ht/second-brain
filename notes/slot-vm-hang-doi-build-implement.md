@@ -1,7 +1,7 @@
 ---
 type: note
 title: Slot VM — hàng đợi build + cgroup đã chạy thật (21/09)
-summary: Quyết định 14/09 được implement ngày 21/09; đo thật heap 2048MB trong scope 4000M, slot idle 250MB thay vì 2100MB, và ext-deploy phải là bước "hỏng không chí mạng" mới không nhuộm đỏ mọi lượt pull.
+summary: Quyết định 14/09 được implement ngày 21/09 và chạy đủ 4 slot (tổng RSS 1388MB); đo thật heap 2048MB trong scope 4000M, slot idle ~300MB thay vì 2100MB, và ba giả định "hai app giống nhau" đều gãy khi mở rộng sang pdf-invoice.
 tags: [agent, automation, tooling, performance, vite]
 created: 2026-09-21
 updated: 2026-09-21
@@ -28,6 +28,7 @@ trước khi đi chẩn đoán lại từ đầu.
 | `pull`/`start` trả về | 0,09 giây (trước: treo tới 10 phút) |
 | build frontend một lượt | embed 51s, standalone 47s |
 | install sub-s4 (yarn, cache ấm) | 74s |
+| **4 slot cùng chạy** | tổng RSS **1388MB**, slice 3066/5700MB, cả 4 domain HTTP 200 |
 
 ## Bốn thứ chỉ lộ ra khi chạy thật
 
