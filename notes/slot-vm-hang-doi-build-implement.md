@@ -117,6 +117,14 @@ dashboard, chỉ lộ ra khi có người mở dashboard đọc.
    mới thấy lỗi).
    → `slots.json` khai `extDeployCmd` riêng cho slot pdf, dùng đúng `deploy-shopify` của repo.
 
+3. **Khối `[sidekick]` không nằm trong `shopify.app.toml`.** Repo giữ riêng `shopify.sidekick.toml`
+   và CI nối nó vào trước khi deploy (chính file đó ghi vậy ở dòng đầu). `sinhTomlSlot` phải làm
+   cùng việc — thiếu thì Shopify từ chối nguyên lượt deploy, lại ở **bước cuối**, sau khi đã build
+   xong cả 23 extension.
+
+Ba cái bẫy này giống nhau ở một điểm: **đều nổ ở bước cuối sau nhiều phút chờ**. Đó là lý do vòng
+thử–sai trên ext-deploy đắt hơn mọi bước khác, và cũng là lý do nó phải là bước không chí mạng.
+
 ## Ràng buộc mới là đĩa, đúng như dự đoán
 
 Sau khi install `sub-s4` + `pdf-s4`: `/srv` còn 5,4GB / 48GB (89%). RAM không còn là thứ chặn —
