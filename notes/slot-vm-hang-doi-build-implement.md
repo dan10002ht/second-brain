@@ -101,6 +101,22 @@ nên slot không có mẫu để `sinhTomlSlot` dựa vào — lấy từ `~/pro
 bản cũ luôn ghi "Joy Subscription VM …" nên app pdf sẽ mang tên app subscriptions trong Partner
 dashboard, chỉ lộ ra khi có người mở dashboard đọc.
 
+## ext-deploy của pdf: hai cái bẫy nữa
+
+1. **`spawnSync` chết `ENOBUFS`.** `shopify app deploy` với 23 extension in progress bar ANSI vượt
+   `maxBuffer` 32MB → tiến trình bị giết GIỮA CHỪNG và không ai biết nó đã đẩy xong hay chưa. Với
+   một thao tác không idempotent hoàn toàn, "không biết" là trạng thái tệ nhất.
+   → cho output chảy thẳng ra file log (`>> file 2>&1`), JSON chỉ trả phần đuôi đã lọc ANSI.
+   Lợi thêm: đọc được log TRONG LÚC deploy chạy, thay vì chờ tới khi nó kết thúc.
+
+2. **pdf không deploy bằng `shopify app deploy` trực tiếp.** Extension `pdf-invoice-tools` import
+   `./gateway.generated` (gitignored), do `scripts/sync-sidekick-gateway.js` sinh ra từ
+   `application_url` của **chính config đang deploy** — host phải bị nướng vào bundle vì bundle ship
+   riêng khỏi app và không đọc được env lúc chạy. Bỏ qua bước đó thì esbuild báo
+   `Could not resolve "./gateway.generated"` **sau khi đã build xong 22 extension khác** (mất vài phút
+   mới thấy lỗi).
+   → `slots.json` khai `extDeployCmd` riêng cho slot pdf, dùng đúng `deploy-shopify` của repo.
+
 ## Ràng buộc mới là đĩa, đúng như dự đoán
 
 Sau khi install `sub-s4` + `pdf-s4`: `/srv` còn 5,4GB / 48GB (89%). RAM không còn là thứ chặn —
