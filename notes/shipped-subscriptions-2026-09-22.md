@@ -4,6 +4,7 @@ title: Shipped subscriptions — 2026-09-22 (commit landed 21/09: v2.35.52 → v
 summary: Master nhận 5 merge (`v2.35.52`→`v2.35.55` + !2621 không tag) — bundle parent thôi bị ép bật inventory tracking, selling plan ăn trên MỌI form add-to-cart của trang, interceptor EasySell COD thu hẹp về một shop, và [deploy-extensions] !2626 bỏ nhánh bundle của cart transform để dòng con mang giá catalog; cả chùm guard SB-16934 (cycleIndex, contract sync lock, charge trùng) và command strip contract vẫn nằm trên nhánh.
 tags: [subscription, shopify, avada, backend, storefront, extensions, billing]
 created: 2026-09-22
+updated: 2026-09-22
 source: repo `subscriptions` — git log 2026-09-21 (hash trong note là hash thật)
 ---
 
@@ -69,7 +70,8 @@ Không có revert trong khoảng này.
    (job `restoreDeferredBundleChildren` thì đúng là dùng lại). Không mâu thuẫn về hướng, nhưng câu
    "chỉ nới cổng" nhẹ hơn thực tế — helper của họ đã bị đổi tên + đổi ngữ nghĩa.
 
-Liên quan: [[subscriptions]] · [[digest-subscriptions-2026-09-21]] ·
+Liên quan: [[subscriptions]] · [[digest-subscriptions-2026-09-22]] ·
+[[digest-subscriptions-2026-09-21]] ·
 [[2026-09-21-fixed-bundle-con-them-luc-order-create]] · [[gia-0-tren-dong-con-lam-mat-thong-tin]] ·
 [[digest-subscriptions-2026-09-19]] · [[shipped-subscriptions-2026-09-19]] ·
 [[mutation-ghi-nguyen-khoi-xoa-field-khong-gui]] · [[resolve-luc-doc-thay-vi-ghi-truoc]] ·
