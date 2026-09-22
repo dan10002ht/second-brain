@@ -78,6 +78,21 @@ trong prompt và gửi đi bản khuyết chữ suốt nhiều tuần mà không
 `bin/brain-graph` không kiểm gì cả — nó ĐẾM (cụm chủ đề, note lạnh, cặp trùng, hub)
 để `brain-compact` có dữ liệu thật thay vì để LLM đoán.
 
+## `scope: agent` — feedback nào chảy sang VM
+
+Feedback trong `feedback/` có thêm field tuỳ chọn `scope: agent`. Những note mang field đó được
+`bin/brain-agent-feedback` render (rút gọn: câu nguyên văn + cách áp dụng) rồi `brain-sync` đẩy
+sang `/home/agent/knowledge/feedback-tu-brain.md` trên VM, và `triage.js` nạp nó vào prompt mỗi
+case.
+
+**Chọn bằng `scope`, KHÔNG bằng tag.** Tag nói note *về* cái gì; `scope` nói note dành *cho ai
+đọc*. Một feedback có thể về agent mà chỉ dantt cần đọc.
+
+Đánh dấu tiết kiệm: mỗi note thêm vào là prompt của MỌI case dài ra. Hiện 10 note ≈ 6,9 KB,
+cộng với runbook 20 KB và gotchas 15 KB.
+
+File trên VM là **sinh tự động** — sửa tay ở đó sẽ bị ghi đè, muốn đổi thì sửa note gốc.
+
 ## Frontmatter schema (giữ nhẹ)
 
 ```yaml

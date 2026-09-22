@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Đừng bịa tên người khi tóm tắt ticket/thread — danh tính phải trích từ nguồn
 summary: Trong bản tóm tắt một thread Slack tôi gán một cái tên không hề có trong thread; dantt bắt ngay ("nam đéo đâu?") — mọi danh tính, vai trò và câu trích phải lấy nguyên văn từ nguồn hoặc nói rõ là không biết.
 tags: [feedback, avada, agent, method, support]

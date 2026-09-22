@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Debug thì phải query dữ liệu thật, đọc code chỉ là một nửa
 summary: Khi truy root cause một ca production, không được dừng ở "đọc code rồi kết luận" — phải query dữ liệu prod để chứng minh, vì code chỉ dựng được giả thuyết.
 tags: [feedback, debug, avada]

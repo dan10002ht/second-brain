@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: "Không verify được" chỉ nói sau khi đã rà hết đường — một công cụ bị chặn không phải kết luận
 summary: Dừng ở "extension Chrome không kết nối" rồi báo là không chạy được kiểm thử trên trang thật, trong khi skill `agent-browser` vẫn dùng được — công cụ đầu tiên hỏng là tín hiệu đổi đường, không phải kết luận về khả năng verify.
 tags: [feedback, method, tooling, debug]

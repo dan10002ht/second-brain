@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Bug là bug — đừng bê framing "cần PO chốt" từ report của agent khác
 summary: Khi một report (của agent, của người khác) kết luận "cần PO quyết fix cho mọi shop hay không", phải tự soi lại bản chất trước khi nhắc lại — dòng và tổng trong cùng một widget chênh nhau là bug, và bug thì fix.
 tags: [feedback, method, avada, agent]

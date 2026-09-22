@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Đừng khép việc khi khe hở vẫn còn
 summary: Khi còn một lỗ đã biết, không được đề xuất đóng task bằng lý lẽ "đủ tốt rồi" — làm chuẩn để dự án là một standard, không làm ít cho xong.
 tags: [feedback, method, skills, avada]

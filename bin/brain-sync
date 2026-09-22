@@ -29,6 +29,17 @@ if [[ $RUN_AI -eq 1 ]]; then
   fi
 fi
 
+# 1b) Đẩy feedback sang agent trên VM
+#
+# Brain giữ feedback, agent trên VM đọc bản chép tay — hai bên lệch nhau và lệch IM LẶNG.
+# Đã trả giá: luật "bug là bug, đừng chờ PO chốt" sinh ra từ SB-16764, nằm sẵn trong brain,
+# nhưng agent chưa từng đọc được nên lặp lại đúng lỗi đó ở các case sau.
+# Lỗi ở bước này KHÔNG được làm hỏng sync — VM có thể đang tắt.
+if command -v brain-agent-feedback >/dev/null 2>&1; then
+  log "Đẩy feedback sang agent VM..."
+  brain-agent-feedback --day || log "Đẩy feedback lỗi (VM tắt?) — bỏ qua, mai thử lại"
+fi
+
 # 2) Kiểm tra sức khoẻ — tri thức (lint) và bộ máy (doctor)
 #
 # Đây là bước từng KHÔNG tồn tại, và đó là lý do index semantic chết cả tháng,

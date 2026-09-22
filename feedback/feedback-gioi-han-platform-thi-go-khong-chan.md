@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Gặp giới hạn platform thì đi tìm đường gỡ, đừng dựng quota chặn
 summary: Tôi đề xuất cap danh sách ở 20 và cảnh báo merchant khi vượt; dantt bác thẳng — với khách enterprise, một cái chặn chỉ đổi lỗi im lặng thành lỗi ồn ào, còn sản phẩm thứ 21 vẫn không bán được.
 tags: [feedback, avada, shopify, method, architecture]

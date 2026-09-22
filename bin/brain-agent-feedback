@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""brain-agent-feedback — gom feedback dành cho agent trên VM rồi đẩy sang nó.
+
+Vì sao có file này: brain đang giữ 33 feedback, còn agent support trên VM đọc một
+`gotchas.md` CHÉP TAY. Hai bên lệch nhau, và lệch im lặng. Đã trả giá thật: luật
+"bug là bug, đừng chờ PO chốt" sinh ra từ SB-16764 và nằm sẵn trong brain, nhưng
+agent chưa từng đọc được — nên nó lặp lại đúng lỗi đó ở các case sau, và mất nhiều
+lượt điều tra để phát hiện lại thứ đã biết.
+
+Chọn bằng frontmatter `scope: agent`, KHÔNG phải bằng tag. Tag nói note *về* cái gì;
+`scope` nói note dành *cho ai đọc*. Một feedback có thể về agent mà chỉ dantt cần đọc.
+
+    brain-agent-feedback            # render ra stdout
+    brain-agent-feedback --ghi      # ghi ra .state/agent-feedback.md
+    brain-agent-feedback --day      # ghi rồi scp sang VM (cần ssh dantt-solar)
+"""
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+BRAIN = Path(__file__).resolve().parent.parent
+FEEDBACK = BRAIN / "feedback"
+RA = BRAIN / ".state" / "agent-feedback.md"
+VM = "dantt-solar"
+DICH_VM = "/home/agent/knowledge/feedback-tu-brain.md"
+
+
+def doc_frontmatter(text):
+    if not text.startswith("---"):
+        return {}, text
+    ket = text.find("\n---", 3)
+    if ket == -1:
+        return {}, text
+    dau = text[3:ket]
+    than = text[ket + 4 :]
+    fm = {}
+    for dong in dau.splitlines():
+        m = re.match(r"^([a-zA-Z_]+):\s*(.*)$", dong)
+        if m:
+            fm[m.group(1)] = m.group(2).strip()
+    return fm, than
+
+
+def rut_gon(than):
+    """Giu phan dat nhat: cau nguyen van cua dantt + cach ap dung.
+
+    Ban day du cua 10 note la 21KB — cong vao prompt triage von da co runbook 20KB va
+    gotchas 17KB thi moi case phai doc lai gan 60KB. Agent can LUAT, khong can ca cau
+    chuyen dieu tra; ban day du van nam trong brain cho nguoi doc.
+    """
+    than = re.sub(r"^#\s+.*$", "", than, count=1, flags=re.M).strip()
+    giu = []
+    for khoi in re.split(r"\n\s*\n", than):
+        k = khoi.strip()
+        if not k:
+            continue
+        if k.startswith(">") or k.startswith("**How to apply:**") or k.startswith("❌") or k.startswith("✅"):
+            giu.append(k)
+        elif not giu and not k.startswith("**Why:**"):
+            giu.append(k)  # doan boi canh dau tien
+        if sum(len(x) for x in giu) > 900:
+            break
+    return "\n\n".join(giu)
+
+
+def gom():
+    ra = []
+    for f in sorted(FEEDBACK.glob("*.md")):
+        if f.name.startswith("_"):
+            continue
+        fm, than = doc_frontmatter(f.read_text(encoding="utf-8"))
+        if fm.get("scope") != "agent":
+            continue
+        ra.append(
+            {
+                "slug": f.stem,
+                "title": fm.get("title") or f.stem,
+                "summary": fm.get("summary", ""),
+                "than": rut_gon(than),
+            }
+        )
+    return ra
+
+
+def render(muc):
+    d = [
+        "# Feedback từ brain — sinh tự động, ĐỪNG SỬA TAY",
+        "",
+        "> File này do `brain-agent-feedback` render từ `~/projects/my-brain/feedback/`",
+        "> (những note có `scope: agent`). Sửa tay ở đây sẽ bị ghi đè lần sync sau —",
+        "> muốn đổi thì sửa note gốc trong brain.",
+        "",
+        f"Gồm {len(muc)} luật. Mỗi luật sinh ra từ một lần vấp có thật; câu trong ngoặc kép",
+        "là nguyên văn của dantt, giữ nguyên vì câu gốc đắt hơn bản diễn giải.",
+        "",
+    ]
+    for m in muc:
+        d.append(f"## {m['title']}")
+        d.append("")
+        if m["summary"]:
+            d.append(f"_{m['summary']}_")
+            d.append("")
+        d.append(m["than"])
+        d.append("")
+    return "\n".join(d).rstrip() + "\n"
+
+
+def main():
+    muc = gom()
+    if not muc:
+        print("brain-agent-feedback: không có note nào scope: agent", file=sys.stderr)
+        return 1
+
+    noi_dung = render(muc)
+
+    if "--ghi" not in sys.argv and "--day" not in sys.argv:
+        sys.stdout.write(noi_dung)
+        return 0
+
+    RA.parent.mkdir(parents=True, exist_ok=True)
+    RA.write_text(noi_dung, encoding="utf-8")
+    print(f"brain-agent-feedback: {len(muc)} luật -> {RA} ({len(noi_dung)} ký tự)")
+
+    if "--day" not in sys.argv:
+        return 0
+
+    # Ghi vao /tmp roi moi cp bang sudo: /home/agent la 750 agent:agent, dantt khong vao duoc.
+    tam = "/tmp/feedback-tu-brain.md"
+    r = subprocess.run(["scp", "-q", str(RA), f"{VM}:{tam}"])
+    if r.returncode != 0:
+        print("brain-agent-feedback: scp lỗi — bỏ qua, lần sau thử lại", file=sys.stderr)
+        return 0
+    lenh = (
+        f"sudo -n cp {tam} {DICH_VM} && sudo -n chown agent:agent {DICH_VM} "
+        f"&& sudo -n -u agent bash -lc 'cd ~/knowledge && git add -A && "
+        f"git -c user.email=dantt1003@gmail.com -c user.name=dantt "
+        f'commit -q -m "feedback: dong bo tu brain" || true\''
+    )
+    r = subprocess.run(["ssh", VM, lenh])
+    print("brain-agent-feedback: đã đẩy sang VM" if r.returncode == 0 else "brain-agent-feedback: đẩy VM lỗi")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Agent chỉ tạo MR — người bấm merge là user
 summary: Ở repo project của Avada, agent dừng lại ở bước tạo MR; quyết định merge (và deploy theo sau) là của user, kể cả khi gate xanh và verifier PASS.
 tags: [feedback, avada, skills]

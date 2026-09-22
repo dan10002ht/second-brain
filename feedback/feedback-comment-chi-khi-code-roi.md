@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Chỉ comment khi code rối — code đọc hiểu được thì đừng comment
 summary: User cắt comment thừa trong code fix CLS; giữ comment ngắn đúng chỗ có magic number hoặc lý do không suy ra được từ code, bỏ phần diễn giải lại thứ code đã nói.
 tags: [feedback, method, js, avada]

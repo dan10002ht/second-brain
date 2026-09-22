@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Tên nhánh — không mã ticket, tối đa 3 từ sau dấu `/`
 summary: Đặt tên nhánh `feature/payment-reminder`, không nhét `SB-xxxx` và không quá 3 từ sau dấu `/`.
 tags: [feedback, avada, skills]

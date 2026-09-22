@@ -1,5 +1,6 @@
 ---
 type: feedback
+scope: agent
 title: Feature mới phải opt-in — mặc định tắt, nhất là khi nó gửi mail thay merchant
 summary: Default của một feature mới là `enabled: false`; khách cũ không bao giờ được tự nhiên bật một hành vi gửi mail ra ngoài mà họ chưa đồng ý.
 tags: [feedback, avada, shopify, saas]
