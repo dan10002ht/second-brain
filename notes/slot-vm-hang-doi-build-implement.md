@@ -74,6 +74,33 @@ Credential Shopify của pdf **đã nằm sẵn trên VM** trong `packages/funct
 slot (sinh từ biến CI/CD `STAGING<N>_FUNCTIONS_ENV`) — chỉ khác tên: repo gọi `SHOPIFY_SECRET`,
 slotctl đòi `SHOPIFY_API_SECRET`. Không phải đi xin secret, chỉ phải đọc kỹ chỗ đã có.
 
+## App Shopify của slot là app RIÊNG ("app VM Staging"), không phải app staging thật
+
+Đây là thứ suýt sai im lặng. Ngày 21/09 tôi sinh `.env.shopify` cho slot pdf bằng cách copy
+`SHOPIFY_API_KEY` từ `packages/functions/.env.local` của chính slot — nhưng file đó mang key của
+**app staging thật**. Slot chạy được, không báo gì, chỉ là đang đóng vai sai app.
+
+Bốn slot dùng bốn app Shopify riêng. Nguồn key: `~/projects/my-brain/.env.local` trên máy dantt
+(trong `.gitignore`, không commit), đặt tên `SUBSCRIPTION_VM3/VM4_*` và `PDF_VM3/VM4_*`, mỗi app
+có `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET`, `AUTOMATION_TOKEN`.
+
+Cách kiểm nhanh mà không lộ giá trị: so `sha256 | cut -c1-12` của key trên VM với key trong file.
+
+**Phải sửa HAI chỗ cho pdf, không phải một:**
+
+| File | Ai đọc |
+|---|---|
+| `/srv/slots/<id>/.env.shopify` | `slotctl` (gate, sinh toml, truyền env cho emulator) |
+| `packages/functions/.env.local` | chính functions lúc chạy, vì pdf đọc **dotenv** |
+
+Sửa mỗi `.env.shopify` thì slot vẫn chạy bằng app sai mà không có dấu hiệu nào.
+
+`shopify.app.toml` của pdf **bị gitignore** (bản gốc nằm ở CI var `PROD_APP_TOML`/`STAGING<N>_APP_TOML`),
+nên slot không có mẫu để `sinhTomlSlot` dựa vào — lấy từ `~/projects/pdf/shopify.app.staging-<n>.toml`
+đặt thành `shopify.app.toml` trong repo slot. Và tên app phải **suy từ toml gốc**, không hardcode:
+bản cũ luôn ghi "Joy Subscription VM …" nên app pdf sẽ mang tên app subscriptions trong Partner
+dashboard, chỉ lộ ra khi có người mở dashboard đọc.
+
 ## Ràng buộc mới là đĩa, đúng như dự đoán
 
 Sau khi install `sub-s4` + `pdf-s4`: `/srv` còn 5,4GB / 48GB (89%). RAM không còn là thứ chặn —
