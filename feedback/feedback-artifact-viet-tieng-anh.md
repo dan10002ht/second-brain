@@ -1,10 +1,11 @@
 ---
 type: feedback
+scope: agent
 title: Artifact viết tiếng Anh, trả lời user bằng tiếng Việt
 summary: Commit message, tiêu đề/mô tả MR và comment trong code phải viết bằng tiếng Anh; chỉ phần đối thoại với dantt mới dùng tiếng Việt — ranh giới là "thứ nằm lại trong repo" chứ không phải "thứ khách nhìn thấy".
 tags: [feedback, method, writing]
 created: 2026-09-08
-updated: 2026-09-08
+updated: 2026-09-23
 source: project `subscriptions` (worktree `feat/tielenergy-custom`) — session history
 ---
 
@@ -20,6 +21,17 @@ MR, comment là **artifact**, không phải tin nhắn. Đây rộng hơn quy t�
 [[subscription-work-style]] ("text hướng tới khách phải tiếng Anh"): ranh giới không phải *khách có
 nhìn thấy không*, mà là **thứ đó có nằm lại trong repo/GitLab không**. Sửa sau tốn thêm một vòng
 amend + force push, và với MR đã có reviewer thì nó là nhiễu cho người khác.
+
+Cùng một luật, nói theo **bề mặt** thay vì theo người viết:
+
+| Bề mặt | Ngôn ngữ |
+|---|---|
+| Git / GitLab — commit, tên nhánh, MR title, MR description, comment trong code | **tiếng Anh** |
+| Người Việt trong team đọc — Slack, tóm tắt cho CS/PO, chat với dantt | **tiếng Việt có dấu** |
+
+Trường nào chảy vào cả hai bề mặt thì **tách làm hai trường**, đừng dịch ở phút cuối. Agent VM tách
+`rootCause` (đăng Slack, tiếng Việt) khỏi `rootCauseEn` (mô tả MR, tiếng Anh) đúng vì lý do này —
+trước 23/09 nó chỉ có một trường tiếng Việt và mọi MR agent mở ra đều tiếng Việt cả title lẫn body.
 
 **How to apply:** mặc định viết tiếng Anh cho commit message (giữ format `type - role - scope`),
 title + description MR, comment và docblock trong code, tên biến/hằng. Dùng tiếng Việt cho: trả lời
