@@ -4,7 +4,7 @@ title: MOC ticket-mcrsv — bản đồ chủ đề repo đặt vé microservice
 summary: **MOC**: điểm vào theo chủ đề cho cụm `ticket-mcrsv` (toàn bộ digest + decision liên quan) — nghiệp vụ vé, hạ tầng/CI, bảo mật, quy trình agent/verifier; mỗi dòng nói KHI NÀO mở note đó.
 tags: [moc, backend, architecture, debug]
 created: 2026-09-01
-updated: 2026-09-16
+updated: 2026-09-23
 source: [[digest-ticket-mcrsv-2026-08-11]] · [[digest-ticket-mcrsv-2026-08-31]] · [[2026-08-11-ban-do-tai-k3d-k6]] · [[2026-08-25-ticket-phat-hanh-luc-confirm-reservation]]
 ---
 
@@ -127,6 +127,13 @@ outbox, Kafka), là nơi thử nghiệm quy trình agent/lane/verifier.
   hành vi đó — `failed` là kết quả hợp lệ, không phải worker làm dở. Kèm `rake` bị lật dấu sống từ V1
   (độ lớn đúng nên mọi phép kiểm độ cao đều xanh), `[⏳]` là trạng thái vô hình không lọt vào cả lượt
   quét "đang mở" lẫn "đã xong", và cơ chế chờ của Orca mất khả năng chặn sau khi waiter nền bị kill.
+- [[digest-ticket-mcrsv-2026-09-23]] — mở khi **đọc một chỉ dẫn điều tra cũ trong `BRIEF.md`**: mục
+  điều tra của `H71` trỏ vào route và hai test đã bị `B24` xoá 5 ngày sau phép đo sinh ra nó — cách
+  xử đúng là gạch ngang kèm bằng chứng, không xoá dòng. Kèm ~180 vòng loop rỗng trong 12 tiếng vì
+  blocker nằm ngoài repo (Colima tắt, k3d/helm chưa có), đúng ca mà luật tự-dừng đã mô tả.
+- [[tieu-chi-boolean-chiu-duoc-may-ban]] — mở khi **hàng đợi task bị chặn vì máy hết tài nguyên**:
+  task boolean chỉ chậm đi, task thống kê ra số sai mà vẫn trông hợp lệ — tách hai loại thay vì
+  treo cả lô. (Khái quát hoá từ `145` vs `97`/`137`.)
 - [[con-so-trong-tieu-chi-phai-kem-cach-do]] — mở **trước khi viết một con số vào done-criteria**:
   bốn lần trong chính repo này, con số ai cũng tin hoá ra chưa bao giờ được đo. (Khái quát hoá từ
   F33/F35/F48/F56.)

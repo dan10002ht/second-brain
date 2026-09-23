@@ -4,6 +4,7 @@ title: Shipped subscriptions — 2026-09-23 (commit landed 22/09: !2595 + v2.35.
 summary: Master nhận 4 merge (!2595 không tag, `v2.35.57`→`v2.35.59`) — command migrate fixed bundle quét hết cycle edit, [deploy-extensions] reward theo mốc tổng số lượng món, editor thuộc tính giao hàng Bird + ô tìm khách, và landing joyxjoy đẩy sold-out xuống cuối kèm nút Get notified gọi thẳng Klaviyo client API; vòng 4 fix portal Wholefoods và nhánh Win Back (kéo Polaris lên 13.9.5) vẫn chưa lên master.
 tags: [subscription, shopify, avada, backend, storefront, extensions, polaris, firestore]
 created: 2026-09-23
+updated: 2026-09-23
 source: repo `subscriptions` — git log 2026-09-22 (mọi hash trong note là hash thật)
 ---
 
@@ -20,7 +21,7 @@ từng thay đổi nằm ở các digest được link ở cuối. Kỳ trước
 | — | !2595 | `06939d16b` | `fix - be - migrate contract fixed bundle: quét hết cycle edit thay vì 2 index`. Đây chính là bản `--clear-cycle-edits` mà [[shipped-subscriptions-2026-09-17]] ghi là "vẫn trên nhánh" — nay đã merge. |
 | `v2.35.57` | !2600 | `48c044b4e` | **[deploy-extensions]** `feat - be - reward: condition total_items_quantity_milestone (SB-16816)`. Trên nhánh `feat/reward-qty-milestone-be`: `681d424f4` đặt **trần 1000 doc** cho các query aggregate của reward và cảnh báo khi chạm trần (`rewardQueryLimit.js` + 2 file test, sửa `orderRepository` và `subscriptionContractRepository`); `2362d3d87` tách helper doc id ra khỏi `subscriberRewardRepository`; `0313c7949` là commit `add todo` thuần. |
 | `v2.35.58` | !2591 | `ea5adbb95` | `feat - subscriptions: Bird delivery attribute editor + customer search`. `7103a0a50` (+2898 dòng, 56 file) khoá key của provider nhưng giữ value sửa được **có kiểu**: method/location/postal code/timezone/weekday lấy từ Bird, date dùng picker làm xám ngày Bird không giao được và chặn quá khứ; chọn location điền một lượt address + name + id + postal code + timezone; chọn weekday kéo ngày về ngày mở gần nhất; mọi select vẫn có lối thoát "add custom value". BE thêm `POST /integrations/bird/delivery-options` dò xem shop bật method nào (method tắt trả *"config not found"*). Kèm combobox tìm khách ở trang tạo subscription. `aa9930ffc` là vòng dọn theo todo của @damhv: gom const vào `const/`, helper thuần vào `helpers/`, kéo resolution contract lines/zip từ controller xuống `birdService`. |
-| `v2.35.59` | !2630 | `011c1729c` | `feat - fe/storefront - landing Joy Wholefoods: sold-out xuống cuối, nút Get notified gọi Klaviyo BIS` (`ef8c0f908`). Xem [[decision-klaviyo-back-in-stock-goi-thang-client-api-2026-09-23]] cho phần đổi hướng. |
+| `v2.35.59` | !2630 | `011c1729c` | `feat - fe/storefront - landing Joy Wholefoods: sold-out xuống cuối, nút Get notified gọi Klaviyo BIS` (`ef8c0f908`). Xem [[2026-09-23-klaviyo-bis-goi-thang-client-api]] cho phần đổi hướng. |
 
 ### Chi tiết !2630 (landing joyxjoy)
 

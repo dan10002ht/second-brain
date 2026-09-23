@@ -4,6 +4,7 @@ title: Get notified trên landing joyxjoy — widget tự dựng modal, gọi th
 summary: Bỏ hướng tái dùng form back-in-stock của theme (`openForm`) trên landing joyxjoy; widget tự dựng modal và POST thẳng `/client/back-in-stock-subscriptions/` của Klaviyo với variant id đo được từ PDP, vì một trang chỉ mang được MỘT product context còn landing hiện hàng trăm sản phẩm khác variant.
 tags: [subscription, shopify, avada, storefront, marketing-automation]
 created: 2026-09-23
+updated: 2026-09-23
 review: 2026-12-23
 source: repo `subscriptions` — commit `ef8c0f908` (MR !2630, merge `011c1729c`, tag `v2.35.59`), đo trên production
 ---
@@ -68,7 +69,8 @@ product context**, còn landing hiện hàng trăm sản phẩm khác variant. M
 - Nút trên collection page của theme đã được vá chưa, hay vẫn nuốt email?
 - Klaviyo có phát hành API/SDK chính thức nhận variant không — nếu có, phần tự viết nên co lại.
 
-Liên quan: [[subscriptions]] · [[shipped-subscriptions-2026-09-23]] (cùng đợt, ở `00-inbox/`) ·
+Liên quan: [[subscriptions]] · [[shipped-subscriptions-2026-09-23]] (cùng đợt) ·
+[[digest-subscriptions-2026-09-23]] ·
 [[2026-09-16-landing-doi-nguon-lap-sang-collection-list]] ·
 [[2026-09-18-cta-product-page-giu-add-to-cart-cua-theme]] ·
 [[ack-khong-phai-hieu-ung]] · [[fixture-khong-phai-hop-dong-du-lieu]] ·
