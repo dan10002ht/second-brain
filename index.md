@@ -427,6 +427,7 @@ _Mỗi ngày 1 file `YYYY-MM-DD.md`. Không liệt kê từng ngày ở đây �
 - [[feedback-artifact-viet-tieng-anh]] — Commit message, tiêu đề/mô tả MR và comment trong code phải viết bằng tiếng Anh; chỉ phần đối thoại với dantt mới dùng tiếng Việt — ranh giới là "thứ nằm lại trong repo" chứ không phải "thứ khách nhìn thấy".
 - [[feedback-trich-code-nguyen-van]] — tôi viết một dòng code "rút gọn cho dễ đọc" trong tin nhắn, user đọc nó như code thật trong repo và mất một lượt đi tranh luận về dòng không hề tồn tại.
 - [[feedback-chi-tao-mr-user-merge]] — Ở repo project của Avada, agent dừng lại ở bước tạo MR; quyết định merge (và deploy theo sau) là của user, kể cả khi gate xanh và verifier PASS.
+- [[feedback-agent-khong-phat-tin-hieu-done]] — Agent mở MR nháp xong thì báo trạng thái đó thôi, không thả ✅ hay viết chữ "done" lên ticket; quyền chốt ticket done thuộc về bên TS, và một tín hiệu done giả làm ticket bị đóng khi chưa ai review.
 - [[feedback-bao-gio-theo-gio-vn]] — Mọi mốc thời gian nói với user phải quy về Asia/Ho_Chi_Minh (UTC+7); nếu giữ giờ gốc của công cụ thì phải ghi rõ đó là UTC.
 - [[feedback-claude-dieu-phoi-codex-implement]] — Khi lane codex hỏng thì sửa nguyên nhân rồi giao lại đúng vai, không tự chuyển sang subagent Claude viết code — mất luôn lớp chấm chéo giữa hai họ model.
 - [[feedback-audit-code-doc-tu-nhanh-prod]] — kết luận về "code hiện đang thế nào" chỉ có giá trị nếu đọc từ `origin/master`; worktree đang mở thường là nhánh feature đã lệch hàng trăm commit và sẽ báo bug đã fix là còn nguyên.
