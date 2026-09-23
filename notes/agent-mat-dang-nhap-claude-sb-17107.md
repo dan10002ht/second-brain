@@ -51,13 +51,30 @@ Dấu hiệu nhận ra loại lỗi này mà không cần đọc code: thời gi
 việc thường mất vài phút) và **chi phí bằng 0**. Hai con số đó nói "chưa từng gọi model", tức lỗi
 nằm trước khi công việc bắt đầu — hạ tầng, không phải nội dung case.
 
+## Cách đăng nhập lại — ba cái bẫy liên tiếp
+
+1. **`/login` không chạy headless** ("`/login` isn't available in this environment") và phiên
+   Claude Code không cấp TTY thật. Phải mở Terminal riêng: `ssh -t dantt-solar`.
+2. **`sudo -u agent` chạy trên máy Mac báo "unknown user agent"** — user đó chỉ có trên VM. Phải
+   `ssh` vào trước rồi mới `sudo`.
+3. **Login thành công nhưng rơi vào sai user.** Kiểm bằng mtime: sau lượt login,
+   `/home/dantt/.claude/.credentials.json` mới (509B) còn `/home/agent/...` vẫn rỗng 243B. Token
+   nằm ở user không chạy triage thì vô dụng.
+
+Giả thiết ban đầu của tôi — "hai user dùng chung tài khoản nên refresh token bị thu hồi chéo" —
+**sai**. Token của `dantt` trên VM đã chết từ 2026-08-25, chỉ chưa bị CLI dọn vì user đó không
+chạy `claude` trên VM. Đơn giản là phiên hết hạn, không ai làm mới.
+
+Đã xử lý bằng cách copy credentials của `dantt` sang `agent` (chọn nhanh, chấp nhận dùng chung
+một refresh token). Đường sạch hơn nếu lặp lại: `claude setup-token` dưới chính user `agent` —
+token dài hạn, không hết hạn theo phiên, hợp máy chạy 24/7.
+
 ## Còn treo
 
-- Đăng nhập lại: `sudo -u agent -i bash -c 'cd /srv/agent && claude /login'` (cần trình duyệt).
-- `dantt` và `agent` dùng chung một tài khoản Claude Max. Nếu refresh token bị xoay vòng và thu
-  hồi bản cũ, bên không dùng sẽ rụng. Lặp lại lần nữa thì đó là bằng chứng, và hướng xử lý là cho
-  `agent` credential riêng.
-- Chưa có cảnh báo sớm: hiện phải mất một case mới biết. `morning-report` kiểm được việc này.
+- Chưa có cảnh báo sớm: hiện phải mất một case mới biết. `morning-report` kiểm được việc này
+  bằng một lần `claude -p` rẻ tiền mỗi sáng.
+- Hai user vẫn dùng chung một refresh token — nếu rụng lần nữa thì đó mới là bằng chứng cho giả
+  thiết thu hồi chéo.
 
 ## Liên quan
 
