@@ -1,7 +1,7 @@
 ---
 type: note
 title: Order stuck Processing vì 3DS pending — webhook không bao giờ tới
-summary: Attempt có ready:false mà không orderId và không errorCode là đang CHỜ 3DS (ActionRequired), Shopify không gửi webhook cho ca này nên app phải poll subscriptionBillingAttempt; Joy không poll, không lưu id attempt, và fragment billingCycle thiếu nextActionUrl + processingError nên mọi chẩn đoán đọc từ Firestore đều mù.
+summary: Attempt có ready:false mà không orderId và không errorCode là đang CHỜ 3DS (ActionRequired), Shopify không gửi webhook cho ca này nên app phải poll subscriptionBillingAttempt; Joy không poll, không lưu id attempt, fragment billingCycle thiếu nextActionUrl + processingError nên đọc Firestore là mù — và tới ngày đáo hạn cron tự set processed:true rồi skip im lặng nên đơn chết hẳn, trong khi xoá attempt lúc link 3DS còn sống là double charge.
 tags: [avada, subscription, billing, shopify, gotcha]
 created: 2026-09-24
 updated: 2026-09-24
@@ -24,6 +24,42 @@ có gì để poll bằng.
 lấy `idempotencyKey, errorMessage, errorCode, createdAt, completedAt, order{id}, ready` —
 **thiếu `nextActionUrl` và `processingError`**. Hai trường đó là thứ duy nhất phân biệt
 "đang chờ 3DS" với "chưa tới hạn". Không query thẳng Shopify thì không thể thấy.
+
+## Đơn không chỉ "kẹt" — nó bị giết vĩnh viễn vào đúng ngày đáo hạn
+
+`processAutomaticBillingAttempt` gọi `batchMarkOrdersProcessed(...)` **trước khi** xử lý
+(`services/cron/automaticBillingAttemptService.js:31`). Tới ngày đáo hạn:
+
+1. Cron nhặt đơn (lúc này `ready:true`, `processed:false`, `status:UNBILLED` nên vẫn lọt query).
+2. Set `processed: true`.
+3. Guard thấy attempt 3DS pending → skip **im lặng**.
+
+Sau bước đó `getOnScheduledOrders` (lọc `processed == false`) không bao giờ nhặt lại nữa.
+Nên **thời điểm gỡ quan trọng hơn cách gỡ**: gỡ trước ngày đáo hạn thì gọn, sau đó thì phải
+reset `processed` bằng tay.
+
+Cộng thêm: `SCHEDULED_ORDER_LOOKBACK_MS = 7 ngày` (`repositories/orderRepository.js:47`).
+Gỡ muộn quá 7 ngày kể từ `billingAttemptExpectedDate` thì cron cũng không nhặt —
+phải dời luôn ngày thu.
+
+> Script `fixStuckProcessingOrder.js` sẵn có **không** reset `processed` và **không** dời
+> expected date → chạy nguyên si sau ngày đáo hạn là "gỡ" xong mà đơn vẫn chết.
+
+## Xoá attempt khi link 3DS còn sống = double charge
+
+Attempt mới sinh `idempotencyKey` khác nên **Shopify không dedupe được**. Nếu xoá attempt
+pending để mở đường cho cron, rồi khách mới bấm link auth cũ → thu tiền hai lần.
+
+Thứ tự đúng: gửi khách `nextActionUrl` trước, chỉ unstick khi khách không làm / link đã hết hạn.
+
+## Bằng chứng email 3DS chết (đo được, không phải suy luận)
+
+BigQuery `firestore_sync.email_logs`, `email_type = 'verify3dsSecureEmail'` →
+**0 dòng, mọi shop, mọi thời điểm**. Dùng bảng này để kiểm "email có thật sự gửi không"
+thay vì đọc code đoán — [[bang-chung-phan-biet-duoc]].
+
+Và nhớ: **Shopify mới là bên gửi mail xác thực 3DS cho khách**, email của app chỉ là lớp
+nhắc bổ sung. Đừng quy "khách không được báo" cho việc email app chết.
 
 ## Hai cái bẫy chẩn đoán
 
@@ -71,3 +107,5 @@ Shopify — xem [[feedback-debug-phai-query-data-that]].
 
 ## Liên quan
 - [[verify-checkout-theo-nhanh-do-sai]] · [[feedback-debug-phai-query-data-that]] · [[feedback-bug-la-bug-khong-cho-po-chot]]
+- [[subscriptions]] · [[bang-chung-phan-biet-duoc]] · [[ack-khong-phai-hieu-ung]] ·
+  [[script-pha-du-lieu-tu-choi-flag-la]] (script gỡ kẹt cũng là script phá dữ liệu)

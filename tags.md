@@ -21,7 +21,8 @@
 - `nextjs` · `headless` · `storefront` · `extensions` · `cdn` · `webpack` · `vite` · `flutter` · `localstack` · `artifacts`
 
 ## Cấu trúc / hoạt động
-- `area` · `project` · `debug` · `dsa` · `algorithms` · `interview` · `practice` · `memory` · `avada` · `skills`
+- `area` · `project` · `debug` · `gotcha` · `dsa` · `algorithms` · `interview` · `practice` · `memory` · `avada` · `skills`
+- `git` (kỷ luật nhánh/commit/verify theo nhánh)
 - `agent` · `support` · `automation`
 
 ## Ghi chú

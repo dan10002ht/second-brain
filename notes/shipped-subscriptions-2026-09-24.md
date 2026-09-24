@@ -4,6 +4,7 @@ title: Shipped subscriptions — 2026-09-24 (commit landed 23/09: !2578 + !2429,
 summary: Master chỉ nhận 2 merge, cả hai mang [deploy-extensions] và không kèm commit bump version — nhúng customer portal vào account page của Froonze (!2578, đóng vòng đã mở từ 17/09) và chuyển `readHandlers` từ CommonJS sang ESM (!2429, một MR rất cũ); ba nhánh portal vẫn treo, trong đó `backfillParentOnlyContracts.js` (+293 dòng) mới chỉ nằm trong stash và CI staging 1 đã bị trỏ khỏi master.
 tags: [subscription, shopify, avada, backend, storefront, extensions, caching]
 created: 2026-09-24
+updated: 2026-09-24
 source: repo `subscriptions` — git log 2026-09-23 (mọi hash trong note là hash thật, lấy từ log có decoration)
 ---
 
@@ -106,6 +107,6 @@ Liên quan: [[subscriptions]] · [[shipped-subscriptions-2026-09-23]] · [[shipp
 [[shipped-subscriptions-2026-09-17]] · [[digest-subscriptions-2026-09-23]] ·
 [[2026-09-21-fixed-bundle-con-them-luc-order-create]] · [[gia-0-tren-dong-con-lam-mat-thong-tin]] ·
 [[khong-cache-response-co-auth]] · [[caching-layers]] · [[extension-khong-gioi-han-theo-shop]] ·
-[[cau-extension-chay-that-tren-store]] · [[bang-chung-phan-biet-duoc]]
-</content>
-</invoke>
+[[cau-extension-chay-that-tren-store]] · [[bang-chung-phan-biet-duoc]] ·
+[[digest-subscriptions-2026-09-24]] · [[2026-09-24-parent-only-xoa-het-dong-con]] ·
+[[script-pha-du-lieu-tu-choi-flag-la]]
