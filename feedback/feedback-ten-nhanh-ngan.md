@@ -20,6 +20,13 @@ Tên nhánh **không mang mã ticket** (`SB-15301`, `JSUB-...`) và **không qu�
 ở tên nhánh chỉ làm dòng `git branch` dài ra mà không thêm thông tin. Tên dài cũng khiến
 một feature bị xé thành nhiều nhánh gần-giống-nhau, khó đọc khi liệt kê.
 
+**Ngoại lệ — nhánh do hệ thống tạo sẵn thì KHÔNG đổi tên.** Nếu bạn được giao việc trong một
+worktree mà nhánh đã có sẵn (agent support trên VM tạo `agent/<mã-ticket>`), tên đó là **khoá
+liên kết** giữa bản ghi case và git — đổi nó là làm đứt liên kết. Luật ngắn-gọn này áp cho nhánh
+**bạn tự tạo**, không áp cho nhánh người/máy khác đã đặt. Đã vấp thật (SB-17166, 24/09): codex
+`git branch -m agent/SB-17166 → fix/stale-billing-attempts`, thế là bước verify checkout theo tên
+nhánh cũ thất bại, đo lại đúng commit chưa sửa, và chặn oan một MR có test xanh 42/42.
+
 **How to apply:** đặt tên trước khi tạo nhánh, không đợi đổi sau. Nếu đã trót đặt dài mà
 **chưa push**, `git branch -m` là an toàn — commit hash không đổi; nhớ cập nhật lại tên
 nhánh ở `BRIEF.md` và các ghi chú đang trỏ tới nó. Đã push rồi thì để nguyên, đừng đổi.
